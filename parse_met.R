@@ -7,51 +7,46 @@ library(scattermore)
 
 
 # read files to one df
-read_status <- function(file) {
+read_met <- function(file) {
    lines <- readLines(file)
-   lines[grep('S:', lines)]
+   lines[grep('M:', lines)]
 }
 
-parse_status <- function(files) {
-  status_lines <- map(files, read_status) |> 
+parse_met <- function(files) {
+  met_lines <- map(files, read_met, .progress = TRUE) |> 
     reduce(c) |> 
-    str_remove("^.*S:")
+    str_remove("^.*M:")
   
-  status = read_csv(I(status_lines), col_names = c("hour", "min", "sec", "day", "month", "year", 
-                                                   "vmin", "vsec", "vday", "vhour", "vyear", "vmo",
-                                                   "bat", "ss", "head", "pitch", "roll", "temp", 
-                                                   "empty", "CR", "BV", "PWR")) |> 
+  met = read_csv(I(met_lines), col_names = c("hour", "min", "sec", "day", "month", "year", 
+                                                   "par", "wind_speed", "wind_dir")) |> 
     filter(year == 2023) |>
     mutate(ts = make_datetime(year = year, month = month, day = day,
-                              hour = hour, min = min, sec = sec),
-           bat = bat * .1)
+                              hour = hour, min = min, sec = sec))
 }
-
-# list files
-file_dir <- "C:/Users/brett/Desktop/LECS_2023/LECS_Lander/SDHC"
-files <- list.files(file_dir, pattern = "^2023", full.names = TRUE)
-
-status <- parse_status(files)
-
-write_csv(status, "lander_status.csv")
-
-status_cl <- status |> 
-  filter(bat > 10 & bat < 15)
-
-ggplot(status_cl, aes(ts, bat)) +
-  geom_scattermore()
 
 # list files
 file_dir <- "C:/Users/brett/Desktop/LECS_2023/LECS_Surface/SDHC"
 files <- list.files(file_dir, pattern = "^2023", full.names = TRUE)
 
-status <- parse_status(files)
+met <- parse_met(files)
 
-write_csv(status, "surface_status.csv")
+write_csv(status, "surface_met.csv")
 
-status_cl <- status |> 
-  filter(month < 6, 
-         bat > 10 & bat < 15)
+ggplot(met, aes(ts, par)) +
+  geom_scattermore()
 
-ggplot(status_cl, aes(ts, bat)) +
+met |> 
+  filter(ts > "2023-05-08") |> 
+ggplot(aes(ts, par)) +
+  geom_scattermore()
+
+ggplot(met, aes(ts, wind_speed)) +
+  geom_scattermore()
+
+met |> 
+  filter(ts > "2023-05-08") |> 
+ggplot(aes(ts, wind_speed)) +
+  geom_scattermore()
+
+ggplot(met, aes(ts, wind_dir)) +
   geom_scattermore()
