@@ -13,7 +13,7 @@ read_status <- function(file) {
 }
 
 parse_status <- function(files) {
-  status_lines <- map(files, read_status) |> 
+  status_lines <- map(files, read_status, .progress = TRUE) |> 
     reduce(c) |> 
     str_remove("^.*S:")
   

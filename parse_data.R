@@ -13,7 +13,7 @@ read_data <- function(file) {
 }
 
 parse_data <- function(files) {
-  data_lines <- map(files, read_data) |> 
+  data_lines <- map(files, read_data, .progress = TRUE) |> 
     reduce(c) |> 
     str_remove("^D:")
   
