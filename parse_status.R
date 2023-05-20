@@ -2,30 +2,8 @@
 # concatenate LECS SD data files
 
 library(tidyverse)
-library(lubridate)
+library(mlabtools)
 library(scattermore)
-
-
-# read files to one df
-read_status <- function(file) {
-   lines <- readLines(file)
-   lines[grep('S:', lines)]
-}
-
-parse_status <- function(files) {
-  status_lines <- map(files, read_status, .progress = TRUE) |> 
-    reduce(c) |> 
-    str_remove("^.*S:")
-  
-  status = read_csv(I(status_lines), col_names = c("hour", "min", "sec", "day", "month", "year", 
-                                                   "vmin", "vsec", "vday", "vhour", "vyear", "vmo",
-                                                   "bat", "ss", "head", "pitch", "roll", "temp", 
-                                                   "empty", "CR", "BV", "PWR")) |> 
-    filter(year == 2023) |>
-    mutate(ts = make_datetime(year = year, month = month, day = day,
-                              hour = hour, min = min, sec = sec),
-           bat = bat * .1)
-}
 
 # list files
 file_dir <- "C:/Users/brett/Desktop/LECS_2023/LECS_Lander/SDHC"

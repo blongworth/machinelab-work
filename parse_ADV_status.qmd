@@ -6,43 +6,16 @@ editor: source
 
 ```{r}
 library(tidyverse)
+library(mlabtools)
 library(lubridate)
 library(dygraphs)
 library(xts)
-
-#' Timeseries plot
-#'
-#' Converts the given parameter to a timeseries
-#' and plots with `dygraphs`
-#'
-#' @param data A dataframe
-#' @param field Character string of name of column.
-#' @param timestamp Character string of name timestamp column.
-#'
-#' @return Timeseries plot
-#' @export
-#'
-plot_ts <- function(data, field, timestamp = "timestamp", title = field, GMT = TRUE) {
-  field_ts <- xts::as.xts(data[[field]], data[[timestamp]])
-  dygraphs::dygraph(field_ts, main = title) |>
-    dygraphs::dyOptions(useDataTimezone = TRUE) |>
-    dygraphs::dyRangeSelector()
-}
 ```
 
 ```{r}
-df <- read_fwf("data/22.sen")
-#col_types = c(day = 'i', month = 'i', 'year', 'hour', 'min', 'sec', 'error', 'status', 'X9', 'X10', 'X11', 'X12', 'X13', 'X14', 'X15', 'X16'))
-
 ts_offset <- 671628945
 
-df <- df |> 
-  mutate(ts = make_datetime(year = X3, month = X1, day = X2,
-                              hour = X4, min = X5, sec = X6,
-                            tz = "EDT"),
-         timestamp = ts + ts_offset,
-         bat = X9,
-         temp = X14)
+df <- read_adv_status("data/22.sen", ts_offset)
 ```
 
 ## Battery Voltage
