@@ -81,3 +81,77 @@ plot_ts(met, "wind_speed", timestamp = "ts")
 ```{r}
 plot_ts(met, "wind_dir", timestamp = "ts")
 ```
+
+# Lander SD Data
+
+Looking at single most recent 1h file.
+
+Missing packets
+
+Estimate missing packet fraction by looking at 0-255 count. Estimated 4% with python.
+
+```{r}
+ldr_data_missing <- ldr_data |> 
+  filter(count != 0) |> 
+  mutate(missed = ifelse(count == 1, 256 - lag(count), count - 1 - lag(count)))
+```
+
+Fraction missing
+
+```{r}
+sum(ldr_data_missing$missed, na.rm = TRUE) / length(ldr_data_missing$missed)
+```
+
+pH
+
+```{r}
+ggplot(ldr_data, aes(1:nrow(ldr_data), pH)) +
+  geom_line()
+```
+
+Estimate bad packet fraction with pH
+
+```{r}
+ldr_data_bad <- ldr_data |> 
+  mutate(bad = (pH > 8.4 | pH < 7.5))
+
+sum(ldr_data_bad$bad) / length(ldr_data_bad$bad)
+```
+
+pH without bad packets
+
+```{r}
+df <- ldr_data_bad |> 
+  filter(!bad)
+
+ggplot(df, aes(1:nrow(df), pH)) +
+  geom_line()
+```
+
+DO & temp
+
+These look OK.
+
+```{r}
+ggplot(ldr_data, aes(1:nrow(ldr_data), DO)) +
+  geom_line()
+```
+
+```{r}
+ggplot(ldr_data, aes(1:nrow(ldr_data), temp)) +
+  geom_line()
+```
+
+# Surface SD Status
+
+Data is very noisy. Pretty sure this is due to bad ADV packet reads. 
+
+```{r}
+bat_ts <- xts(sfc_status$bat, order.by = sfc_status$ts)
+bat_ts_res <- period.apply(bat_ts, endpoints(bat_ts, "mins"), FUN = mean)
+bat_ts_res <- bat_ts_res[bat_ts_res[,1] < 13 & bat_ts_res[,1] > 11,] # filter by voltage
+bat_ts_res <- bat_ts_res['2023-03-01/2023-11-01'] # filter by time
+dygraph(bat_ts_res) |> 
+  dygraphs::dyRangeSelector()
+```
+
