@@ -1,7 +1,7 @@
 ---
 title: "Parse LECS Web"
 format: html
-editor: visual
+editor: source
 ---
 
 Get and parse data sent to LECS website
@@ -12,6 +12,9 @@ Get and parse data sent to LECS website
 library(tidyverse)
 library(rvest)
 library(lubridate)
+
+# time offset in seconds
+ts_offset <- 671628945
 ```
 
 Extract table
@@ -61,22 +64,31 @@ status <- df |>
   mutate(X1 = str_remove(X1, "\\[\\d+\\]S:")) |> 
   separate(X1, 
            into = c('hour', 'min', 'sec', 'day', 'month', 'year',
-                        'adv_min', 'adv_sec', 'adv_day', 'adv_hour', 
-                        'adv_year', 'adv_month',
-                        'bat', 'soundspeed', 'heading', 'pitch', 
-                        'roll', 'temp', 'pump_current', 'pump_voltage', 'pump_power'),
+                    'adv_min', 'adv_sec', 'adv_day', 
+                    'adv_hour', 'adv_year', 'adv_month',
+                    'bat', 'soundspeed', 'heading', 'pitch', 
+                    'roll', 'temp', 
+                    'pump_current', 'pump_voltage', 'pump_power'),
            sep = ',') |>
   mutate(across(1:12, as.integer),
-         across(13:21, ~ as.numeric(.x) * .1)) |> 
-  mutate(timestamp = make_datetime(year, month, day, hour, min, sec, tz = "EDT"))
-  
+         across(13:21, ~ as.numeric(.x) * .1),
+         timestamp = make_datetime(year, month, day, hour, min, sec,
+                                   tz = "EDT"),
+         adv_timestamp = make_datetime(adv_year, adv_month, adv_day, adv_hour, adv_min, adv_sec, 
+                                       tz = "EDT"),
+         adv_timestamp_cor = adv_timestamp + ts_offset)
+
+status_qc <- status |> 
+  filter(soundspeed > 1450, 
+         adv_day < 32, adv_month > 0, adv_month < 13, adv_min < 61, 
+         adv_hour < 24, adv_year < 100)
 ```
 
+### Battery
+
 ```{r}
-status <- status |> 
-  filter(adv_day < 32, adv_month < 13, adv_min < 61, adv_hour < 24, adv_year < 100)
-status |> 
-  filter(bat < 15, bat > 0, year == 2023, month < 6) |> 
+status_qc |> 
+  filter(year == 2023, month < 6) |> 
 ggplot(aes(timestamp, bat)) + geom_line()
 ```
 
