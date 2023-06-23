@@ -133,3 +133,21 @@ adv_data_qc |>
 adv_data_qc |> 
   ggplot(aes(1:nrow(adv_data_qc), temp)) + geom_line()
 ```
+
+## Post times
+
+```{r}
+post_times <- df |> 
+  filter(str_starts(X1, "\\[\\d+\\]\\$")) |> 
+  mutate(X1 = str_remove(X1, "\\[\\d+\\]\\$")) |> 
+  separate(X1, 
+           into = c('hour', 'min', 'sec', 'day', 'month', 'year',
+                    'lat', 'lon'),
+           sep = ',') |>
+  mutate(across(1:6, as.integer),
+         across(7:8, as.numeric),
+         timestamp = make_datetime(year, month, day, hour, min, sec,
+                                   tz = "GMT"))
+
+```
+
