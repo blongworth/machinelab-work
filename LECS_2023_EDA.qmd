@@ -65,7 +65,7 @@ dygraph(temp_ts_res) |>
 Something's up with the PAR readings. Is this something electrical related to the 4h transmit cycles?
 
 ```{r}
-plot_ts(met, "par", timestamp = "ts")
+plot_ts(met, "par")
 ```
 
 ### Wind Speed
@@ -73,13 +73,13 @@ plot_ts(met, "par", timestamp = "ts")
 Wind speed and direction look OK, if a little noisy
 
 ```{r}
-plot_ts(met, "wind_speed", timestamp = "ts")
+plot_ts(met, "wind_speed")
 ```
 
 ### Wind Dir
 
 ```{r}
-plot_ts(met, "wind_dir", timestamp = "ts")
+plot_ts(met, "wind_dir")
 ```
 
 # Lander SD Data
@@ -149,19 +149,20 @@ Clean data by removing rows with impossible values
 
 ```{r}
 sfc_status_qc <- sfc_status |> 
-  filter(soundspeed > 1450, 
-         adv_day < 32, adv_month > 0, adv_month < 13, adv_min < 61, 
+  filter(adv_day < 32, adv_month > 0, adv_month < 13, adv_min < 61, 
          adv_hour < 24, adv_year < 100)
 ```
 
 ## Battery Voltage
 
 ```{r}
-bat_ts <- xts(sfc_status_qc$bat, order.by = sfc_status$ts)
+bat_ts <- xts(sfc_status_qc$bat, order.by = sfc_status_qc$timestamp)
 bat_ts_res <- period.apply(bat_ts, endpoints(bat_ts, "mins"), FUN = mean)
-#bat_ts_res <- bat_ts_res[bat_ts_res[,1] < 13 & bat_ts_res[,1] > 11,] # filter by voltage
+bat_ts_res <- bat_ts_res[bat_ts_res[,1] < 13 & bat_ts_res[,1] > 11,] # filter by voltage
 bat_ts_res <- bat_ts_res['2023-03-01/2023-11-01'] # filter by time
 dygraph(bat_ts_res) |> 
   dygraphs::dyRangeSelector()
 ```
+
+# Status messages
 
