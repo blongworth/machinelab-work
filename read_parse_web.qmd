@@ -29,6 +29,17 @@ df <- read_html("https://gems.whoi.edu/LECSrawdata/") |>
 Add D line timestamps
 
 ```{r, eval=FALSE}
+df_ts <- df |> 
+  mutate(type = str_match(X1, "\\[\\d+\\]([DMS$]):?")[,2],
+         line = str_match(X1, "\\[(\\d+)\\][DMS$]:?")[,2],
+         data = str_remove(X1, "\\[\\d+\\][DMS$]:?"))
+
+         #timestamp = if_else(type == S,
+                             ))
+```
+
+
+```{r, eval=FALSE}
 for (i in nrow(df)) {
   if (str_starts(df[[i,1]], "\\[\\d+\\]S:")) {
     line <- str_remove(df[[i,1]], "\\[\\d+\\]S:")
@@ -108,7 +119,7 @@ status_qc <- status |>
 
 ```{r}
 status_qc |> 
-  filter(year == 2023, month < 6) |> 
+  filter(year == 2023, month < 9) |> 
 ggplot(aes(timestamp, bat)) + geom_line()
 ```
 
@@ -126,7 +137,8 @@ adv_data <- df |>
                     'ana_in', 'ana_in2', 'pH', 
                     'temp', 'oxy'),
            sep = ',') |>
-  mutate(across(everything(), as.numeric))
+  mutate(across(everything(), as.numeric),
+         count = as.integer(count))
 
 adv_data_qc <- adv_data |> 
   filter(count >= 0, count < 256) 
@@ -152,6 +164,7 @@ adv_data_qc |>
 ### Missing data
 
 ```{r}
+
 # Need to group by upload session
 count <- adv_data |> 
   pull(count)
@@ -160,6 +173,24 @@ last_count <- count[(length(count)-150):length(count)]
 last_count
 count_missing(last_count)
 ```
+### Plot missingness
+
+Still need to take out end and beginning of 200 line send.
+
+```{r}
+adv_data <- adv_data |> 
+  mutate(missing = if_else(count > lag(count),
+                           count - 1L - lag(count),
+                           255L + count - lag(count),
+                           ))
+
+adv_data |> 
+  ggplot(aes(1:nrow(adv_data), missing)) +
+  geom_point() +
+  xlim(10000, nrow(adv_data)) +
+  ylim(0, 10)
+```
+
 
 
 ### temp
