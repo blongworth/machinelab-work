@@ -26,13 +26,14 @@ df <- read_html("https://gems.whoi.edu/LECSrawdata/") |>
   html_table()
 ```
 
-Add D line timestamps
+Add type and line number
 
 ```{r, eval=FALSE}
-df_ts <- df |> 
+df <- df |> 
   mutate(type = str_match(X1, "\\[\\d+\\]([DMS$]):?")[,2],
          line = str_match(X1, "\\[(\\d+)\\][DMS$]:?")[,2],
-         data = str_remove(X1, "\\[\\d+\\][DMS$]:?"))
+         data = str_remove(X1, "\\[\\d+\\][DMS$]:?")) |> 
+  select(type, line, data)
 ```
 
 
@@ -57,13 +58,13 @@ for (i in nrow(df)) {
 
 ```{r}
 met <- df |> 
-  filter(str_starts(X1, "\\[\\d+\\]M:")) |> 
-  mutate(X1 = str_remove(X1, "\\[\\d+\\]M:")) |> 
-  separate(X1, into = c('hour', 'min', 'sec', 'day', 'month', 'year', 'PAR', 'wind_speed', 'wind_dir'), sep = ',') |> 
-  mutate(across(1:6, as.integer),
-         across(7:9, as.numeric)) |> 
+  filter(type == "M") |> 
+  separate(data, 
+           into = c('hour', 'min', 'sec', 'day', 'month', 'year', 'PAR', 'wind_speed', 'wind_dir'), 
+           sep = ',') |> 
+  mutate(across(3:8, as.integer),
+         across(9:11, as.numeric)) |> 
   mutate(timestamp = make_datetime(year, month, day, hour, min, sec, tz = "EDT"))
-  
 ```
 
 ### PAR
@@ -88,9 +89,8 @@ ggplot(met, aes(timestamp, wind_dir)) + geom_line()
 
 ```{r}
 status <- df |> 
-  filter(str_starts(X1, "\\[\\d+\\]S:")) |> 
-  mutate(X1 = str_remove(X1, "\\[\\d+\\]S:")) |> 
-  separate(X1, 
+  filter(type == "S") |> 
+  separate(data, 
            into = c('hour', 'min', 'sec', 'day', 'month', 'year',
                     'adv_min', 'adv_sec', 'adv_day', 
                     'adv_hour', 'adv_year', 'adv_month',
@@ -98,8 +98,8 @@ status <- df |>
                     'roll', 'temp', 
                     'pump_current', 'pump_voltage', 'pump_power'),
            sep = ',') |>
-  mutate(across(1:12, as.integer),
-         across(13:21, ~ as.numeric(.x) * .1),
+  mutate(across(3:14, as.integer),
+         across(15:23, ~ as.numeric(.x) * .1),
          timestamp = make_datetime(year, month, day, hour, min, sec,
                                    tz = "EDT"),
          adv_timestamp = make_datetime(adv_year, adv_month, adv_day, adv_hour, adv_min, adv_sec, 
@@ -124,9 +124,8 @@ ggplot(aes(timestamp, bat)) + geom_line()
 
 ```{r}
 adv_data <- df |> 
-  filter(str_starts(X1, "\\[\\d+\\]D:")) |> 
-  mutate(X1 = str_remove(X1, "\\[\\d+\\]D:")) |> 
-  separate(X1, 
+  filter(type == "D") |> 
+  separate(data, 
            into = c('count', 'pressure', 
                     'x_vel', 'y_vel', 'z_vel',
                     'x_amp', 'y_amp', 'z_amp',
@@ -134,7 +133,7 @@ adv_data <- df |>
                     'ana_in', 'ana_in2', 'pH', 
                     'temp', 'oxy'),
            sep = ',') |>
-  mutate(across(everything(), as.numeric),
+  mutate(across(4:18, as.numeric),
          count = as.integer(count))
 
 adv_data_qc <- adv_data |> 
@@ -153,25 +152,14 @@ adv_data_qc |>
 ```{r}
 adv_data_qc |> 
   ggplot(aes(1:nrow(adv_data_qc), pH)) +
-  geom_line() +
-  xlim(12000, nrow(adv_data_qc)) +
-  ylim(0, 25000)
+  geom_line() #+
+  #xlim(12000, nrow(adv_data_qc)) +
+  #ylim(0, 25000)
 ```
 
 ### Missing data
 
-```{r}
-
-# Need to group by upload session
-count <- adv_data |> 
-  pull(count)
-
-last_count <- count[(length(count)-150):length(count)]
-last_count
-count_missing(last_count)
-```
-
-### Plot missingness
+#### Plot missingness
 
 Still need to take out end and beginning of 200 line send.
 
@@ -184,7 +172,7 @@ adv_data <- adv_data |>
 
 adv_data |> 
   ggplot(aes(1:nrow(adv_data), missing)) +
-  geom_point()# +
+  geom_point() #+
   #xlim(10000, nrow(adv_data)) +
   #ylim(0, 10)
 ```
