@@ -21,17 +21,17 @@ ts_offset <- 671628945
 Extract table
 
 ```{r}
-df <- read_html("https://gems.whoi.edu/LECSrawdata/") |> 
+df_raw <- read_html("https://gems.whoi.edu/LECSrawdata/") |> 
   html_node("table") |> 
   html_table()
 ```
 
 Add type and line number
 
-```{r, eval=FALSE}
-df <- df |> 
+```{r}
+df <- df_raw |> 
   mutate(type = str_match(X1, "\\[\\d+\\]([DMS$]):?")[,2],
-         line = str_match(X1, "\\[(\\d+)\\][DMS$]:?")[,2],
+         line = as.integer(str_match(X1, "\\[(\\d+)\\][DMS$]:?")[,2]),
          data = str_remove(X1, "\\[\\d+\\][DMS$]:?")) |> 
   select(type, line, data)
 ```
@@ -157,6 +157,13 @@ adv_data_qc |>
   #ylim(0, 25000)
 ```
 
+### temp
+
+```{r}
+adv_data_qc |> 
+  ggplot(aes(1:nrow(adv_data_qc), temp)) + geom_line()
+```
+
 ### Missing data
 
 #### Plot missingness
@@ -165,7 +172,7 @@ Still need to take out end and beginning of 200 line send.
 
 ```{r}
 adv_data <- adv_data |> 
-  mutate(missing = case_when(count > 255 | lag(count) > 255 ~ NA_integer_,
+  mutate(missing = case_when(line == 1 | count > 255 | lag(count) > 255 ~ NA_integer_,
                              count > lag(count) ~ count - 1L - lag(count),
                              TRUE ~ 255L + count - lag(count)
                            ))
@@ -179,27 +186,19 @@ adv_data |>
 
 
 
-### temp
-
-```{r}
-adv_data_qc |> 
-  ggplot(aes(1:nrow(adv_data_qc), temp)) + geom_line()
-```
-
 ## Post times
 
 ```{r}
 post_times <- df |> 
-  filter(str_starts(X1, "\\[\\d+\\]\\$")) |> 
-  mutate(X1 = str_remove(X1, "\\[\\d+\\]\\$")) |> 
-  separate(X1, 
+  filter(type == "$") |> 
+  separate(data, 
            into = c('hour', 'min', 'sec', 'day', 'month', 'year',
                     'lat', 'lon'),
            sep = ',') |>
-  mutate(across(1:6, as.integer),
-         across(7:8, as.numeric),
+  mutate(across(3:8, as.integer),
+         across(9:10, as.numeric),
          timestamp = make_datetime(year, month, day, hour, min, sec,
                                    tz = "GMT"))
-
+tail(post_times)
 ```
 
