@@ -33,9 +33,6 @@ df_ts <- df |>
   mutate(type = str_match(X1, "\\[\\d+\\]([DMS$]):?")[,2],
          line = str_match(X1, "\\[(\\d+)\\][DMS$]:?")[,2],
          data = str_remove(X1, "\\[\\d+\\][DMS$]:?"))
-
-         #timestamp = if_else(type == S,
-                             ))
 ```
 
 
@@ -173,22 +170,23 @@ last_count <- count[(length(count)-150):length(count)]
 last_count
 count_missing(last_count)
 ```
+
 ### Plot missingness
 
 Still need to take out end and beginning of 200 line send.
 
 ```{r}
 adv_data <- adv_data |> 
-  mutate(missing = if_else(count > lag(count),
-                           count - 1L - lag(count),
-                           255L + count - lag(count),
+  mutate(missing = case_when(count > 255 | lag(count) > 255 ~ NA_integer_,
+                             count > lag(count) ~ count - 1L - lag(count),
+                             TRUE ~ 255L + count - lag(count)
                            ))
 
 adv_data |> 
   ggplot(aes(1:nrow(adv_data), missing)) +
-  geom_point() +
-  xlim(10000, nrow(adv_data)) +
-  ylim(0, 10)
+  geom_point()# +
+  #xlim(10000, nrow(adv_data)) +
+  #ylim(0, 10)
 ```
 
 
