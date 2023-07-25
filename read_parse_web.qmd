@@ -13,6 +13,7 @@ library(tidyverse)
 library(rvest)
 library(lubridate)
 library(mlabtools)
+library(tidyquant)
 
 # time offset in seconds
 ts_offset <- 671628945
@@ -137,7 +138,8 @@ adv_data <- df |>
          count = as.integer(count))
 
 adv_data_qc <- adv_data |> 
-  filter(count >= 0, count < 256) 
+  filter(count >= 0, count < 256, 
+         ana_in2 == 1) 
 ```
 
 ### pressure
@@ -153,8 +155,7 @@ adv_data_qc |>
 adv_data_qc |> 
   ggplot(aes(1:nrow(adv_data_qc), pH)) +
   geom_line() #+
-  #xlim(12000, nrow(adv_data_qc)) +
-  #ylim(0, 25000)
+  #xlim(27000, nrow(adv_data_qc))
 ```
 
 ### temp
@@ -168,7 +169,7 @@ adv_data_qc |>
 
 #### Plot missingness
 
-Still need to take out end and beginning of 200 line send.
+TODO: running fraction missing plot
 
 ```{r}
 adv_data <- adv_data |> 
@@ -184,9 +185,17 @@ adv_data |>
   #ylim(0, 10)
 ```
 
+```{r}
+adv_data |> 
+  #drop_na(missing) |> 
+  ggplot(aes(1:nrow(adv_data), missing)) +
+  tidyquant::geom_ma(n = 10, linetype = 1) 
+```
 
 
 ## Post times
+
+Add # lines per post
 
 ```{r}
 post_times <- df |> 
