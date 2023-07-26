@@ -39,20 +39,26 @@ df <- df_raw |>
 
 
 ```{r, eval=FALSE}
-for (i in nrow(df)) {
-  if (str_starts(df[[i,1]], "\\[\\d+\\]S:")) {
-    line <- str_remove(df[[i,1]], "\\[\\d+\\]S:")
-    line <- as.integer(unlist(strsplit(line, ",")))
-    print(line)
-    status_time <- make_datetime(line[6], line[5], line[4], line[1], line[2], line[3])
-    print(status_time)
-    #i <- i + 1
-  }
+data <- df %>%
+  mutate(row = row_number())
+%>%
+  pivot_longer(cols = -row, names_to = "col_type", values_to = "value")
 
-  if (str_starts(df[[i,1]], "\\[\\d+\\]D:")) {
-    df[i,1] <- paste(df[[i,1]], status_time, sep = ",")
-  }
-}
+data_s <- data %>%
+  filter(col_type == "type" & value == "S") %>%
+  select(col_type, value)
+
+data_d <- data %>%
+  filter(col_type == "type" & value == "D")
+
+data_d <- data_d %>%
+  group_by(grp = cumsum(line <= lag(line, default = 0))) %>%
+  left_join(data_s, by = "line") %>%
+  mutate(timestamp = if_else(is.na(value.y), 
+                             lag(value.y, default = first(value.y)), 
+                             value.y)) %>%
+  select(-value.y) %>%
+  ungroup()
 ```
 
 ## Met
@@ -65,7 +71,7 @@ met <- df |>
            sep = ',') |> 
   mutate(across(3:8, as.integer),
          across(9:11, as.numeric)) |> 
-  mutate(timestamp = make_datetime(year, month, day, hour, min, sec, tz = "EDT"))
+  mutate(timestamp = make_datetime(year, month, day, hour, min, sec, tz = "America/New_York"))
 ```
 
 ### PAR
@@ -102,9 +108,9 @@ status <- df |>
   mutate(across(3:14, as.integer),
          across(15:23, ~ as.numeric(.x) * .1),
          timestamp = make_datetime(year, month, day, hour, min, sec,
-                                   tz = "EDT"),
-         adv_timestamp = make_datetime(adv_year, adv_month, adv_day, adv_hour, adv_min, adv_sec, 
-                                       tz = "EDT"),
+                                   tz = "America/New_York"),
+         adv_timestamp = make_datetime(adv_year + 2000, adv_month, adv_day, adv_hour, adv_min, adv_sec, 
+                                       tz = "America/New_York"),
          adv_timestamp_cor = adv_timestamp + ts_offset)
 
 status_qc <- status |> 
@@ -118,9 +124,19 @@ status_qc <- status |>
 ```{r}
 status_qc |> 
   filter(year == 2023, month < 9) |> 
-ggplot(aes(timestamp, bat)) + geom_line()
+ggplot(aes(timestamp, bat)) +
+  geom_line()
 ```
 
+Recent battery
+
+```{r}
+status_qc |> 
+  filter(year == 2023, month < 9, month > 6) |> 
+ggplot(aes(timestamp, bat)) +
+  geom_point(size = .5) +
+  tidyquant::geom_ma(n = 20, linetype = 1)
+```
 ## ADV Data
 
 ```{r}
@@ -154,8 +170,17 @@ adv_data_qc |>
 ```{r}
 adv_data_qc |> 
   ggplot(aes(1:nrow(adv_data_qc), pH)) +
-  geom_line() #+
-  #xlim(27000, nrow(adv_data_qc))
+  geom_line()
+```
+
+recent, filtered
+
+```{r}
+adv_data_qc |> 
+  ggplot(aes(1:nrow(adv_data_qc), pH)) +
+  geom_line() +
+ xlim(17000, nrow(adv_data_qc)) +
+ ylim(7000, 12000)
 ```
 
 ### temp
@@ -177,7 +202,10 @@ adv_data <- adv_data |>
                              count > lag(count) ~ count - 1L - lag(count),
                              TRUE ~ 255L + count - lag(count)
                            ))
+```
 
+
+```{r}
 adv_data |> 
   ggplot(aes(1:nrow(adv_data), missing)) +
   geom_point() #+
@@ -207,7 +235,7 @@ post_times <- df |>
   mutate(across(3:8, as.integer),
          across(9:10, as.numeric),
          timestamp = make_datetime(year, month, day, hour, min, sec,
-                                   tz = "GMT"))
+                                   tz = "America/New_York"))
 tail(post_times)
 ```
 
