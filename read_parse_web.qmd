@@ -27,14 +27,15 @@ df_raw <- read_html("https://gems.whoi.edu/LECSrawdata/") |>
   html_table()
 ```
 
-Add type and line number
+Add row, type and line number
 
 ```{r}
 df <- df_raw |> 
-  mutate(type = str_match(X1, "\\[\\d+\\]([DMS$]):?")[,2],
+  mutate(row_num = row_number(),
+         type = str_match(X1, "\\[\\d+\\]([DMS$]):?")[,2],
          line = as.integer(str_match(X1, "\\[(\\d+)\\][DMS$]:?")[,2]),
          data = str_remove(X1, "\\[\\d+\\][DMS$]:?")) |> 
-  select(type, line, data)
+  select(row_num, type, line, data)
 ```
 
 
@@ -207,7 +208,7 @@ adv_data <- adv_data |>
 
 ```{r}
 adv_data |> 
-  ggplot(aes(1:nrow(adv_data), missing)) +
+  ggplot(aes(row_num, missing)) +
   geom_point() #+
   #xlim(10000, nrow(adv_data)) +
   #ylim(0, 10)
@@ -215,8 +216,16 @@ adv_data |>
 
 ```{r}
 adv_data |> 
+  ggplot(aes(row_num, missing)) +
+  geom_point() +
+  xlim(40000, max(adv_data$row_num)) #+
+  #ylim(0, 10)
+```
+
+```{r}
+adv_data |> 
   #drop_na(missing) |> 
-  ggplot(aes(1:nrow(adv_data), missing)) +
+  ggplot(aes(row_num, missing)) +
   tidyquant::geom_ma(n = 10, linetype = 1) 
 ```
 
@@ -235,7 +244,26 @@ post_times <- df |>
   mutate(across(3:8, as.integer),
          across(9:10, as.numeric),
          timestamp = make_datetime(year, month, day, hour, min, sec,
-                                   tz = "America/New_York"))
-tail(post_times)
+                                   tz = "America/New_York"),
+         row_count = row_num - lag(row_num))
 ```
 
+
+```{r}
+post_times |> 
+  select(timestamp, row_num, row_count) |> 
+tail(10)
+```
+
+```{r}
+post_times |> 
+  ggplot(aes(timestamp, row_count)) +
+  geom_point()
+```
+
+```{r}
+post_times |> 
+  filter(timestamp > '2020-01-01') |> 
+  ggplot(aes(timestamp, row_count)) +
+  geom_point()
+```
