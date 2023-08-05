@@ -70,8 +70,8 @@ met <- df |>
   separate(data, 
            into = c('hour', 'min', 'sec', 'day', 'month', 'year', 'PAR', 'wind_speed', 'wind_dir'), 
            sep = ',') |> 
-  mutate(across(3:8, as.integer),
-         across(9:11, as.numeric)) |> 
+  mutate(across(4:9, as.integer),
+         across(10:12, as.numeric)) |> 
   mutate(timestamp = make_datetime(year, month, day, hour, min, sec, tz = "America/New_York"))
 ```
 
@@ -106,8 +106,8 @@ status <- df |>
                     'roll', 'temp', 
                     'pump_current', 'pump_voltage', 'pump_power'),
            sep = ',') |>
-  mutate(across(3:14, as.integer),
-         across(15:23, ~ as.numeric(.x) * .1),
+  mutate(across(4:15, as.integer),
+         across(16:24, ~ as.numeric(.x) * .1),
          timestamp = make_datetime(year, month, day, hour, min, sec,
                                    tz = "America/New_York"),
          adv_timestamp = make_datetime(adv_year + 2000, adv_month, adv_day, adv_hour, adv_min, adv_sec, 
@@ -151,7 +151,7 @@ adv_data <- df |>
                     'ana_in', 'ana_in2', 'pH', 
                     'temp', 'oxy'),
            sep = ',') |>
-  mutate(across(4:18, as.numeric),
+  mutate(across(5:19, as.numeric),
          count = as.integer(count))
 
 adv_data_qc <- adv_data |> 
