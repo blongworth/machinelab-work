@@ -48,10 +48,11 @@ Add row, type and line number
 ```{r}
 df <- df_raw |> 
   mutate(row_num = row_number(),
-         type = str_match(X1, "\\[\\d+\\]([DMS$]):?")[,2],
-         line = as.integer(str_match(X1, "\\[(\\d+)\\][DMS$]:?")[,2]),
-         data = str_remove(X1, "\\[\\d+\\][DMS$]:?")) |> 
-  select(row_num, type, line, data)
+         type = str_match(X1, "\\[\\d+\\]([DMS$!]):?")[,2],
+         send = cumsum(type == "$"),
+         line = as.integer(str_match(X1, "\\[(\\d+)\\][DMS$!]:?")[,2]),
+         data = str_remove(X1, "\\[\\d+\\][DMS$!]:?")) |> 
+  select(row_num, send, type, line, data)
 ```
 
 Separate data
@@ -65,14 +66,14 @@ met <- df |>
                     'day', 'month', 'year', 
                     'PAR', 'wind_speed', 'wind_dir'), 
            sep = ',') |> 
-  mutate(across(4:9, as.integer),
-         across(10:12, as.numeric),
+  mutate(across(5:10, as.integer),
+         across(11:13, as.numeric),
          wind_speed = ifelse(wind_speed < 99, wind_speed, NA),
          wind_dir = ifelse(wind_dir < 360, wind_dir, NA),
          timestamp = make_datetime(year, month, day, 
                                    hour, min, sec, 
                                    tz = "America/New_York")) |> 
-  select(timestamp, PAR, wind_speed, wind_dir)
+  select(timestamp, send, PAR, wind_speed, wind_dir)
 
 # ADV Status
 status <- df |> 
@@ -85,8 +86,8 @@ status <- df |>
                     'roll', 'temp', 
                     'pump_current', 'pump_voltage', 'pump_power'),
            sep = ',') |>
-  mutate(across(4:15, as.integer),
-         across(16:24, ~ as.numeric(.x) * .1),
+  mutate(across(5:16, as.integer),
+         across(17:25, ~ as.numeric(.x) * .1),
          timestamp = make_datetime(year, month, day, hour, min, sec,
                                    tz = "America/New_York"),
          adv_timestamp = make_datetime(adv_year + 2000, adv_month, adv_day, adv_hour, adv_min, adv_sec, 
@@ -97,6 +98,11 @@ status_qc <- status |>
   filter(soundspeed > 1450, 
          adv_day < 32, adv_month > 0, adv_month < 13, adv_min < 61, 
          adv_hour < 24, adv_year < 100)
+
+status_mean <- status_qc |> 
+  select(send, timestamp, bat) |> 
+  group_by(send) |> 
+  summarise(across(c(timestamp, bat), list(mean = ~ mean(.x, na.rm = TRUE), sd = ~ sd(.x, na.rm = TRUE))))
 
 # ADV data lines
 adv_data <- df |> 
@@ -109,7 +115,7 @@ adv_data <- df |>
                     'ana_in', 'ana_in2', 'pH', 
                     'temp', 'oxy'),
            sep = ',') |>
-  mutate(across(5:19, as.numeric),
+  mutate(across(6:20, as.numeric),
          count = as.integer(count))
 
 # quick and dirty time alignment
@@ -131,6 +137,13 @@ adv_data_qc <- adv_data |>
 
 ```{r}
 ggplot(met, aes(timestamp, PAR)) + geom_point()
+```
+
+```{r}
+met |> 
+  group_by(send) |> 
+  summarize(across(everything(), mean)) |> 
+ggplot(aes(timestamp, PAR)) + geom_point()
 ```
 
 ### Wind Speed
@@ -155,6 +168,12 @@ status_qc |>
          year < 2025) |> 
 ggplot(aes(timestamp, bat)) +
   geom_point()
+```
+
+```{r}
+status_mean |> 
+ggplot(aes(timestamp_mean, bat_mean, ymin = bat_mean - bat_sd, ymax = bat_mean + bat_sd)) +
+  geom_pointrange()
 ```
 
 ## ADV Data
@@ -223,8 +242,8 @@ post_times <- df |>
            into = c('hour', 'min', 'sec', 'day', 'month', 'year',
                     'lat', 'lon'),
            sep = ',') |>
-  mutate(across(3:8, as.integer),
-         across(9:10, as.numeric),
+  mutate(across(5:10, as.integer),
+         across(11:12, as.numeric),
          timestamp = make_datetime(year, month, day, hour, min, sec,
                                    tz = "America/New_York"),
          row_count = row_num - lag(row_num))
