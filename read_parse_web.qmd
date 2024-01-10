@@ -80,6 +80,8 @@ met <- df |>
          timestamp = make_datetime(year, month, day, 
                                    hour, min, sec, 
                                    tz = "America/New_York")) |> 
+  filter(timestamp > "2023-01-01",
+         timestamp < "2025-01-01") |> 
   select(timestamp, send, PAR, wind_speed, wind_dir)
 
 met_mean <- met |> 
@@ -107,7 +109,9 @@ status <- df |>
 status_qc <- status |> 
   filter(soundspeed > 1450, 
          adv_day < 32, adv_month > 0, adv_month < 13, adv_min < 61, 
-         adv_hour < 24, adv_year < 100)
+         adv_hour < 24, adv_year < 100,
+         timestamp > "2023-01-01",
+         timestamp < "2025-01-01")
 
 status_mean <- status_qc |> 
   select(send, timestamp, bat) |> 
@@ -142,7 +146,9 @@ adv_data$timestamp <- status$timestamp[sapply(adv_data$row_num, find_nearest_row
 
 adv_data_qc <- adv_data |> 
   filter(count >= 0, count < 256, 
-         ana_in2 == 1) 
+         ana_in2 == 1, 
+         timestamp > "2023-01-01",
+         timestamp < "2025-01-01")
 
 adv_data_mean <- adv_data_qc |> 
   select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
