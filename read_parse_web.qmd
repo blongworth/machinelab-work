@@ -2,6 +2,8 @@
 title: "Parse LECS Web"
 format: html
 editor: source
+params:
+  start_date: 2024-01-01
 ---
 
 Get and parse data sent to LECS website
@@ -14,15 +16,29 @@ library(rvest)
 library(lubridate)
 library(mlabtools)
 library(tidyquant)
+library(shiny)
+library(htmlwidgets)
 
 # time offset in seconds
 ts_offset <- 671628945
 ```
 
+Select data (doesn't work yet)
+
+```{r, eval=FALSE}
+date_picker <- fluidPage(
+  dateInput("start_date", "Start Date:", value = Sys.Date()),
+)
+
+includeHTML(widget = date_picker)
+```
+
 Extract table
 
 ```{r}
-df_raw <- read_html("https://gems.whoi.edu/LECS_data/") |> 
+baseURL <- "https://gems.whoi.edu/LECS_data/?timestamp="
+queryURL <- paste0(baseURL, format(as.Date(params$start_date), "%Y%m%d%H"))
+df_raw <- read_html(queryURL) |> 
   html_node("table") |> 
   html_table()
 ```
@@ -45,11 +61,17 @@ Separate data
 met <- df |> 
   filter(type == "M") |> 
   separate(data, 
-           into = c('hour', 'min', 'sec', 'day', 'month', 'year', 'PAR', 'wind_speed', 'wind_dir'), 
+           into = c('hour', 'min', 'sec', 
+                    'day', 'month', 'year', 
+                    'PAR', 'wind_speed', 'wind_dir'), 
            sep = ',') |> 
   mutate(across(4:9, as.integer),
-         across(10:12, as.numeric)) |> 
-  mutate(timestamp = make_datetime(year, month, day, hour, min, sec, tz = "America/New_York")) |> 
+         across(10:12, as.numeric),
+         wind_speed = ifelse(wind_speed < 99, wind_speed, NA),
+         wind_dir = ifelse(wind_dir < 360, wind_dir, NA),
+         timestamp = make_datetime(year, month, day, 
+                                   hour, min, sec, 
+                                   tz = "America/New_York")) |> 
   select(timestamp, PAR, wind_speed, wind_dir)
 
 # ADV Status
