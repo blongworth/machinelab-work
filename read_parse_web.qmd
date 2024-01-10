@@ -3,7 +3,7 @@ title: "Parse LECS Web"
 format: html
 editor: source
 params:
-  start_date: 2024-01-01
+  start_date: 2023-01-01
 ---
 
 Get and parse data sent to LECS website
@@ -19,8 +19,15 @@ library(tidyquant)
 library(shiny)
 library(htmlwidgets)
 
-# time offset in seconds
-ts_offset <- 671628945
+plot_mean <- function(data, parameter, err) {
+  data |> 
+    ggplot(aes(x = timestamp_mean, 
+               y = {{parameter}},
+               ymin = {{parameter}} - {{err}},
+               ymax = {{parameter}} + {{err}})) +
+    geom_line() +
+    geom_pointrange()
+}
 ```
 
 Select data (doesn't work yet)
@@ -75,6 +82,10 @@ met <- df |>
                                    tz = "America/New_York")) |> 
   select(timestamp, send, PAR, wind_speed, wind_dir)
 
+met_mean <- met |> 
+  group_by(send) |> 
+  summarise(across(everything(), list(mean = ~ mean(.x, na.rm = TRUE), sd = ~ sd(.x, na.rm = TRUE))))
+
 # ADV Status
 status <- df |> 
   filter(type == "S") |> 
@@ -91,8 +102,7 @@ status <- df |>
          timestamp = make_datetime(year, month, day, hour, min, sec,
                                    tz = "America/New_York"),
          adv_timestamp = make_datetime(adv_year + 2000, adv_month, adv_day, adv_hour, adv_min, adv_sec, 
-                                       tz = "America/New_York"),
-         adv_timestamp_cor = adv_timestamp + ts_offset)
+                                       tz = "America/New_York"))
 
 status_qc <- status |> 
   filter(soundspeed > 1450, 
@@ -116,7 +126,11 @@ adv_data <- df |>
                     'temp', 'oxy'),
            sep = ',') |>
   mutate(across(6:20, as.numeric),
-         count = as.integer(count))
+         count = as.integer(count),
+         missing = case_when(line == 1 | count > 255 | lag(count) > 255 ~ NA_integer_,
+                             count > lag(count) ~ count - 1L - lag(count),
+                             TRUE ~ 255L + count - lag(count)
+                           ))
 
 # quick and dirty time alignment
 
@@ -129,6 +143,14 @@ adv_data$timestamp <- status$timestamp[sapply(adv_data$row_num, find_nearest_row
 adv_data_qc <- adv_data |> 
   filter(count >= 0, count < 256, 
          ana_in2 == 1) 
+
+adv_data_mean <- adv_data_qc |> 
+  select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
+  group_by(send) |> 
+  summarise(across(everything(), list(mean = ~ mean(.x, na.rm = TRUE), sd = ~ sd(.x, na.rm = TRUE))),
+            missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+  
 ```
 
 ## Met
@@ -140,10 +162,8 @@ ggplot(met, aes(timestamp, PAR)) + geom_point()
 ```
 
 ```{r}
-met |> 
-  group_by(send) |> 
-  summarize(across(everything(), mean)) |> 
-ggplot(aes(timestamp, PAR)) + geom_point()
+met_mean |> 
+  plot_mean(PAR_mean, PAR_sd)
 ```
 
 ### Wind Speed
@@ -172,8 +192,7 @@ ggplot(aes(timestamp, bat)) +
 
 ```{r}
 status_mean |> 
-ggplot(aes(timestamp_mean, bat_mean, ymin = bat_mean - bat_sd, ymax = bat_mean + bat_sd)) +
-  geom_pointrange()
+  plot_mean(bat_mean, bat_sd)
 ```
 
 ## ADV Data
@@ -181,8 +200,8 @@ ggplot(aes(timestamp_mean, bat_mean, ymin = bat_mean - bat_sd, ymax = bat_mean +
 ### pressure
 
 ```{r}
-adv_data_qc |> 
-  ggplot(aes(timestamp, pressure)) + geom_point()
+adv_data_mean |> 
+  plot_mean(pressure_mean, pressure_sd)
 ```
 
 ### pH
@@ -193,12 +212,15 @@ adv_data_qc |>
   geom_point()
 ```
 
+```{r}
+adv_data_mean |> 
+  plot_mean(pH_mean, pH_sd)
+```
 ### temp
 
 ```{r}
-adv_data_qc |> 
-  ggplot(aes(timestamp, temp)) + 
-  geom_point()
+adv_data_mean |> 
+  plot_mean(temp_mean, temp_sd)
 ```
 
 ### Missing data
@@ -207,13 +229,6 @@ adv_data_qc |>
 
 TODO: running fraction missing plot
 
-```{r}
-adv_data <- adv_data |> 
-  mutate(missing = case_when(line == 1 | count > 255 | lag(count) > 255 ~ NA_integer_,
-                             count > lag(count) ~ count - 1L - lag(count),
-                             TRUE ~ 255L + count - lag(count)
-                           ))
-```
 
 
 ```{r}
@@ -223,6 +238,13 @@ adv_data |>
   #xlim(10000, nrow(adv_data)) +
   #ylim(0, 10)
 ```
+
+```{r}
+adv_data_mean |> 
+  ggplot(aes(timestamp_mean, missing_frac)) +
+  geom_point()
+```
+
 
 ```{r}
 adv_data |> 
