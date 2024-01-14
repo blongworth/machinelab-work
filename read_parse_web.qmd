@@ -3,10 +3,10 @@ title: "Parse LECS Web"
 format: html
 editor: source
 params:
-  start_date: 2023-01-01
+  start_date: 2024-01-01
 ---
 
-Get and parse data sent to LECS website
+Get and parse data sent to LECS website. Data from `r params$start_date` to present.
 
 # Get Data
 
@@ -65,6 +65,20 @@ df <- df_raw |>
 Separate data
 
 ```{r}
+#post times
+post_times <- df |> 
+  filter(type == "$") |> 
+  separate(data, 
+           into = c('hour', 'min', 'sec', 'day', 'month', 'year',
+                    'lat', 'lon'),
+           sep = ',') |>
+  mutate(across(5:10, as.integer),
+         across(11:12, as.numeric),
+         timestamp = make_datetime(year, month, day, hour, min, sec,
+                                   tz = "America/New_York"),
+         row_count = row_num - lag(row_num)) |> 
+  select(timestamp, row_count)
+
 # Met data
 met <- df |> 
   filter(type == "M") |> 
@@ -81,7 +95,7 @@ met <- df |>
                                    hour, min, sec, 
                                    tz = "America/New_York")) |> 
   filter(timestamp > "2023-01-01",
-         timestamp < "2025-01-01") |> 
+         timestamp < "2024-10-01") |> 
   select(timestamp, send, PAR, wind_speed, wind_dir)
 
 met_mean <- met |> 
@@ -111,7 +125,7 @@ status_qc <- status |>
          adv_day < 32, adv_month > 0, adv_month < 13, adv_min < 61, 
          adv_hour < 24, adv_year < 100,
          timestamp > "2023-01-01",
-         timestamp < "2025-01-01")
+         timestamp < "2024-10-01")
 
 status_mean <- status_qc |> 
   select(send, timestamp, bat) |> 
@@ -148,7 +162,7 @@ adv_data_qc <- adv_data |>
   filter(count >= 0, count < 256, 
          ana_in2 == 1, 
          timestamp > "2023-01-01",
-         timestamp < "2025-01-01")
+         timestamp < "2024-10-01")
 
 adv_data_mean <- adv_data_qc |> 
   select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
@@ -158,6 +172,8 @@ adv_data_mean <- adv_data_qc |>
             N = n())
   
 ```
+
+Last post was `r max(post_times$timestamp)`
 
 ## Met
 
@@ -178,11 +194,20 @@ met_mean |>
 ggplot(met, aes(timestamp, wind_speed)) + geom_point()
 ```
 
+```{r}
+met_mean |> 
+  plot_mean(wind_speed_mean, wind_speed_sd)
+```
+
 ### Wind direction
 
 ```{r}
-ggplot(met, aes(timestamp, wind_dir)) + geom_point()
+ggplot(met_mean, aes(wind_dir_mean, wind_speed_mean)) +
+  geom_point() +
+  coord_polar() 
 ```
+
+
 
 ## Status
 
@@ -198,7 +223,8 @@ ggplot(aes(timestamp, bat)) +
 
 ```{r}
 status_mean |> 
-  plot_mean(bat_mean, bat_sd)
+  plot_mean(bat_mean, bat_sd) +
+  geom_smooth()
 ```
 
 ## ADV Data
@@ -261,27 +287,10 @@ adv_data |>
 
 ## Post times
 
-Add # lines per post
-
-```{r}
-post_times <- df |> 
-  filter(type == "$") |> 
-  separate(data, 
-           into = c('hour', 'min', 'sec', 'day', 'month', 'year',
-                    'lat', 'lon'),
-           sep = ',') |>
-  mutate(across(5:10, as.integer),
-         across(11:12, as.numeric),
-         timestamp = make_datetime(year, month, day, hour, min, sec,
-                                   tz = "America/New_York"),
-         row_count = row_num - lag(row_num))
-```
-
 
 ```{r}
 post_times |> 
-  select(timestamp, row_num, row_count) |> 
-tail(10)
+  tail(10)
 ```
 
 ```{r}
@@ -290,9 +299,3 @@ post_times |>
   geom_point()
 ```
 
-```{r}
-post_times |> 
-  filter(timestamp > '2020-01-01') |> 
-  ggplot(aes(timestamp, row_count)) +
-  geom_point()
-```
