@@ -274,7 +274,7 @@ Caused by warning:
 <span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">adv_timestamp =</span> <span class="fu">make_datetime</span>(adv_year <span class="sc">+</span> <span class="dv">2000</span>, adv_month, adv_day, adv_hour, adv_min, adv_sec, </span>
 <span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">tz =</span> <span class="st">"America/New_York"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 21 pieces. Additional pieces discarded in 337 rows [39, 63, 64, 68,
+<pre><code>Warning: Expected 21 pieces. Additional pieces discarded in 343 rows [39, 63, 64, 68,
 73, 74, 75, 78, 87, 94, 101, 109, 118, 119, 131, 154, 159, 160, 175, 181, ...].</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
@@ -343,7 +343,7 @@ Caused by warning:
 <span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
 <span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Last post was 2024-01-14 12:11:12</p>
+<p>Last post was 2024-01-14 16:11:12</p>
 <section id="met" class="level2">
 <h2 class="anchored" data-anchor-id="met">Met</h2>
 <section id="par" class="level3">
@@ -485,7 +485,7 @@ Caused by warning:
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(row_num, missing)) <span class="sc">+</span></span>
 <span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="co">#+</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 79 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 80 rows containing missing values (`geom_point()`).</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="read_parse_web_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
@@ -526,16 +526,16 @@ Caused by warning:
 <pre><code># A tibble: 10 × 2
    timestamp           row_count
    &lt;dttm&gt;                  &lt;int&gt;
- 1 2024-01-12 20:11:12       501
- 2 2024-01-13 00:11:12       501
- 3 2024-01-13 04:11:12       501
- 4 2024-01-13 08:11:12       501
- 5 2024-01-13 12:11:12       501
- 6 2024-01-13 16:11:12       501
- 7 2024-01-14 00:11:12       501
- 8 2024-01-14 04:11:12       501
- 9 2024-01-14 08:11:12       501
-10 2024-01-14 12:11:12       501</code></pre>
+ 1 2024-01-13 00:11:12       501
+ 2 2024-01-13 04:11:12       501
+ 3 2024-01-13 08:11:12       501
+ 4 2024-01-13 12:11:12       501
+ 5 2024-01-13 16:11:12       501
+ 6 2024-01-14 00:11:12       501
+ 7 2024-01-14 04:11:12       501
+ 8 2024-01-14 08:11:12       501
+ 9 2024-01-14 12:11:12       501
+10 2024-01-14 16:11:12       501</code></pre>
 </div>
 </div>
 <div class="cell">
