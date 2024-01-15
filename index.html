@@ -105,16 +105,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(shiny)</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(htmlwidgets)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting function</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>plot_mean <span class="ot">&lt;-</span> <span class="cf">function</span>(data, parameter, err) {</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span> </span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> timestamp_mean, </span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>               <span class="at">y =</span> {{parameter}},</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>               <span class="at">ymin =</span> {{parameter}} <span class="sc">-</span> {{err}},</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>               <span class="at">ymax =</span> {{parameter}} <span class="sc">+</span> {{err}})) <span class="sc">+</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>()</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_bw</span>())</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># RINKO_CALS</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>A <span class="ot">=</span> <span class="sc">-</span><span class="fl">1.219367e1</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>B <span class="ot">=</span> <span class="fl">2.134089e1</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>C <span class="ot">=</span> <span class="sc">-</span><span class="fl">3.559172e00</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>D <span class="ot">=</span> <span class="fl">6.691104e-01</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting function</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>plot_mean <span class="ot">&lt;-</span> <span class="cf">function</span>(data, parameter, err) {</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span> </span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> timestamp_mean, </span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>               <span class="at">y =</span> {{parameter}},</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>               <span class="at">ymin =</span> {{parameter}} <span class="sc">-</span> {{err}},</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>               <span class="at">ymax =</span> {{parameter}} <span class="sc">+</span> {{err}})) <span class="sc">+</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"gray"</span>) <span class="sc">+</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>() <span class="sc">+</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Select data (doesn’t work yet)</p>
 <div class="cell">
@@ -258,10 +267,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">oxy =</span> <span class="fu">str_sub</span>(oxy, <span class="dv">1</span>, <span class="dv">10</span>),</span>
 <span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>         <span class="fu">across</span>(<span class="dv">6</span><span class="sc">:</span><span class="dv">20</span>, as.numeric),</span>
 <span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">count =</span> <span class="fu">as.integer</span>(count),</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">missing =</span> <span class="fu">case_when</span>(line <span class="sc">==</span> <span class="dv">1</span> <span class="sc">|</span> count <span class="sc">&gt;</span> <span class="dv">255</span> <span class="sc">|</span> <span class="fu">lag</span>(count) <span class="sc">&gt;</span> <span class="dv">255</span> <span class="sc">~</span> <span class="cn">NA_integer_</span>,</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>                             count <span class="sc">&gt;</span> <span class="fu">lag</span>(count) <span class="sc">~</span> count <span class="sc">-</span> 1L <span class="sc">-</span> <span class="fu">lag</span>(count),</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>                             <span class="cn">TRUE</span> <span class="sc">~</span> 255L <span class="sc">+</span> count <span class="sc">-</span> <span class="fu">lag</span>(count)</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>                           ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">pressure =</span> pressure <span class="sc">/</span> <span class="dv">65536</span> <span class="sc">/</span> <span class="dv">1000</span>,</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">temp =</span> A <span class="sc">+</span> temp <span class="sc">*</span> B <span class="sc">+</span> temp <span class="sc">^</span> <span class="dv">2</span> <span class="sc">*</span> C <span class="sc">+</span> temp <span class="sc">^</span> <span class="dv">3</span> <span class="sc">*</span> D,</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">missing =</span> <span class="fu">case_when</span>(line <span class="sc">==</span> <span class="dv">1</span> <span class="sc">|</span> count <span class="sc">&gt;</span> <span class="dv">255</span> <span class="sc">|</span> <span class="fu">lag</span>(count) <span class="sc">&gt;</span> <span class="dv">255</span> <span class="sc">~</span> <span class="cn">NA_integer_</span>,</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>                             count <span class="sc">&gt;</span> <span class="fu">lag</span>(count) <span class="sc">~</span> count <span class="sc">-</span> 1L <span class="sc">-</span> <span class="fu">lag</span>(count),</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>                             <span class="cn">TRUE</span> <span class="sc">~</span> 255L <span class="sc">+</span> count <span class="sc">-</span> <span class="fu">lag</span>(count)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>                           ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Expected 16 pieces. Additional pieces discarded in 3 rows [1449, 1450,
 32001].</code></pre>
@@ -312,7 +323,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="anchored" data-anchor-id="wind-speed">Wind Speed</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(wind_speed_mean, wind_speed_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(wind_speed_mean, wind_speed_sd) <span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 16 rows containing missing values (`geom_line()`).</code></pre>
 </div>
@@ -349,7 +362,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>status_mean <span class="sc">|&gt;</span> </span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(bat_mean, bat_sd) <span class="sc">+</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Battery Voltage"</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Volts"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
 </div>
@@ -365,7 +380,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="anchored" data-anchor-id="pressure">pressure</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pressure_mean, pressure_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pressure_mean, pressure_sd) <span class="sc">+</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pressure"</span>,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Pressure (dbar)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="read_parse_web_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -384,7 +401,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pH_mean, pH_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pH_mean, pH_sd) <span class="sc">+</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"pH"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="read_parse_web_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -394,7 +412,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="anchored" data-anchor-id="temperature">Temperature</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(temp_mean, temp_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(temp_mean, temp_sd) <span class="sc">+</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Temperature"</span>,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Temp (C)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="read_parse_web_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -404,7 +424,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="anchored" data-anchor-id="oxygen">Oxygen</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(oxy_mean, oxy_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(oxy_mean, oxy_sd) <span class="sc">+</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Oxygen"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="read_parse_web_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -419,7 +440,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>adv_data <span class="sc">|&gt;</span> </span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, missing)) <span class="sc">+</span></span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Missing data by row"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Missing data by row"</span>,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Missing"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 81 rows containing missing values (`geom_point()`).</code></pre>
 </div>
@@ -432,7 +455,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp_mean, missing_frac)) <span class="sc">+</span></span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Fraction missing by send"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fraction missing by send"</span>,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Fraction missing"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="read_parse_web_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -440,31 +465,357 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="post-times-1" class="level2">
 <h2 class="anchored" data-anchor-id="post-times-1">Post times</h2>
-<p>Last 10 posts</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="sc">|&gt;</span> </span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tail</span>(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 10 × 2
-   timestamp           row_count
-   &lt;dttm&gt;                  &lt;int&gt;
- 1 2024-01-13 04:11:12       501
- 2 2024-01-13 08:11:12       501
- 3 2024-01-13 12:11:12       501
- 4 2024-01-13 16:11:12       501
- 5 2024-01-14 00:11:12       501
- 6 2024-01-14 04:11:12       501
- 7 2024-01-14 08:11:12       501
- 8 2024-01-14 12:11:12       501
- 9 2024-01-14 16:11:12       501
-10 2024-01-14 20:11:12       501</code></pre>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(post_times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">timestamp</th>
+<th style="text-align: right;">row_count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">2023-12-31 20:11:12</td>
+<td style="text-align: right;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-01 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-01 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-01 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-01 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-01 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-01 20:11:13</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-02 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-02 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-02 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-02 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-02 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-02 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-03 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-03 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-03 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-03 10:20:21</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-03 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-03 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-03 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-04 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-04 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-04 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-04 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-04 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-04 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-05 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-05 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-05 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-05 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-05 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-05 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-06 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-06 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-06 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-06 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-06 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-06 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-07 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-07 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-07 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-07 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-07 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-07 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-08 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-08 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-08 08:11:12</td>
+<td style="text-align: right;">493</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-08 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-08 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-09 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-09 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-09 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-09 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-09 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-10 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-10 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-10 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-10 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-10 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-10 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-11 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-11 04:11:12</td>
+<td style="text-align: right;">359</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-11 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-11 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-11 20:11:12</td>
+<td style="text-align: right;">435</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-12 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-12 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-12 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-12 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-12 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-12 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-13 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-13 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-13 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-13 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-13 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-14 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-14 04:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-14 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-14 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-01-14 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-01-14 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>Lines per post</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="sc">|&gt;</span> </span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, row_count)) <span class="sc">+</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="sc">|&gt;</span> </span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, row_count)) <span class="sc">+</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Lines per post"</span>,</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Lines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
 </div>
