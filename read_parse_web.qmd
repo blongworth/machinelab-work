@@ -304,7 +304,7 @@ Missing data by row. Determined by looking at gaps in cycle number.
 
 ```{r}
 adv_data |> 
-  ggplot(aes(timestamp, missing)) +
+  ggplot(aes(row_num, missing)) +
   geom_point() +
   labs(title = "Missing data by row",
        x = NULL,
@@ -319,6 +319,37 @@ adv_data_mean |>
   ggplot(aes(timestamp_mean, missing_frac)) +
   geom_point() +
   labs(title = "Fraction missing by send",
+       x = NULL,
+       y = "Fraction missing")
+```
+
+Most missing data is in first 25 lines per send. This is the beginning of a new
+file. This is likely a gap as DAQ gets started again after pausing for send.
+The following plot is missing fraction without the first 25 lines of each send.
+
+```{r}
+adv_data_qc <- adv_data |> 
+  filter(count >= 0, count < 256, 
+         ana_in2 == 1, 
+         line > 25,
+         timestamp > "2023-01-01",
+         timestamp < "2024-10-01")
+
+adv_data_mean <- adv_data_qc |> 
+  select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
+  group_by(send) |> 
+  summarise(across(everything(), 
+                   list(mean = ~ mean(.x, na.rm = TRUE), 
+                        sd = ~ sd(.x, na.rm = TRUE))),
+            missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+```{r}
+adv_data_mean |> 
+  ggplot(aes(timestamp_mean, missing_frac)) +
+  geom_point() +
+  labs(title = "Fraction missing by send, without first 25 lines",
        x = NULL,
        y = "Fraction missing")
 ```
