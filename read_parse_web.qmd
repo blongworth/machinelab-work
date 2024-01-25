@@ -26,10 +26,12 @@ library(htmlwidgets)
 theme_set(theme_bw())
 
 # RINKO_CALS
-A = -1.219367e1
-B = 2.134089e1
-C = -3.559172e00
-D = 6.691104e-01
+rinko_cals <- list(
+  A = -1.219367e1,
+  B = 2.134089e1,
+  C = -3.559172e00,
+  D = 6.691104e-01
+)
 
 # plotting function
 plot_mean <- function(data, parameter, err) {
@@ -44,114 +46,61 @@ plot_mean <- function(data, parameter, err) {
 }
 ```
 
-Select data (doesn't work yet)
-
-```{r, eval=FALSE}
-date_picker <- fluidPage(
-  dateInput("start_date", "Start Date:", value = Sys.Date()),
-)
-
-includeHTML(widget = date_picker)
-```
-
 ## Get and process data
 
-### Get data from website. 
+Get data from website. 
 
 Use `start_date` parameter to limit download.
 
 ```{r}
-baseURL <- "https://gems.whoi.edu/LECS_data/?timestamp="
-queryURL <- paste0(baseURL, format(as.Date(params$start_date), "%Y%m%d%H"))
-df_raw <- read_html(queryURL) |> 
-  html_node("table") |> 
-  html_table()
+df_raw <- read_lecs_web(start_date = params$start_date)
 ```
 
-### Add row, type and line number
+Add row, type and line number
 
 ```{r}
-df <- df_raw |> 
-  mutate(row_num = row_number(),
-         type = str_match(X1, "\\[\\d+\\]([DMS$!]):?")[,2],
-         send = cumsum(type == "$"),
-         line = as.integer(str_match(X1, "\\[(\\d+)\\][DMS$!]:?")[,2]),
-         data = str_remove(X1, "\\[\\d+\\][DMS$!]:?")) |> 
-  select(row_num, send, type, line, data)
+df <- lecs_add_metadata(df_raw)
 ```
 
-### Separate data
+Separate data into post times, met, status, and adv data
 
-#### Post times
 
 ```{r}
-post_times <- df |> 
-  filter(type == "$") |> 
-  separate(data, 
-           into = c('hour', 'min', 'sec', 
-                    'day', 'month', 'year',
-                    'lat', 'lon'),
-           sep = ',') |>
-  mutate(across(5:10, as.integer),
-         across(11:12, as.numeric),
-         timestamp = make_datetime(year, month, day, 
-                                   hour, min, sec,
-                                   tz = "America/New_York"),
-         row_count = row_num - lag(row_num)) |> 
-  select(timestamp, row_count)
+post_times <- lecs_post_times(df)
+met <- lecs_met_data(df)
+status <- lecs_status_data(df)
+adv_data <- lecs_adv_data(df, rinko_cals)
 ```
 
-#### Met data
+Quick ADV time alignment
 
 ```{r}
-met <- df |> 
-  filter(type == "M") |> 
-  separate(data, 
-           into = c('hour', 'min', 'sec', 
-                    'day', 'month', 'year', 
-                    'PAR', 'wind_speed', 'wind_dir'), 
-           sep = ',') |> 
-  mutate(wind_dir = str_sub(wind_dir, 1, 6),
-         across(5:10, as.integer),
-         across(11:13, as.numeric),
-         wind_speed = ifelse(wind_speed < 99, wind_speed, NA),
-         wind_dir = ifelse(wind_dir < 360, wind_dir, NA),
-         timestamp = make_datetime(year, month, day, 
-                                   hour, min, sec, 
-                                   tz = "America/New_York")) |> 
-  filter(timestamp > "2023-01-01",
-         timestamp < "2024-10-01") |> 
-  select(timestamp, send, PAR, wind_speed, wind_dir)
+find_nearest_row <- function(row_number) {
+  return(which.min(abs(status$row_num - row_number)))
+}
 
-met_mean <- met |> 
-  group_by(send) |> 
-  summarise(across(everything(), 
-                   list(mean = ~ mean(.x, na.rm = TRUE), 
-                        sd = ~ sd(.x, na.rm = TRUE))))
+adv_data$timestamp <- status$timestamp[sapply(adv_data$row_num, find_nearest_row)]
 ```
 
-#### ADV Status
+Real ADV time alignment
+
+time per line
 
 ```{r}
-status <- df |> 
-  filter(type == "S") |> 
-  separate(data, 
-           into = c('hour', 'min', 'sec', 'day', 'month', 'year',
-                    'adv_min', 'adv_sec', 'adv_day', 
-                    'adv_hour', 'adv_year', 'adv_month',
-                    'bat', 'soundspeed', 'heading', 'pitch', 
-                    'roll', 'temp', 
-                    'pump_current', 'pump_voltage', 'pump_power'),
-           sep = ',') |>
-  mutate(pump_power = str_sub(pump_power, 1, 5),
-         across(5:16, as.integer),
-         across(17:25, ~ as.numeric(.x) * .1),
-         timestamp = make_datetime(year, month, day, hour, min, sec,
-                                   tz = "America/New_York"),
-         adv_timestamp = make_datetime(adv_year + 2000, adv_month, adv_day, 
-                                       adv_hour, adv_min, adv_sec, 
-                                       tz = "America/New_York"))
+bench::mark(add_timestamp(adv_data, status, 5066))
+```
 
+Not running the time alignment at the moment because it's soooooo sloooow.
+
+```{r}
+#| eval: false
+adv_data <- adv_data |> 
+  add_timestamps(status)
+```
+
+Filter bad data
+
+```{r}
 status_qc <- status |> 
   filter(soundspeed > 1450, 
          adv_day < 32, adv_month > 0, adv_month < 13, 
@@ -159,49 +108,30 @@ status_qc <- status |>
          timestamp > "2023-01-01",
          timestamp < "2024-10-01")
 
-status_mean <- status_qc |> 
-  select(send, timestamp, bat) |> 
-  group_by(send) |> 
-  summarise(across(c(timestamp, bat), 
-                   list(mean = ~ mean(.x, na.rm = TRUE), 
-                        sd = ~ sd(.x, na.rm = TRUE))))
-```
-
-#### ADV Data
-
-```{r}
-adv_data <- df |> 
-  filter(type == "D") |> 
-  separate(data, 
-           into = c('count', 'pressure', 
-                    'x_vel', 'y_vel', 'z_vel',
-                    'x_amp', 'y_amp', 'z_amp',
-                    'x_cor', 'y_cor', 'z_cor',
-                    'ana_in', 'ana_in2', 'pH', 
-                    'temp', 'oxy'),
-           sep = ',') |>
-  mutate(oxy = str_sub(oxy, 1, 10),
-         across(6:20, as.numeric),
-         count = as.integer(count),
-         pressure = pressure / 65536 / 1000,
-         temp = A + temp * B + temp ^ 2 * C + temp ^ 3 * D,
-         missing = case_when(line == 1 | count > 255 | lag(count) > 255 ~ NA_integer_,
-                             count > lag(count) ~ count - 1L - lag(count),
-                             TRUE ~ 255L + count - lag(count)
-                           ))
-
-# quick and dirty time alignment
-find_nearest_row <- function(row_number) {
-  return(which.min(abs(status$row_num - row_number)))
-}
-
-adv_data$timestamp <- status$timestamp[sapply(adv_data$row_num, find_nearest_row)]
 
 adv_data_qc <- adv_data |> 
   filter(count >= 0, count < 256, 
          ana_in2 == 1, 
          timestamp > "2023-01-01",
          timestamp < "2024-10-01")
+
+```
+
+Calculate per-send means
+
+```{r}
+met_mean <- met |> 
+  group_by(send) |> 
+  summarise(across(everything(), 
+                   list(mean = ~ mean(.x, na.rm = TRUE), 
+                        sd = ~ sd(.x, na.rm = TRUE))))
+
+status_mean <- status_qc |> 
+  select(send, timestamp, bat) |> 
+  group_by(send) |> 
+  summarise(across(c(timestamp, bat), 
+                   list(mean = ~ mean(.x, na.rm = TRUE), 
+                        sd = ~ sd(.x, na.rm = TRUE))))
 
 adv_data_mean <- adv_data_qc |> 
   select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
