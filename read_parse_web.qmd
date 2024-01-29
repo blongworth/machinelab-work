@@ -74,12 +74,13 @@ adv_data <- lecs_adv_data(df, rinko_cals)
 
 Quick ADV time alignment
 
+
 ```{r}
 find_nearest_row <- function(row_number) {
   return(which.min(abs(status$row_num - row_number)))
 }
 
-adv_data$timestamp <- status$timestamp[sapply(adv_data$row_num, find_nearest_row)]
+adv_data$timestamp_s <- status$timestamp[sapply(adv_data$row_num, find_nearest_row)]
 ```
 
 Real ADV time alignment
@@ -87,16 +88,12 @@ Real ADV time alignment
 time per line
 
 ```{r}
-bench::mark(add_timestamp(adv_data, status, 5066))
+bm <- bench::mark(adv_data <- make_lecs_ts(adv_data, status))
+lps <- nrow(adv_data) / bm$median[[1]]
+bm
 ```
 
-Not running the time alignment at the moment because it's soooooo sloooow.
-
-```{r}
-#| eval: false
-adv_data <- adv_data |> 
-  add_timestamps(status)
-```
+ADV time alignment speed: `r lps` lines per second.
 
 Filter bad data
 
