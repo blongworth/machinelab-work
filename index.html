@@ -94,7 +94,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>Get and parse data sent to LECS website. Data from 2024-01-24 to present.</p>
+<p>Get and parse data sent to LECS website. Data from 2024-01-25 to present.</p>
 <section id="get-data" class="level1">
 <h1>Get Data</h1>
 <div class="cell">
@@ -144,8 +144,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="ot">&lt;-</span> <span class="fu">lecs_post_times</span>(df)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>met <span class="ot">&lt;-</span> <span class="fu">lecs_met_data</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 4 rows [19, 22, 43,
-67].</code></pre>
+<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 4 rows [7, 10, 31,
+55].</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: There was 1 warning in `mutate()`.
@@ -155,8 +155,8 @@ Caused by warning:
 </div>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>status <span class="ot">&lt;-</span> <span class="fu">lecs_status_data</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 21 pieces. Additional pieces discarded in 132 rows [2, 10, 13, 14, 20,
-22, 32, 75, 104, 107, 133, 134, 139, 141, 144, 153, 168, 192, 195, 197, ...].</code></pre>
+<pre><code>Warning: Expected 21 pieces. Additional pieces discarded in 125 rows [3, 6, 8, 9, 14,
+22, 26, 56, 63, 76, 82, 83, 96, 99, 107, 135, 139, 140, 142, 152, ...].</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>adv_data <span class="ot">&lt;-</span> <span class="fu">lecs_adv_data</span>(df, rinko_cals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -220,8 +220,8 @@ Caused by warning:
 <span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
 <span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="last-post-was-2024-01-31-201112" class="level4">
-<h4 class="anchored" data-anchor-id="last-post-was-2024-01-31-201112">Last post was 2024-01-31 20:11:12</h4>
+<section id="last-post-was-2024-02-01-001112" class="level4">
+<h4 class="anchored" data-anchor-id="last-post-was-2024-02-01-001112">Last post was 2024-02-01 00:11:12</h4>
 </section>
 <section id="met-data" class="level3">
 <h3 class="anchored" data-anchor-id="met-data">Met data</h3>
@@ -246,10 +246,10 @@ Caused by warning:
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 29 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 23 rows containing missing values (`geom_line()`).</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 29 rows containing missing values (`geom_pointrange()`).</code></pre>
+<pre><code>Warning: Removed 23 rows containing missing values (`geom_pointrange()`).</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 1 rows containing missing values (`geom_segment()`).</code></pre>
@@ -266,7 +266,7 @@ Caused by warning:
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_polar</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 29 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 23 rows containing missing values (`geom_point()`).</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="read_parse_web_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
@@ -363,7 +363,7 @@ Caused by warning:
 <span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
 <span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Missing"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 34 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 29 rows containing missing values (`geom_point()`).</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="read_parse_web_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
@@ -425,32 +425,8 @@ Caused by warning:
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">2024-01-23 20:11:12</td>
-<td style="text-align: right;">NA</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-01-24 00:11:12</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-01-24 04:11:12</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-01-24 08:11:12</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-01-24 12:11:12</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-01-24 16:11:12</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;">2024-01-24 20:11:12</td>
-<td style="text-align: right;">501</td>
+<td style="text-align: right;">NA</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-01-25 00:11:12</td>
@@ -558,6 +534,10 @@ Caused by warning:
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-01-31 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-02-01 00:11:12</td>
 <td style="text-align: right;">501</td>
 </tr>
 </tbody>
