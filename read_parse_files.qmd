@@ -1,0 +1,232 @@
+---
+title: "Parse LECS Files"
+format: html
+editor: source
+---
+
+Get and parse data from LECS files.
+
+
+
+# Get Data
+
+```{r}
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(mlabtools)
+library(clock)
+
+theme_set(theme_bw())
+options(digits.secs=3)
+
+# RINKO_CALS
+rinko_cals <- list(
+  A = -1.219367e1,
+  B = 2.134089e1,
+  C = -3.559172e00,
+  D = 6.691104e-01
+)
+
+# plotting function
+plot_mean <- function(data, parameter, err) {
+  data |> 
+    ggplot(aes(x = timestamp_mean, 
+               y = {{parameter}},
+               ymin = {{parameter}} - {{err}},
+               ymax = {{parameter}} + {{err}})) +
+    geom_line(color = "gray") +
+    geom_pointrange() +
+    labs(x = NULL)
+}
+```
+
+## Get and process data
+
+Make list of all files
+
+```{r}
+file_dir <- "data/SD Card Data/LECS_surface_sd/lecs_surface_2024-01-23"
+files <- list.files(file_dir, pattern = "^202[3|4]", full.names = TRUE)
+```
+
+Process files into a list containing data frames for ADV, status, and Met
+
+```{r}
+lecs_data <- lecs_parse_file(files[1:20])
+attach(lecs_data)
+```
+
+Add missing counts between lines to ADV data
+
+```{r}
+adv_data <- adv_data |> 
+  mutate(missing = lecs_missing(count))
+```
+
+Add timestamp from nearest status line to ADV data. Doesn't work with lots of data.
+
+```{r}
+#| eval: false
+find_nearest_row <- function(row_number) {
+  return(which.min(abs(status$row_num - row_number)))
+}
+
+adv_data$timestamp_s <- status$timestamp[sapply(adv_data$row_num, find_nearest_row)]
+```
+
+Filter bad data
+
+```{r}
+status_qc <- status |> 
+  filter(soundspeed > 1450, 
+         adv_day < 32, adv_month > 0, adv_month < 13, 
+         adv_min < 61, adv_hour < 24, adv_year < 100,
+         timestamp > "2023-01-01",
+         timestamp < "2024-10-01")
+
+
+adv_data_qc <- adv_data |> 
+  filter(count >= 0, count < 256, 
+         ana_in2 == 1, 
+         timestamp > "2023-01-01",
+         timestamp < "2024-10-01")
+
+```
+
+Calculate per-minute means
+
+```{r}
+met_mean <- met |> 
+  group_by(date_group(timestamp, "minute")) |> 
+  summarise(across(everything(), 
+                   list(mean = ~ mean(.x, na.rm = TRUE), 
+                        sd = ~ sd(.x, na.rm = TRUE))))
+
+status_mean <- status_qc |> 
+  select(timestamp, bat) |> 
+  group_by(date_group(timestamp, "minute")) |> 
+  summarise(across(c(timestamp, bat), 
+                   list(mean = ~ mean(.x, na.rm = TRUE), 
+                        sd = ~ sd(.x, na.rm = TRUE))))
+
+adv_data_mean <- adv_data_qc |> 
+  select(missing, timestamp, pressure, pH, temp, oxy) |> 
+  group_by(date_group(timestamp, "minute")) |> 
+  summarise(across(everything(), 
+                   list(mean = ~ mean(.x, na.rm = TRUE), 
+                        sd = ~ sd(.x, na.rm = TRUE))),
+            missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+### Met data
+
+#### PAR
+
+```{r}
+met_mean |> 
+  plot_mean(PAR_mean, PAR_sd)
+```
+
+#### Wind Speed
+
+```{r}
+met_mean |> 
+  plot_mean(wind_speed_mean, wind_speed_sd) +
+  labs(title = "Wind Speed",
+       y = "Wind Speed (m/s)")
+```
+
+#### Wind direction
+
+```{r}
+ggplot(met_mean, aes(wind_dir_mean, wind_speed_mean)) +
+  geom_point() +
+  coord_polar() 
+```
+
+### Status
+
+#### Battery
+
+```{r}
+status_mean |> 
+  plot_mean(bat_mean, bat_sd) +
+  geom_smooth() +
+  labs(title = "Battery Voltage",
+       y = "Volts")
+```
+
+### ADV Data
+
+#### pressure
+
+```{r}
+adv_data_mean |> 
+  plot_mean(pressure_mean, pressure_sd) +
+  labs(title = "Pressure",
+       y = "Pressure (dbar)")
+```
+
+#### pH
+
+Data issues cause wild flyers
+
+```{r}
+adv_data_qc |> 
+  ggplot(aes(timestamp, pH)) +
+  geom_point()
+```
+
+
+```{r}
+adv_data_mean |> 
+  plot_mean(pH_mean, pH_sd) +
+  labs(title = "pH")
+```
+
+#### Temperature
+
+```{r}
+adv_data_mean |> 
+  plot_mean(temp_mean, temp_sd) +
+  labs(title = "Temperature",
+       y = "Temp (C)")
+```
+
+#### Oxygen
+
+```{r}
+adv_data_mean |> 
+  plot_mean(oxy_mean, oxy_sd) +
+  labs(title = "Oxygen")
+```
+
+## Missing data
+
+Missing data by row. Determined by looking at gaps in cycle number.
+
+```{r}
+adv_data |> 
+  ggplot(aes(row_num, missing)) +
+  geom_point() +
+  labs(title = "Missing data by row",
+       x = NULL,
+       y = "Missing")
+```
+
+Fraction of data missing. Ratio of total missing rows (as above)
+to expected rows (rows in send + sum of missing rows).
+
+```{r}
+adv_data_mean |> 
+  ggplot(aes(timestamp_mean, missing_frac)) +
+  geom_point() +
+  labs(title = "Fraction missing by send",
+       x = NULL,
+       y = "Fraction missing")
+```
+
+
