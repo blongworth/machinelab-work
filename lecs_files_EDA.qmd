@@ -1,12 +1,10 @@
 ---
-title: "Parse LECS Web"
+title: "Parse LECS Files"
 format: html
 editor: source
-params:
-  start_date: 2023-11-10
 ---
 
-Get and parse data sent to LECS website. Data from `r params$start_date` to present.
+Get and parse data from LECS files.
 
 
 
@@ -16,19 +14,31 @@ Get and parse data sent to LECS website. Data from `r params$start_date` to pres
 #| warning: false
 #| message: false
 
+library(data.table)
 library(tidyverse)
-library(lubridate)
 library(mlabtools)
+library(clock)
+library(tictoc)
+library(furrr)
+library(parallel)
 
 theme_set(theme_bw())
 options(digits.secs=3)
 
 # RINKO_CALS
 rinko_cals <- list(
-  A = -1.219367e1,
-  B = 2.134089e1,
-  C = -3.559172e00,
-  D = 6.691104e-01
+  temp_A = -1.219367e1,
+  temp_B = 2.134089e1,
+  temp_C = -3.559172e00,
+  temp_D = 6.691104e-01,
+  o2_A = -4.382235e01,
+  o2_B = 1.398755e02,
+  o2_C = -4.119456e-01,
+  o2_D = 9.934000e-03,
+  o2_E = 4.000000e-03,
+  o2_F = 4.440000e-05,
+  o2_G = 0.000000e+00,
+  o2_H = 1.000000e+00
 )
 
 # plotting function
@@ -38,70 +48,38 @@ plot_mean <- function(data, parameter, err) {
                y = {{parameter}},
                ymin = {{parameter}} - {{err}},
                ymax = {{parameter}} + {{err}})) +
-    geom_line(color = "gray") +
-    geom_pointrange() +
+    geom_line(color = "lightgray") +
+    geom_linerange(color = "gray") +
+    geom_point(size = 1) +
     labs(x = NULL)
 }
 ```
 
-## Get and process data
-
-Get data from website. 
-
-Use `start_date` parameter to limit download.
+## Load data
 
 ```{r}
-df_raw <- lecs_read_web(start_date = params$start_date)
+met <- fread("data/processed/surface/lecs_met_2023-09-05.csv")
+status <- fread("data/processed/surface/lecs_status_2023-09-05.csv")
+adv_data <- fread("data/processed/surface/lecs_adv_data_2023-09-05.csv")
 ```
 
-Add row, type, send and line number
+Add missing counts between lines to ADV data
 
 ```{r}
-df <- lecs_add_metadata(df_raw)
+adv_data <- adv_data |> 
+  mutate(missing = lecs_missing(count))
 ```
 
-Separate data into post times, met, status, and adv data
-
-
-```{r}
-post_times <- lecs_post_times(df)
-met <- lecs_met_data(df)
-status <- lecs_status_data(df)
-adv_data <- lecs_adv_data(df, rinko_cals) |> 
-  mutate(missing = lecs_missing(count, line))
-```
-
-Quick ADV time alignment
-
+Add timestamp from nearest status line to ADV data. Doesn't work with lots of data.
 
 ```{r}
+#| eval: false
 find_nearest_row <- function(row_number) {
   return(which.min(abs(status$row_num - row_number)))
 }
 
 adv_data$timestamp_s <- status$timestamp[sapply(adv_data$row_num, find_nearest_row)]
 ```
-
-Real ADV time alignment
-
-time per line
-
-```{r}
-#| eval: true
-adv_data <- make_lecs_ts(adv_data, status) |> 
-  rename(timestamp2 = timestamp)
-adv_data <- make_lecs_ts_2(adv_data, status)
-lps <- NA
-```
-
-```{r}
-#| eval: false
-bm <- bench::mark(adv_data <- make_lecs_ts_2(adv_data, status))
-lps <- nrow(adv_data) / bm$median[[1]]
-bm
-```
-
-ADV time alignment speed: `r lps` lines per second.
 
 Filter bad data
 
@@ -122,33 +100,34 @@ adv_data_qc <- adv_data |>
 
 ```
 
-Calculate per-send means
+Calculate per-hour means
 
 ```{r}
 met_mean <- met |> 
-  group_by(send) |> 
+  group_by(date_group(timestamp, "hour")) |> 
   summarise(across(everything(), 
                    list(mean = ~ mean(.x, na.rm = TRUE), 
                         sd = ~ sd(.x, na.rm = TRUE))))
 
 status_mean <- status_qc |> 
-  select(send, timestamp, bat) |> 
-  group_by(send) |> 
+  select(timestamp, bat) |> 
+  group_by(date_group(timestamp, "hour")) |> 
   summarise(across(c(timestamp, bat), 
                    list(mean = ~ mean(.x, na.rm = TRUE), 
                         sd = ~ sd(.x, na.rm = TRUE))))
 
 adv_data_mean <- adv_data_qc |> 
-  select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
-  group_by(send) |> 
+  select(missing, timestamp, pressure, pH, temp, oxy) |> 
+  group_by(date_group(timestamp, "hour")) |> 
   summarise(across(everything(), 
                    list(mean = ~ mean(.x, na.rm = TRUE), 
                         sd = ~ sd(.x, na.rm = TRUE))),
-            missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
-            N = n())
-```
+            missing_frac = sum(missing, na.rm = TRUE) / 
+                           (sum(missing, na.rm = TRUE) + n()),
+            N = n(),
+            missing_frac_t = 1 - N/(60*60*16))
 
-#### Last post was `r max(post_times$timestamp)`
+```
 
 ### Met data
 
@@ -190,6 +169,30 @@ status_mean |>
 
 ### ADV Data
 
+#### Check time alignment
+
+```{r}
+#ggplot(adv_data, aes(row_num, timestamp)) + geom_point()
+```
+
+Compare expected time diffs. Comparing diff from counts to timestamp diff should be 0. Diffs indicate something unexpected happening with time alignment.
+
+```{r}
+adv_data <- adv_data |> 
+  mutate(time_diff_missing = (missing + 1)/16,
+         time_diff_timestamp = timestamp - lag(timestamp),
+         time_diff_diff = time_diff_missing - time_diff_timestamp)
+```
+
+```{r}
+adv_data |> 
+  head(5000) |> 
+  filter(abs(time_diff_diff) < 1) |> 
+  ggplot(aes(timestamp, time_diff_diff)) + 
+  geom_point()
+```
+
+
 #### pressure
 
 ```{r}
@@ -204,6 +207,7 @@ adv_data_mean |>
 Data issues cause wild flyers
 
 ```{r}
+#| eval: false
 adv_data_qc |> 
   ggplot(aes(timestamp, pH)) +
   geom_point()
@@ -238,6 +242,7 @@ adv_data_mean |>
 Missing data by row. Determined by looking at gaps in cycle number.
 
 ```{r}
+#| eval: false
 adv_data |> 
   ggplot(aes(row_num, missing)) +
   geom_point() +
@@ -253,55 +258,18 @@ to expected rows (rows in send + sum of missing rows).
 adv_data_mean |> 
   ggplot(aes(timestamp_mean, missing_frac)) +
   geom_point() +
-  labs(title = "Fraction missing by send",
+  labs(title = "Fraction missing by minute",
        x = NULL,
        y = "Fraction missing")
 ```
 
-Most missing data is in first 25 lines per send. This is the beginning of a new
-file. This is likely a gap as DAQ gets started again after pausing for send.
-The following plot is missing fraction without the first 25 lines of each send.
-
-```{r}
-adv_data_qc <- adv_data |> 
-  filter(count >= 0, count < 256, 
-         ana_in2 == 1, 
-         line > 25,
-         timestamp > "2023-01-01",
-         timestamp < "2024-10-01")
-
-adv_data_mean <- adv_data_qc |> 
-  select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
-  group_by(send) |> 
-  summarise(across(everything(), 
-                   list(mean = ~ mean(.x, na.rm = TRUE), 
-                        sd = ~ sd(.x, na.rm = TRUE))),
-            missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
-            N = n())
-```
+The same calculated as actual number of rows / expected rows (60s * 16rps)
 
 ```{r}
 adv_data_mean |> 
-  ggplot(aes(timestamp_mean, missing_frac)) +
+  ggplot(aes(timestamp_mean, missing_frac_t)) +
   geom_point() +
-  labs(title = "Fraction missing by send, without first 25 lines",
+  labs(title = "Fraction missing by minute",
        x = NULL,
        y = "Fraction missing")
-```
-
-## Post times
-
-```{r}
-knitr::kable(post_times)
-```
-
-Lines per post
-
-```{r}
-post_times |> 
-  ggplot(aes(timestamp, row_count)) +
-  geom_point() +
-  labs(title = "Lines per post",
-       x = NULL,
-       y = "Lines")
 ```
