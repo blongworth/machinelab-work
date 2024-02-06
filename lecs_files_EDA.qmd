@@ -63,6 +63,22 @@ status <- fread("data/processed/surface/lecs_status_2023-09-05.csv")
 adv_data <- fread("data/processed/surface/lecs_adv_data_2023-09-05.csv")
 ```
 
+Remove lines with duplicate timestamps
+
+how many duplicates?
+
+```{r}
+length(unique(adv_data$timestamp)) / nrow(adv_data)
+```
+
+remove duplicates
+
+```{r}
+adv_data <- distinct(adv_data, timestamp, .keep_all = TRUE)
+fwrite(adv_data, "data/processed/surface/lecs_adv_data_2023-09-05d.csv")
+```
+
+
 Add missing counts between lines to ADV data
 
 ```{r}
