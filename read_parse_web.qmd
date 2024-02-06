@@ -23,14 +23,6 @@ library(mlabtools)
 theme_set(theme_bw())
 options(digits.secs=3)
 
-# RINKO_CALS
-rinko_cals <- list(
-  A = -1.219367e1,
-  B = 2.134089e1,
-  C = -3.559172e00,
-  D = 6.691104e-01
-)
-
 # plotting function
 plot_mean <- function(data, parameter, err) {
   data |> 
@@ -88,8 +80,6 @@ time per line
 
 ```{r}
 #| eval: true
-adv_data <- make_lecs_ts(adv_data, status) |> 
-  rename(timestamp2 = timestamp)
 adv_data <- make_lecs_ts_2(adv_data, status)
 lps <- NA
 ```
@@ -139,7 +129,7 @@ status_mean <- status_qc |>
                         sd = ~ sd(.x, na.rm = TRUE))))
 
 adv_data_mean <- adv_data_qc |> 
-  select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
+  select(send, missing, timestamp, pressure, ph_counts, temp, DO_percent) |> 
   group_by(send) |> 
   summarise(across(everything(), 
                    list(mean = ~ mean(.x, na.rm = TRUE), 
@@ -205,7 +195,7 @@ Data issues cause wild flyers
 
 ```{r}
 adv_data_qc |> 
-  ggplot(aes(timestamp, pH)) +
+  ggplot(aes(timestamp, ph_counts)) +
   geom_point()
 ```
 
@@ -229,7 +219,7 @@ adv_data_mean |>
 
 ```{r}
 adv_data_mean |> 
-  plot_mean(oxy_mean, oxy_sd) +
+  plot_mean(DO_percent_mean, DO_percent_sd) +
   labs(title = "Oxygen")
 ```
 
@@ -271,7 +261,7 @@ adv_data_qc <- adv_data |>
          timestamp < "2024-10-01")
 
 adv_data_mean <- adv_data_qc |> 
-  select(send, missing, timestamp, pressure, pH, temp, oxy) |> 
+  select(send, missing, timestamp, pressure, ph_counts, temp, DO_percent) |> 
   group_by(send) |> 
   summarise(across(everything(), 
                    list(mean = ~ mean(.x, na.rm = TRUE), 
