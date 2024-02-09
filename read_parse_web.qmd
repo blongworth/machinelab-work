@@ -67,6 +67,7 @@ Quick ADV time alignment
 
 
 ```{r}
+#| eval: false
 find_nearest_row <- function(row_number) {
   return(which.min(abs(status$row_num - row_number)))
 }
@@ -202,7 +203,7 @@ adv_data_qc |>
 
 ```{r}
 adv_data_mean |> 
-  plot_mean(pH_mean, pH_sd) +
+  plot_mean(ph_counts_mean, ph_counts_sd) +
   labs(title = "pH")
 ```
 
