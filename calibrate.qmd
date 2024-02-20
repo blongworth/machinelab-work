@@ -1,0 +1,220 @@
+---
+title: Calibrate pH sensor
+format: html
+editor: source
+---
+
+
+Apply ph calibration to entire dataset
+
+save parquet
+
+```{r}
+library(arrow)
+library(tidyverse)
+library(janitor)
+library(readxl)
+library(mlabtools)
+library(dygraphs)
+library(clock)
+library(data.table)
+
+data_dir <- "data/processed/surface/lecs_adv_data_"
+```
+
+Open dataset
+
+```{r}
+ds <- open_dataset(paste0(data_dir, "all_filtered.parquet"))
+```
+
+
+# Calibration
+
+Calibrate full data set
+
+add col for calibration periods
+
+```{r}
+df <- ds |> 
+  mutate(ph_group = if_else(time > "2023-12-22 12:00:00", 1L, 0L)) |> 
+  collect()
+```
+
+## Seaphox calibration data
+
+### Jul calibration
+
+```{r}
+sp_jul <- read_excel("data/SeapHOx Data/Seaphox_LECS_072423.xlsx") |> 
+  clean_names() |> 
+  select(time = date_time_utc_04_00,
+         pH = internal_p_h_p_h,
+         temp = p_h_temperature_celsius,
+         pressure = pressure_decibar,
+         sal = salinity_psu,
+         oxygen = oxygen_ml_l)
+sp_jul <- filter(sp_jul, time > "2023-07-24 17:00:00",
+                 time < "2023-08-09 13:00:00")
+```
+
+### Oct calibration
+
+Removing this for now, because the seaphox data is funky
+
+```{r}
+sp_oct <- read_excel("data/SeapHOx Data/Seaphox_LECS_10052023.xlsx") |> 
+  clean_names() |> 
+  #mutate(time = mdy_hms(date_time_utc_04_00,
+  #                         tz = "UTC")) |> 
+  select(time = date_time_utc_04_00,
+         pH = internal_p_h_p_h,
+         temp = p_h_temperature_celsius,
+         pressure = pressure_decibar,
+         sal = salinity_psu,
+         oxygen = oxygen_ml_l)
+
+sp_oct <- filter(sp_oct, time > "2023-10-19 18:00:00",
+                 time < "2023-11-02 08:00:00")
+```
+
+## Nov calibration
+
+```{r}
+sp_nov <- read_excel("data/SeapHOx Data/Seaphox_LECS_111523.xlsx") |> 
+  clean_names() |> 
+  #mutate(time = mdy_hms(date_time_utc_04_00,
+  #                         tz = "UTC")) |> 
+  select(time = date_time_utc_04_00,
+         pH = internal_p_h_p_h,
+         temp = p_h_temperature_celsius,
+         pressure = pressure_decibar,
+         sal = salinity_psu,
+         oxygen = oxygen_ml_l)
+
+sp_nov <- filter(sp_nov, time > "2023-11-15 16:00:00",
+                 time < "2023-11-21 09:30:00")
+```
+
+## December calibration
+
+before sensor change
+
+```{r}
+sp_dec <- read_excel("data/SeapHOx Data/Seaphox_LECS_120723.xlsx") |> 
+  clean_names() |> 
+  #mutate(time = mdy_hms(date_time_utc_04_00,
+  #                         tz = "UTC")) |> 
+  select(time = date_time_utc_04_00,
+         pH = internal_p_h_p_h,
+         temp = p_h_temperature_celsius,
+         pressure = pressure_decibar,
+         sal = salinity_psu,
+         oxygen = oxygen_ml_l)
+
+sp_dec <- filter(sp_dec, time > "2023-12-08 06:00:00",
+                 time < "2023-12-14 14:00:00")
+```
+
+## Jan calibration
+
+Note that seapHOx data have UTC timestamps
+
+```{r}
+sp_jan <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_122223.csv")
+
+sp_jan <- filter(sp_jan, time > "2023-12-22 14:00:00",
+                 time < "2024-01-03 10:00:00")
+```
+
+# Calibration
+
+do regression of temp and ph_counts on seaphox ph and add to df
+
+```{r}
+jul_coef <- generate_ph_model(sp_jul, df)
+oct_coef <- generate_ph_model(sp_oct, df)
+nov_coef <- generate_ph_model(sp_nov, df)
+dec_coef <- generate_ph_model(sp_dec, df)
+jan_coef <- generate_ph_model(sp_jan, df)
+```
+
+## Smooth between regressions
+
+Smoothly transition between fit parameters to account for drift
+
+make df with timestamp and cal factors
+don't use jan cal (do stepwise due to sensor change)
+
+```{r}
+cals <- list(sp_jul, sp_nov, sp_dec)
+coefs <- bind_rows(jul_coef, nov_coef, dec_coef)
+cal_time <- map(cals, ~mean(.x$time))
+cal_time <- do.call(c, cal_time)
+cal_df <- bind_cols(as.data.frame(cal_time), coefs)
+```
+
+Apply linear fit between calibrations
+
+```{r}
+i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
+c_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_ph_counts, rule = 2)
+t_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_temp, rule = 2)
+i_fit <- i_ap_fun(df$time)
+c_fit <- c_ap_fun(df$time)
+t_fit <- t_ap_fun(df$time)
+```
+
+```{r}
+df_cal <- df %>% 
+  mutate(
+    ph_i = i_fit,
+    ph_c = c_fit,
+    ph_t = t_fit,
+    #ph_i = if_else(ph_group == 1, jan_coef[1], ph_i),
+    #ph_c = if_else(ph_group == 1, jan_coef[2], ph_c),
+    #ph_t = if_else(ph_group == 1, jan_coef[3], ph_t),
+    ph_i = replace(ph_i, ph_group == 1, jan_coef[1]),
+    ph_c = replace(ph_c, ph_group == 1, jan_coef[2]),
+    ph_t = replace(ph_t, ph_group == 1, jan_coef[3]),
+    pH = ph_i + ph_c * ph_counts + ph_t * temp)
+```
+
+
+```{r}
+df_cal |> 
+  arrow_table() |> 
+  write_dataset(paste0(data_dir, "all_filtered_calibrated.parquet"))
+```
+
+Calculate per-hour mean
+
+```{r}
+adv_data_mean <- df_cal |> 
+  mutate(time = date_group(time, "hour")) |> 
+  group_by(time) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+fwrite(adv_data_mean, paste0(data_dir, "all_filt_cal_hourly.csv"))
+write_dataset(adv_data_mean, paste0(data_dir, "all_filt_cal_hourly.parquet"))
+```
+
+Calculate per-min mean
+
+```{r}
+adv_data_mean <- df_cal |> 
+  mutate(time = date_group(time, "minute")) |> 
+  group_by(time) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+              ungroup()
+fwrite(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.csv"))
+write_dataset(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.parquet"))
+```
+
+```{r}
+dygraph(select(adv_data_mean, time, pH))
+```
+
+

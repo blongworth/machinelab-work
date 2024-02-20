@@ -1,0 +1,136 @@
+---
+title: "filter_calibrate_all"
+format: html
+editor: source
+---
+
+Filter all bad data out of raw dataset
+
+Apply ph calibration to entire dataset
+
+save parquet
+
+```{r}
+library(arrow)
+library(tidyverse)
+library(dygraphs)
+library(clock)
+library(data.table)
+
+data_dir <- "data/processed/surface/lecs_adv_data_"
+```
+
+Open dataset
+
+```{r}
+ds <- open_dataset(paste0(data_dir, "all.parquet"))
+names(ds)
+```
+
+Open minute averages to get proper ranges
+
+```{r}
+df_min <- open_dataset(paste0(data_dir, "all_minute.parquet")) |> 
+  collect()
+```
+
+plot depths
+
+```{r}
+df_min |> 
+  select(time_mean, pressure_mean) |> 
+  dygraph()
+```
+
+```{r}
+df_min |> 
+  select(time_mean, ph_counts_mean) |> 
+  dygraph()
+```
+```{r}
+df_min |> 
+  select(time_mean, DO_mean) |> 
+  dygraph()
+```
+
+
+Filter
+
+depths >0 and < 5
+
+```{r}
+df_min_filt <- df_min |> 
+  filter(!(time_mean > "2023-08-27 04:00:00" & 
+             time_mean < "2023-09-11 16:20:00"),
+         !(time_mean > "2023-09-15 04:00:00" & 
+             time_mean < "2023-10-17 16:00:00"),
+         !(time_mean > "2023-12-22 11:45:00" & 
+             time_mean < "2023-12-22 12:45:00"),
+         pressure_mean > 0,
+         pressure_mean < 5,
+         temp_mean > 0,
+         temp_mean < 30,
+         ph_counts_mean > 6000,
+         ph_counts_mean < 14000,
+         DO_mean > 0.5,
+         DO_mean < 2.5)
+```
+
+```{r}
+df_min_filt |> 
+  select(time_mean, ph_counts_mean) |> 
+  dygraph()
+```
+
+```{r}
+ds_filt <- ds |> 
+  filter(!(time > "2023-08-27 04:00:00" & time < "2023-09-11 16:20:00"),
+         !(time > "2023-09-15 04:00:00" & time < "2023-10-17 16:00:00"),
+         !(time > "2023-12-22 11:45:00" & time < "2023-12-22 12:45:00"),
+         pressure > 0,
+         pressure < 5,
+         temp > 0,
+         temp < 30,
+         ph_counts > 6000,
+         ph_counts < 14000,
+         DO > 0.5,
+         DO < 2.5)
+```
+
+```{r}
+write_dataset(ds_filt, paste0(data_dir, "all_filtered.parquet"))
+```
+
+# Downsampling
+
+```{r}
+df <- collect(ds_filt)
+```
+
+
+Calculate per-hour mean
+
+```{r}
+adv_data_mean <- df |> 
+  mutate(time = date_group(time, "hour")) |> 
+  group_by(time) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+fwrite(adv_data_mean, paste0(data_dir, "all_filtered_hourly.csv"))
+write_dataset(adv_data_mean, paste0(data_dir, "all_filtered_hourly.parquet"))
+```
+
+Calculate per-min mean
+
+```{r}
+adv_data_mean <- df |> 
+  mutate(time = date_group(time, "minute")) |> 
+  group_by(time) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+              ungroup()
+fwrite(adv_data_mean, paste0(data_dir, "all_filtered_minute.csv"))
+write_dataset(adv_data_mean, paste0(data_dir, "all_filtered_minute.parquet"))
+```
+
