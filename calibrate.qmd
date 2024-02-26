@@ -19,7 +19,8 @@ library(dygraphs)
 library(clock)
 library(data.table)
 
-data_dir <- "data/processed/surface/lecs_adv_data_"
+#data_dir <- "data/processed/surface/lecs_adv_data_"
+data_dir <- "data/processed/"
 ```
 
 Open dataset
@@ -147,8 +148,8 @@ make df with timestamp and cal factors
 don't use jan cal (do stepwise due to sensor change)
 
 ```{r}
-cals <- list(sp_jul, sp_nov, sp_dec)
-coefs <- bind_rows(jul_coef, nov_coef, dec_coef)
+cals <- list(sp_jul, sp_oct, sp_nov, sp_dec)
+coefs <- bind_rows(jul_coef, oct_coef, nov_coef, dec_coef)
 cal_time <- map(cals, ~mean(.x$time))
 cal_time <- do.call(c, cal_time)
 cal_df <- bind_cols(as.data.frame(cal_time), coefs)
@@ -217,4 +218,17 @@ write_dataset(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.parquet"))
 dygraph(select(adv_data_mean, time, pH))
 ```
 
+```{r}
+dygraph(select(adv_data_mean, time, ph_counts))
+```
+
+```{r}
+dygraph(select(adv_data_mean, time, pH))
+```
+
+```{r}
+sp <- bind_rows(sp_jul, sp_oct, sp_nov, sp_dec, sp_jan)
+
+select(sp, time, pH) |> dygraph()
+```
 

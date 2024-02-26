@@ -1,0 +1,67 @@
+---
+title: "Arrow tests"
+format: html
+editor: source
+---
+
+Get and parse data from LECS files.
+
+# Get Data
+
+```{r}
+#| warning: false
+#| message: false
+
+library(arrow)
+library(tidyverse)
+library(mlabtools)
+
+theme_set(theme_bw())
+options(digits.secs=3)
+
+# plotting function
+plot_mean <- function(data, parameter, err) {
+  data |> 
+    ggplot(aes(x = time_mean, 
+               y = {{parameter}},
+               ymin = {{parameter}} - {{err}},
+               ymax = {{parameter}} + {{err}})) +
+    geom_line(color = "lightgray") +
+    geom_linerange(color = "gray") +
+    geom_point(size = 1) +
+    labs(x = NULL)
+}
+```
+
+## Combine all data and save
+
+connect to all adv data
+
+```{r}
+data_dir <- "data/processed/"
+files <- c(
+  "lander/lecs_adv_data_2023-07-24.parquet", 
+  "surface/lecs_adv_data_2023-09-05.parquet", 
+  "surface/lecs_adv_data_2023-11-15.parquet",
+  "surface/lecs_adv_data_2024-01-23.parquet")
+paths <- file.path(paste0(data_dir, files))
+adv_data_all_list <- map(paths, open_dataset)
+adv_data_all <- adv_data_all_list |> 
+  map(collect) |> 
+  bind_rows()
+
+write_dataset(adv_data_all, paste0(data_dir, "all.parquet"))
+
+```
+
+```{r}
+adv_data_all_p <- open_dataset(paste0(data_dir, "all.parquet"))
+glimpse(adv_data_all_p)
+```
+
+```{r}
+glimpse(adv_data_all_list[[1]])
+head(adv_data_all_list[[1]]) |> 
+  collect()
+```
+
