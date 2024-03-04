@@ -1,0 +1,35 @@
+---
+title: "Tests during Feb 2024 maintenance"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(mlabtools)
+
+filename <- "data/LECS_highbay_tests/CoolTerm Capture 2024-03-01 16-38-16_RinkoCal.txt"
+```
+
+Before fixes
+
+```{r}
+dl <- lecs_parse_file(filename)
+adv <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+
+adv_sum <- adv |> 
+  select(missing, timestamp, pressure, ph_counts, temp, DO_percent) |> 
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE)), 
+            missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+Plots
+
+```{r}
+adv |> 
+  filter(!is.na(timestamp)) |> 
+plot_ts("DO_percent")
+```
+
