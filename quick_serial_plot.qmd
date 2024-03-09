@@ -8,12 +8,14 @@ editor: source
 library(tidyverse)
 library(mlabtools)
 
-filename <- "data/LECS_highbay_tests/CoolTerm Capture 2024-03-01 16-38-16_RinkoCal.txt"
+filename <- "data/LECS_highbay_tests/CoolTerm Capture 2024-03-04 11-18-59_lecs_lander_nobuffer.txt"
 ```
 
 Before fixes
 
 ```{r}
+df <- lecs_read_file(filename)
+adv_test <- lecs_adv_data(df, rinko_cals = rinko_cals)
 dl <- lecs_parse_file(filename)
 adv <- dl[[3]] |> 
   mutate(missing = lecs_missing(count))

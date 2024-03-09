@@ -1,0 +1,119 @@
+---
+title: "Tests during Feb 2024 maintenance"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(mlabtools)
+```
+
+Before fixes
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-01 14-58-16_before_fixes.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+
+sum_before_surface <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-01 15-05-20_lander_before_new_code.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_before_lander <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+After changes
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-01 15-12-59_surface_after_code_changes.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_after_surface <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-01 15-07-46_lander_after_new_code.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_after_lander <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-04 11-18-59_lecs_lander_nobuffer.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_nobuffer_lander <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-04 11-26-57_lecs_surface_nobuffer.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_nobuffer_surface <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-05 14-29-43_lecs_lander_100buffer2.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_100buf_lander <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-05 14-41-55_lecs_surface_100buffer.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_100buf_surface <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-05 16-07-01_lecs_lander_500buff2.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_500buf_lander <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+```{r}
+dl <- lecs_parse_file("data/LECS_highbay_tests/CoolTerm Capture 2024-03-05 16-18-56_lecs_lander_rinko.txt")
+df <- dl[[3]] |> 
+  mutate(missing = lecs_missing(count))
+sum_rinko <- df |> 
+  summarize(missing_frac = sum(missing, na.rm = TRUE) / (sum(missing, na.rm = TRUE) + n()),
+            N = n())
+```
+
+```{r}
+sum_loss <- bind_rows(lst(sum_before_surface, sum_before_lander, 
+                          sum_after_surface, sum_after_lander,
+                          sum_nobuffer_surface, sum_nobuffer_lander,
+                          sum_100buf_surface, sum_100buf_lander,
+                          sum_500buf_lander, sum_rinko),
+                      .id = "id")
+
+sum_loss
+```
+

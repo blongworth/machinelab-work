@@ -1,0 +1,85 @@
+---
+title: "Tests during Feb 2024 maintenance"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(mlabtools)
+```
+
+Process calibration data for RINKO. 
+Data from oxygen free and saturated solutions are used 
+to determine 90% response time and rinko cal factors G and H.
+
+## Calibration data for RINKO 0472
+
+Was deployed with LECS since April 2023
+
+```{r}
+filename <- "data/LECS_highbay_tests/CoolTerm Capture 2024-03-05 13-30-49_lecs_lander_rinko.txt"
+dl <- lecs_parse_file(filename)
+adv <- dl[[3]] 
+```
+
+### Plots
+
+```{r}
+adv |> 
+  filter(!is.na(timestamp)) |> 
+plot_ts("temp")
+```
+
+```{r}
+adv |> 
+  filter(!is.na(timestamp)) |> 
+plot_ts("DO_percent")
+```
+
+Second try with RINKO 0472. Used this data for response and cal.
+
+```{r}
+filename <- "data/LECS_highbay_tests/CoolTerm Capture 2024-03-05 14-00-14_rinko.txt"
+dl <- lecs_parse_file(filename)
+adv <- dl[[3]] 
+```
+
+Plots
+
+```{r}
+adv |> 
+  filter(!is.na(timestamp)) |> 
+plot_ts("temp")
+```
+
+```{r}
+adv |> 
+  filter(!is.na(timestamp)) |> 
+plot_ts("DO_percent")
+```
+
+
+## Calibration data for RINKO ????
+
+Spare rinko in lab box
+
+```{r}
+filename <- "data/LECS_highbay_tests/CoolTerm Capture 2024-03-05 16-18-56_lecs_lander_rinko.txt"
+dl <- lecs_parse_file(filename)
+adv <- dl[[3]] 
+```
+
+Plots
+
+```{r}
+adv |> 
+  filter(!is.na(timestamp)) |> 
+plot_ts("temp")
+```
+
+```{r}
+adv |> 
+  filter(!is.na(timestamp)) |> 
+plot_ts("DO_percent")
+```
