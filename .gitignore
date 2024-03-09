@@ -3,6 +3,9 @@
 .RData
 .Ruserdata
 .DS_Store
+*.html
 
+*files/
 /.quarto/
 data
+archive
