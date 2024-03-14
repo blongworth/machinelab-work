@@ -59,11 +59,17 @@ Separate data into post times, met, status, and adv data
 
 ```{r}
 post_times <- lecs_post_times(df) |> 
-  mutate(timestamp = timestamp + time_offset)
+  mutate(timestamp = if_else(timestamp < as.POSIXct("2020-01-01"),
+                 timestamp + time_offset,
+                 timestamp))
 met <- lecs_met_data(df) |> 
-  mutate(timestamp = timestamp + time_offset)
+  mutate(timestamp = if_else(timestamp < as.POSIXct("2020-01-01"),
+                 timestamp + time_offset,
+                 timestamp))
 status <- lecs_status_data(df) |> 
-  mutate(timestamp = timestamp + time_offset)
+  mutate(timestamp = if_else(timestamp < as.POSIXct("2020-01-01"),
+                 timestamp + time_offset,
+                 timestamp))
 adv_data <- lecs_adv_data(df, rinko_cals) |> 
   mutate(missing = lecs_missing(count, line))
 ```
@@ -264,15 +270,15 @@ adv_data_mean |>
   labs(title = "Alongshore velocity")
 ```
 
-Onshore velocity
+Offshore velocity
 
-Positive is towards shore
+Positive is away from shore
 
 ```{r}
 adv_data_mean |> 
   plot_mean(v_mean, v_sd) +
   ylim(-0.5, 0.5) +
-  labs(title = "Onshore velocity")
+  labs(title = "Offshore velocity")
 ```
 
 
