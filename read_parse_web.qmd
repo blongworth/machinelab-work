@@ -134,7 +134,9 @@ status_mean <- status_qc |>
 adv_data_mean <- adv_data_qc |> 
   select(send, missing, timestamp, 
          pressure, temp, 
-         u, v, w, corr1, corr2, corr3,
+         u, v, w, 
+         amp1, amp2, amp3,
+         corr1, corr2, corr3,
          DO_percent, pH) |> 
   group_by(send) |> 
   summarise(across(everything(), 
@@ -250,6 +252,18 @@ adv_data_mean |>
        y = "Correlation")
 ```
 
+```{r}
+adv_data_mean |> 
+  select(timestamp_mean, amp1_mean, amp2_mean, amp3_mean) |> 
+  pivot_longer(starts_with("amp")) |>
+  ggplot(aes(timestamp_mean, value, color = name)) +
+  geom_smooth(aes(timestamp_mean, value), se = FALSE) +
+  geom_smooth(aes(timestamp_mean, value, color = NULL)) +
+  geom_point() +
+  labs(title = "ADV amplitude",
+       x = NULL,
+       y = "Amplitude")
+```
 Vertical velocity
 
 ```{r}
