@@ -143,7 +143,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                 timestamp <span class="sc">+</span> time_offset,</span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                 timestamp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 33 rows [1, 5, 6, 7, 9, 16,
+<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 34 rows [1, 5, 6, 7, 9, 16,
 17, 21, 22, 24, 28, 30, 32, 33, 34, 36, 37, 38, 46, 48, ...].</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>status <span class="ot">&lt;-</span> <span class="fu">lecs_status_data</span>(df) <span class="sc">|&gt;</span> </span>
@@ -217,8 +217,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
 <span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="last-post-was-2024-03-17-081112" class="level4">
-<h4 class="anchored" data-anchor-id="last-post-was-2024-03-17-081112">Last post was 2024-03-17 08:11:12</h4>
+<section id="last-post-was-2024-03-18-041112" class="level4">
+<h4 class="anchored" data-anchor-id="last-post-was-2024-03-18-041112">Last post was 2024-03-18 04:11:12</h4>
 </section>
 <section id="met-data" class="level3">
 <h3 class="anchored" data-anchor-id="met-data">Met data</h3>
@@ -228,7 +228,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(PAR_mean, PAR_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 58 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 63 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -248,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 58 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 63 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -444,7 +444,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 (`geom_pointrange()`).</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 21 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 22 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -511,7 +511,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
 <span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Missing"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 61 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 66 rows containing missing values or values outside the scale range
 (`geom_point()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -827,6 +827,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-03-17 08:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-03-17 12:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-03-17 16:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-03-17 20:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-03-18 00:11:12</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-03-18 04:11:12</td>
 <td style="text-align: right;">501</td>
 </tr>
 </tbody>
