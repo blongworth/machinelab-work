@@ -131,7 +131,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                 timestamp <span class="sc">+</span> time_offset,</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                 timestamp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 59 rows [1, 5, 6, 7, 9, 16,
+<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 60 rows [1, 5, 6, 7, 9, 16,
 17, 21, 22, 24, 28, 30, 32, 33, 34, 36, 37, 38, 46, 48, ...].</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>status <span class="ot">&lt;-</span> <span class="fu">lecs_status_data</span>(df) <span class="sc">|&gt;</span> </span>
@@ -191,8 +191,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
 <span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="last-post-was-2024-03-29-041112" class="level4">
-<h4 class="anchored" data-anchor-id="last-post-was-2024-03-29-041112">Last post was 2024-03-29 04:11:12</h4>
+<section id="last-post-was-2024-03-29-081112" class="level4">
+<h4 class="anchored" data-anchor-id="last-post-was-2024-03-29-081112">Last post was 2024-03-29 08:11:12</h4>
 <p>How many status lines are in the wrong year?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ct <span class="ot">&lt;-</span> post_times <span class="sc">|&gt;</span> </span>
@@ -247,7 +247,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(PAR_mean, PAR_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 125 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 126 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -267,7 +267,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 125 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 126 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -1174,6 +1174,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">2024-03-29 04:11:12</td>
 <td style="text-align: right;">129</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-03-29 08:11:12</td>
+<td style="text-align: right;">130</td>
 <td style="text-align: right;">501</td>
 </tr>
 </tbody>
