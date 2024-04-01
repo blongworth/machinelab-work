@@ -191,8 +191,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
 <span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="last-post-was-2024-04-01-041112" class="level4">
-<h4 class="anchored" data-anchor-id="last-post-was-2024-04-01-041112">Last post was 2024-04-01 04:11:12</h4>
+<section id="last-post-was-2024-04-01-081112" class="level4">
+<h4 class="anchored" data-anchor-id="last-post-was-2024-04-01-081112">Last post was 2024-04-01 08:11:12</h4>
 <p>How many status lines are in the wrong year?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ct <span class="ot">&lt;-</span> post_times <span class="sc">|&gt;</span> </span>
@@ -201,10 +201,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>status <span class="sc">|&gt;</span> </span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, <span class="at">lander_time =</span> timestamp) <span class="sc">|&gt;</span> </span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(ct) <span class="sc">|&gt;</span> </span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(lander_time <span class="sc">&gt;</span> <span class="st">"2024-12-01"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(lander_time <span class="sc">&gt;</span> <span class="st">"2024-05-01"</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(post_time, lander_time)) <span class="sc">+</span></span>
 <span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Incorrect Lander timestamps"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_datetime</span>(<span class="at">date_labels =</span> <span class="st">"%Y-%m-%d"</span>) <span class="sc">+</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Incorrect Lander timestamps"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(send)`</code></pre>
 </div>
@@ -247,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(PAR_mean, PAR_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 43 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 44 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -267,7 +268,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 43 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 44 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -422,7 +423,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Vertical velocity"</span>,</span>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 12 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 13 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -737,6 +738,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">2024-04-01 04:11:12</td>
 <td style="text-align: right;">44</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-04-01 08:11:12</td>
+<td style="text-align: right;">45</td>
 <td style="text-align: right;">501</td>
 </tr>
 </tbody>
