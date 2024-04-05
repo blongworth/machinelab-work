@@ -1,0 +1,59 @@
+---
+title: "Resample LECS ADV timeseries"
+format: html
+editor: source
+---
+
+Resample filtered and calibrated data to hourly and every minute
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dygraphs)
+library(tictoc)
+
+data_dir <- "data/processed/"
+```
+
+```{r}
+ds <- open_dataset(paste0(data_dir, "lecs_adv_data_all_filtered_calibrated.parquet/"))
+names(ds)
+```
+
+resample to hourly
+
+```{r}
+ds_hourly <- ds |> 
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  mutate(timestamp = floor_date(timestamp, "hour")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+
+ds_hourly |> 
+  collect() |> 
+  fwrite(paste0(data_dir, "lecs_adv_data_all_filt_cal_hourly.csv"))
+
+write_dataset(ds_hourly, 
+              paste0(data_dir, "lecs_adv_data_all_filt_cal_hourly.parquet"))
+```
+
+resample to minute
+
+```{r}
+ds_minute <- ds |> 
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  mutate(timestamp = floor_date(timestamp, "minute")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+
+ds_minute |> 
+  collect() |> 
+  fwrite(paste0(data_dir, "lecs_adv_data_all_filt_cal_minute.csv"))
+
+write_dataset(ds_minute, 
+              paste0(data_dir, "lecs_adv_data_all_filt_cal_minute.parquet"))
+```
