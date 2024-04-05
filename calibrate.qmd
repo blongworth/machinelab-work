@@ -19,14 +19,13 @@ library(dygraphs)
 library(clock)
 library(data.table)
 
-#data_dir <- "data/processed/surface/lecs_adv_data_"
 data_dir <- "data/processed/"
 ```
 
 Open dataset
 
 ```{r}
-ds <- open_dataset(paste0(data_dir, "all_filtered.parquet"))
+ds <- open_dataset(paste0(data_dir, "adv_all_filt.parquet"))
 ```
 
 
@@ -37,9 +36,8 @@ Calibrate full data set
 add col for calibration periods
 
 ```{r}
-df <- ds |> 
-  mutate(ph_group = if_else(time > "2023-12-22 12:00:00", 1L, 0L)) |> 
-  collect()
+ds <- ds |> 
+  mutate(ph_group = if_else(time > "2023-12-22 06:45:00", 1L, 0L))
 ```
 
 ## Seaphox calibration data
@@ -49,14 +47,14 @@ df <- ds |>
 ```{r}
 sp_jul <- read_excel("data/SeapHOx Data/Seaphox_LECS_072423.xlsx") |> 
   clean_names() |> 
-  select(time = date_time_utc_04_00,
+  select(timestamp = date_time_utc_04_00,
          pH = internal_p_h_p_h,
          temp = p_h_temperature_celsius,
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l)
-sp_jul <- filter(sp_jul, time > "2023-07-24 17:00:00",
-                 time < "2023-08-09 13:00:00")
+sp_jul <- filter(sp_jul, timestamp > "2023-07-24 17:00:00",
+                 timestamp < "2023-08-09 13:00:00")
 ```
 
 ### Oct calibration
@@ -68,15 +66,15 @@ sp_oct <- read_excel("data/SeapHOx Data/Seaphox_LECS_10052023.xlsx") |>
   clean_names() |> 
   #mutate(time = mdy_hms(date_time_utc_04_00,
   #                         tz = "UTC")) |> 
-  select(time = date_time_utc_04_00,
+  select(timestamp = date_time_utc_04_00,
          pH = internal_p_h_p_h,
          temp = p_h_temperature_celsius,
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l)
 
-sp_oct <- filter(sp_oct, time > "2023-10-19 18:00:00",
-                 time < "2023-11-02 08:00:00")
+sp_oct <- filter(sp_oct, timestamp > "2023-10-19 18:00:00",
+                 timestamp < "2023-11-02 08:00:00")
 ```
 
 ## Nov calibration
@@ -86,15 +84,15 @@ sp_nov <- read_excel("data/SeapHOx Data/Seaphox_LECS_111523.xlsx") |>
   clean_names() |> 
   #mutate(time = mdy_hms(date_time_utc_04_00,
   #                         tz = "UTC")) |> 
-  select(time = date_time_utc_04_00,
+  select(timestamp = date_time_utc_04_00,
          pH = internal_p_h_p_h,
          temp = p_h_temperature_celsius,
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l)
 
-sp_nov <- filter(sp_nov, time > "2023-11-15 16:00:00",
-                 time < "2023-11-21 09:30:00")
+sp_nov <- filter(sp_nov, timestamp > "2023-11-15 16:00:00",
+                 timestamp < "2023-11-21 09:30:00")
 ```
 
 ## December calibration
@@ -106,15 +104,15 @@ sp_dec <- read_excel("data/SeapHOx Data/Seaphox_LECS_120723.xlsx") |>
   clean_names() |> 
   #mutate(time = mdy_hms(date_time_utc_04_00,
   #                         tz = "UTC")) |> 
-  select(time = date_time_utc_04_00,
+  select(timestamp = date_time_utc_04_00,
          pH = internal_p_h_p_h,
          temp = p_h_temperature_celsius,
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l)
 
-sp_dec <- filter(sp_dec, time > "2023-12-08 06:00:00",
-                 time < "2023-12-14 14:00:00")
+sp_dec <- filter(sp_dec, timestamp > "2023-12-08 06:00:00",
+                 timestamp < "2023-12-14 14:00:00")
 ```
 
 ## Jan calibration
@@ -122,22 +120,24 @@ sp_dec <- filter(sp_dec, time > "2023-12-08 06:00:00",
 Note that seapHOx data have UTC timestamps
 
 ```{r}
-sp_jan <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_122223.csv")
+sp_jan <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_122223.csv") 
 
-sp_jan <- filter(sp_jan, time > "2023-12-22 14:00:00",
-                 time < "2024-01-03 10:00:00")
+sp_jan <- filter(sp_jan, timestamp > "2023-12-22 14:00:00",
+                 timestamp < "2024-01-03 10:00:00")
 ```
 
 # Calibration
 
 do regression of temp and ph_counts on seaphox ph and add to df
 
+To speed up, modify `generate_ph_model`, work with Arrow data, and parallelize
+
 ```{r}
-jul_coef <- generate_ph_model(sp_jul, df)
-oct_coef <- generate_ph_model(sp_oct, df)
-nov_coef <- generate_ph_model(sp_nov, df)
-dec_coef <- generate_ph_model(sp_dec, df)
-jan_coef <- generate_ph_model(sp_jan, df)
+jul_coef <- generate_ph_model(sp_jul, ds)
+oct_coef <- generate_ph_model(sp_oct, ds)
+nov_coef <- generate_ph_model(sp_nov, ds)
+dec_coef <- generate_ph_model(sp_dec, ds)
+jan_coef <- generate_ph_model(sp_jan, ds)
 ```
 
 ## Smooth between regressions
@@ -150,20 +150,27 @@ don't use jan cal (do stepwise due to sensor change)
 ```{r}
 cals <- list(sp_jul, sp_oct, sp_nov, sp_dec)
 coefs <- bind_rows(jul_coef, oct_coef, nov_coef, dec_coef)
-cal_time <- map(cals, ~mean(.x$time))
+cal_time <- map(cals, ~mean(.x$timestamp))
 cal_time <- do.call(c, cal_time)
 cal_df <- bind_cols(as.data.frame(cal_time), coefs)
 ```
 
 Apply linear fit between calibrations
 
+convert to dataframe
+
+```{r}
+df <- collect(ds)
+```
+
+
 ```{r}
 i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
 c_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_ph_counts, rule = 2)
 t_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_temp, rule = 2)
-i_fit <- i_ap_fun(df$time)
-c_fit <- c_ap_fun(df$time)
-t_fit <- t_ap_fun(df$time)
+i_fit <- i_ap_fun(df$timestamp)
+c_fit <- c_ap_fun(df$timestamp)
+t_fit <- t_ap_fun(df$timestamp)
 ```
 
 ```{r}
@@ -183,39 +190,88 @@ df_cal <- df %>%
 
 
 ```{r}
-df_cal |> 
-  arrow_table() |> 
-  write_dataset(paste0(data_dir, "all_filtered_calibrated.parquet"))
+ds_cal <- df_cal |> 
+  select(-c(ph_group, ph_i, ph_c, ph_t)) |> 
+  arrow_table() 
+ds_cal |> 
+  write_dataset(paste0(data_dir, "lecs_adv_data_all_filtered_calibrated.parquet"))
+```
+
+```{r}
+
 ```
 
 Calculate per-hour mean
 
 ```{r}
-adv_data_mean <- df_cal |> 
-  mutate(time = date_group(time, "hour")) |> 
-  group_by(time) |> 
+adv_data_mean <- df_cal |>
+  select(-c(ph_group, ph_i, ph_c, ph_t)) |> 
+  mutate(timestamp = date_group(timestamp, "hour")) |> 
+  group_by(timestamp) |> 
+  #group_by(year, month, day, hour) |> 
   summarise(across(everything(), 
                    ~ mean(.x, na.rm = TRUE))) |> 
   ungroup()
-fwrite(adv_data_mean, paste0(data_dir, "all_filt_cal_hourly.csv"))
-write_dataset(adv_data_mean, paste0(data_dir, "all_filt_cal_hourly.parquet"))
+fwrite(adv_data_mean, 
+       paste0(data_dir, "lecs_adv_data_all_filt_cal_hourly.csv"))
+write_dataset(adv_data_mean, 
+              paste0(data_dir, "lecs_adv_data_all_filt_cal_hourly.parquet"))
+```
+
+arrow test
+
+```{r}
+ds <- open_dataset(paste0(data_dir, "lecs_adv_data_all_filtered_calibrated.parquet"))
+```
+
+Works in Arrow! But can't handle timezone. TZ set later, confirm correct
+
+```{r}
+adv_data_mean <- ds |>
+  group_by(year = year(timestamp), month = month(timestamp), day = day(timestamp), hour = hour(timestamp)) |> 
+  summarise(across(-timestamp, 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  mutate(timestamp = make_datetime(year, month, day, hour)) |> 
+  ungroup() |> 
+  collect() |> 
+  mutate(timestamp = force_tz(timestamp, "America/New_York"))
+str(adv_data_mean)
+```
+
+with duckdb. also doesn't work with timezone!
+
+```{r}
+adv_data_mean <- ds |>
+  to_duckdb() |> 
+  group_by(year = year(timestamp), month = month(timestamp), day = day(timestamp), hour = hour(timestamp)) |> 
+  summarise(across(-timestamp, 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  mutate(timestamp = make_datetime(year, month, day, hour)) |> 
+  ungroup()
+adv_data_mean
+
+  
 ```
 
 Calculate per-min mean
 
 ```{r}
-adv_data_mean <- df_cal |> 
+#adv_data_mean <- df_cal |> 
+adv_data_mean <- ds |> 
+  collect() |> 
   mutate(time = date_group(time, "minute")) |> 
   group_by(time) |> 
+  #group_by(year, month, day, hour, min) |> 
   summarise(across(everything(), 
                    ~ mean(.x, na.rm = TRUE))) |> 
               ungroup()
-fwrite(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.csv"))
-write_dataset(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.parquet"))
+#fwrite(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.csv"))
+#write_dataset(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.parquet"))
+write_dataset(adv_data_mean, paste0(data_dir, "all_minute.parquet"))
 ```
 
 ```{r}
-dygraph(select(adv_data_mean, time, pH))
+dygraph(select(adv_data_mean, timestamp, pH))
 ```
 
 ```{r}

@@ -1,12 +1,11 @@
 ---
-title: "Arrow tests"
+title: "Combine LECS datasets"
 format: html
 editor: source
 ---
 
-Get and parse data from LECS files.
+Combine LECS Parquet files
 
-# Get Data
 
 ```{r}
 #| warning: false
@@ -18,19 +17,6 @@ library(mlabtools)
 
 theme_set(theme_bw())
 options(digits.secs=3)
-
-# plotting function
-plot_mean <- function(data, parameter, err) {
-  data |> 
-    ggplot(aes(x = time_mean, 
-               y = {{parameter}},
-               ymin = {{parameter}} - {{err}},
-               ymax = {{parameter}} + {{err}})) +
-    geom_line(color = "lightgray") +
-    geom_linerange(color = "gray") +
-    geom_point(size = 1) +
-    labs(x = NULL)
-}
 ```
 
 ## Combine all data and save
@@ -39,6 +25,8 @@ connect to all adv data
 
 ```{r}
 data_dir <- "data/processed/"
+
+# adv data
 files <- c(
   "lander/lecs_adv_data_2023-07-24.parquet", 
   "surface/lecs_adv_data_2023-09-05.parquet", 
@@ -50,8 +38,33 @@ adv_data_all <- adv_data_all_list |>
   map(collect) |> 
   bind_rows()
 
-write_dataset(adv_data_all, paste0(data_dir, "all.parquet"))
+write_dataset(adv_data_all, paste0(data_dir, "adv_all.parquet"))
 
+# status data
+files <- c(
+  "lander/lecs_status_2023-07-24.parquet", 
+  "surface/lecs_status_2023-09-05.parquet", 
+  "surface/lecs_status_2023-11-15.parquet",
+  "surface/lecs_status_2024-01-23.parquet")
+paths <- file.path(paste0(data_dir, files))
+status_all_list <- map(paths, open_dataset)
+status_all <- status_all_list |> 
+  map(collect) |> 
+  bind_rows()
+write_dataset(status_all, paste0(data_dir, "status_all.parquet"))
+
+# met data
+files <- c(
+  "lander/lecs_met_2023-07-24.parquet", 
+  "surface/lecs_met_2023-09-05.parquet", 
+  "surface/lecs_met_2023-11-15.parquet",
+  "surface/lecs_met_2024-01-23.parquet")
+paths <- file.path(paste0(data_dir, files))
+met_all_list <- map(paths, open_dataset)
+met_all <- met_all_list |> 
+  map(collect) |> 
+  bind_rows()
+write_dataset(met_all, paste0(data_dir, "met_all.parquet"))
 ```
 
 ```{r}

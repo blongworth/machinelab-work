@@ -1,56 +1,64 @@
 ---
-title: "filter_calibrate_all"
+title: "filter LECS data"
 format: html
 editor: source
 ---
 
 Filter all bad data out of raw dataset
 
-Apply ph calibration to entire dataset
+Runs after processing csv files to a single Arrow dataset
 
-save parquet
+Run before pH calibration.
 
 ```{r}
 library(arrow)
 library(tidyverse)
 library(dygraphs)
-library(clock)
-library(data.table)
 
-#data_dir <- "data/processed/surface/lecs_adv_data_"
 data_dir <- "data/processed/"
 ```
 
 Open dataset
 
 ```{r}
-ds <- open_dataset(paste0(data_dir, "all.parquet"))
+ds <- open_dataset(paste0(data_dir, "adv_all.parquet/"))
 names(ds)
 nrow(ds)
+ds
 ```
 
-Open minute averages to get proper ranges
+Open minute averages to get proper ranges. Need to create hour or minute average dataset to do this
 
 ```{r}
-#| eval: false
-df_min <- open_dataset(paste0(data_dir, "all_filtered_minute.parquet")) |> 
+df_min <- ds |> 
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, ph_counts, pH, DO_percent) |>
+  mutate(timestamp = floor_date(timestamp, "minute")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup() |> 
   collect()
+```
 
+
+```{r}
 df_min |> 
-  select(time, DO) |> 
+  select(timestamp, pH) |> 
   dygraph()
 ```
 
 # Filter
 
+Ignore time for now
+
 ```{r}
 ds_filt <- ds |> 
-  filter(!(time > "2023-06-23 13:00:00" & time < "2023-06-26 11:00:00"),
-         #!(time > "2023-06-23 13:00:00" & time < "2023-07-20 20:00:00"),
-         !(time > "2023-08-27 04:00:00" & time < "2023-09-11 16:20:00"),
-         !(time > "2023-09-15 04:00:00" & time < "2023-10-17 16:00:00"),
-         !(time > "2023-12-22 11:45:00" & time < "2023-12-22 12:45:00"),
-         pressure > 0.3,
+  filter(#!(timestamp > "2023-06-23 13:00:00" & timestamp < "2023-06-26 11:00:00"),
+         ##!(time > "2023-06-23 13:00:00" & time < "2023-07-20 20:00:00"),
+         #!(timestamp > "2023-08-27 04:00:00" & timestamp < "2023-09-11 16:20:00"),
+         #!(timestamp > "2023-09-15 04:00:00" & timestamp < "2023-10-17 16:00:00"),
+         #!(timestamp > "2023-12-22 11:45:00" & timestamp < "2023-12-22 12:45:00"),
+         pressure > 0.2,
          pressure < 3,
          temp > 0,
          temp < 30,
@@ -58,53 +66,12 @@ ds_filt <- ds |>
          ph_counts < 14000,
          DO > 0.5,
          DO < 2.5)
+
+nrow(ds_filt)
 ```
 
 ## Save data
 
 ```{r}
-write_dataset(ds_filt, paste0(data_dir, "all_filtered.parquet"))
+write_dataset(ds_filt, paste0(data_dir, "adv_all_filt.parquet"))
 ```
-
-```{r}
-#| eval: false
-ds_filt <- open_dataset(paste0(data_dir, "all_filtered.parquet"))
-```
-
-# Downsampling
-
-```{r}
-df <- collect(ds_filt)
-```
-
-
-Calculate per-hour mean
-
-```{r}
-adv_data_mean <- df |> 
-  mutate(time = date_group(time, "hour")) |> 
-  group_by(time) |> 
-  summarise(across(everything(), 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup()
-fwrite(adv_data_mean, paste0(data_dir, "all_filtered_hourly.csv"))
-write_dataset(adv_data_mean, paste0(data_dir, "all_filtered_hourly.parquet"))
-```
-
-```{r}
-dygraph(select(adv_data_mean, time, pressure))
-```
-
-Calculate per-min mean
-
-```{r}
-adv_data_mean <- df |> 
-  mutate(time = date_group(time, "minute")) |> 
-  group_by(time) |> 
-  summarise(across(everything(), 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-              ungroup()
-fwrite(adv_data_mean, paste0(data_dir, "all_filtered_minute.csv"))
-write_dataset(adv_data_mean, paste0(data_dir, "all_filtered_minute.parquet"))
-```
-
