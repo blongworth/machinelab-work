@@ -12,11 +12,12 @@ library(arrow)
 library(dygraphs)
 library(tictoc)
 
+
 data_dir <- "data/processed/"
 ```
 
 ```{r}
-ds <- open_dataset(paste0(data_dir, "lecs_adv_data_all_filtered_calibrated.parquet/"))
+ds <- open_dataset(paste0(data_dir, "adv_all_filt_cal.parquet"))
 names(ds)
 ```
 
@@ -33,10 +34,10 @@ ds_hourly <- ds |>
 
 ds_hourly |> 
   collect() |> 
-  fwrite(paste0(data_dir, "lecs_adv_data_all_filt_cal_hourly.csv"))
+  data.table::fwrite(paste0(data_dir, "adv_all_filt_cal_hourly.csv"))
 
 write_dataset(ds_hourly, 
-              paste0(data_dir, "lecs_adv_data_all_filt_cal_hourly.parquet"))
+              paste0(data_dir, "adv_all_filt_cal_hourly.parquet"))
 ```
 
 resample to minute
@@ -52,8 +53,24 @@ ds_minute <- ds |>
 
 ds_minute |> 
   collect() |> 
-  fwrite(paste0(data_dir, "lecs_adv_data_all_filt_cal_minute.csv"))
+  data.table::fwrite(paste0(data_dir, "adv_all_filt_cal_minute.csv"))
 
 write_dataset(ds_minute, 
-              paste0(data_dir, "lecs_adv_data_all_filt_cal_minute.parquet"))
+              paste0(data_dir, "adv_all_filt_cal_minute.parquet"))
 ```
+
+Resample to 4Hz and impute missing data
+
+Up to 4 missing samples?
+
+```{r}
+ds_4hz <- ds |> 
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+
+```
+

@@ -4,6 +4,7 @@ format: html
 editor: source
 ---
 
+TODO: plot seaphox with lecs before and after calibration (confirm timestamps)
 
 Apply ph calibration to entire dataset
 
@@ -16,8 +17,8 @@ library(janitor)
 library(readxl)
 library(mlabtools)
 library(dygraphs)
-library(clock)
-library(data.table)
+#library(clock)
+#library(data.table)
 
 data_dir <- "data/processed/"
 ```
@@ -37,7 +38,7 @@ add col for calibration periods
 
 ```{r}
 ds <- ds |> 
-  mutate(ph_group = if_else(time > "2023-12-22 06:45:00", 1L, 0L))
+  mutate(ph_group = if_else(timestamp > "2023-12-22 06:45:00", 1L, 0L))
 ```
 
 ## Seaphox calibration data
@@ -55,6 +56,23 @@ sp_jul <- read_excel("data/SeapHOx Data/Seaphox_LECS_072423.xlsx") |>
          oxygen = oxygen_ml_l)
 sp_jul <- filter(sp_jul, timestamp > "2023-07-24 17:00:00",
                  timestamp < "2023-08-09 13:00:00")
+```
+
+check alignment with LECS data
+
+```{r}
+lecs_jul <- ds |> 
+  select(timestamp, pH) |> 
+  filter(timestamp > "2023-07-24 17:00:00",
+                 timestamp < "2023-08-09 13:00:00") |> 
+  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
+  group_by(timestamp) |> 
+  summarize(LECS_pH = mean(pH)) |> 
+  collect()
+  
+ggplot(sp_jul, aes(timestamp, pH)) +
+  geom_line() +
+  geom_line(data = lecs_jul, aes(timestamp, LECS_pH), color = "blue")
 ```
 
 ### Oct calibration
@@ -194,49 +212,11 @@ ds_cal <- df_cal |>
   select(-c(ph_group, ph_i, ph_c, ph_t)) |> 
   arrow_table() 
 ds_cal |> 
-  write_dataset(paste0(data_dir, "lecs_adv_data_all_filtered_calibrated.parquet"))
-```
-
-```{r}
-
+  write_dataset(paste0(data_dir, "adv_all_filt_cal.parquet"))
 ```
 
 Calculate per-hour mean
 
-```{r}
-adv_data_mean <- df_cal |>
-  select(-c(ph_group, ph_i, ph_c, ph_t)) |> 
-  mutate(timestamp = date_group(timestamp, "hour")) |> 
-  group_by(timestamp) |> 
-  #group_by(year, month, day, hour) |> 
-  summarise(across(everything(), 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup()
-fwrite(adv_data_mean, 
-       paste0(data_dir, "lecs_adv_data_all_filt_cal_hourly.csv"))
-write_dataset(adv_data_mean, 
-              paste0(data_dir, "lecs_adv_data_all_filt_cal_hourly.parquet"))
-```
-
-arrow test
-
-```{r}
-ds <- open_dataset(paste0(data_dir, "lecs_adv_data_all_filtered_calibrated.parquet"))
-```
-
-Works in Arrow! But can't handle timezone. TZ set later, confirm correct
-
-```{r}
-adv_data_mean <- ds |>
-  group_by(year = year(timestamp), month = month(timestamp), day = day(timestamp), hour = hour(timestamp)) |> 
-  summarise(across(-timestamp, 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-  mutate(timestamp = make_datetime(year, month, day, hour)) |> 
-  ungroup() |> 
-  collect() |> 
-  mutate(timestamp = force_tz(timestamp, "America/New_York"))
-str(adv_data_mean)
-```
 
 with duckdb. also doesn't work with timezone!
 
@@ -251,23 +231,6 @@ adv_data_mean <- ds |>
 adv_data_mean
 
   
-```
-
-Calculate per-min mean
-
-```{r}
-#adv_data_mean <- df_cal |> 
-adv_data_mean <- ds |> 
-  collect() |> 
-  mutate(time = date_group(time, "minute")) |> 
-  group_by(time) |> 
-  #group_by(year, month, day, hour, min) |> 
-  summarise(across(everything(), 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-              ungroup()
-#fwrite(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.csv"))
-#write_dataset(adv_data_mean, paste0(data_dir, "all_filt_cal_minute.parquet"))
-write_dataset(adv_data_mean, paste0(data_dir, "all_minute.parquet"))
 ```
 
 ```{r}
