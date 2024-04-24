@@ -3,7 +3,7 @@ title: "Parse LECS Web"
 format: html
 editor: source
 params:
-  start_date: 2024-03-07
+  start_date: 2024-04-01
 ---
 
 Get and parse data sent to LECS website. Data from `r params$start_date` to present.
@@ -18,12 +18,6 @@ library(mlabtools)
 
 theme_set(theme_bw())
 options(digits.secs=3)
-```
-
-Time offset for first week of March deployment
-
-```{r}
-time_offset = as.POSIXct("2024-03-06 08:42:43") - as.POSIXct("2019-01-01 00:00:00")
 ```
 
 # Get Data
@@ -45,18 +39,9 @@ df <- lecs_add_metadata(df_raw)
 Separate data into post times, met, status, and adv data
 
 ```{r}
-post_times <- lecs_post_times(df) |> 
-  mutate(timestamp = if_else(timestamp < as.POSIXct("2020-01-01"),
-                 timestamp + time_offset,
-                 timestamp))
-met <- lecs_met_data(df) |> 
-  mutate(timestamp = if_else(timestamp < as.POSIXct("2020-01-01"),
-                 timestamp + time_offset,
-                 timestamp))
-status <- lecs_status_data(df) |> 
-  mutate(timestamp = if_else(timestamp < as.POSIXct("2020-01-01"),
-                 timestamp + time_offset,
-                 timestamp))
+post_times <- lecs_post_times(df) 
+met <- lecs_met_data(df)
+status <- lecs_status_data(df)
 adv_data <- lecs_adv_data(df, rinko_cals) |> 
   make_lecs_ts(status) |> 
   mutate(missing = lecs_missing(count, line))
@@ -121,9 +106,10 @@ ct <- post_times |>
 status |> 
   select(send, lander_time = timestamp) |> 
   inner_join(ct) |> 
-  filter(lander_time > "2024-12-01") |> 
+  filter(lander_time > "2024-06-01") |> 
   ggplot(aes(post_time, lander_time)) +
   geom_point() + 
+  scale_x_datetime(date_labels = "%Y-%m-%d") +
   ggtitle("Incorrect Lander timestamps")
 ```
 
