@@ -28,10 +28,12 @@ data_dir <- "data/processed/"
 
 # adv data
 files <- c(
-  "lander/lecs_adv_data_2023-07-24.parquet", 
+  #"lander/lecs_adv_data_2023-07-24.parquet", 
   "surface/lecs_adv_data_2023-09-05.parquet", 
   "surface/lecs_adv_data_2023-11-15.parquet",
-  "surface/lecs_adv_data_2024-01-23.parquet")
+  "surface/lecs_adv_data_2024-01-23.parquet",
+  "surface/lecs_adv_data_2024-02-28.parquet",
+  "surface/lecs_adv_data_2024-05-14.parquet")
 paths <- file.path(paste0(data_dir, files))
 adv_data_all_list <- map(paths, open_dataset)
 adv_data_all <- adv_data_all_list |> 
@@ -42,10 +44,12 @@ write_dataset(adv_data_all, paste0(data_dir, "adv_all.parquet"))
 
 # status data
 files <- c(
-  "lander/lecs_status_2023-07-24.parquet", 
+  #"lander/lecs_status_2023-07-24.parquet", 
   "surface/lecs_status_2023-09-05.parquet", 
   "surface/lecs_status_2023-11-15.parquet",
-  "surface/lecs_status_2024-01-23.parquet")
+  "surface/lecs_status_2024-01-23.parquet",
+  "surface/lecs_status_2024-02-28.parquet",
+  "surface/lecs_status_2024-05-14.parquet")
 paths <- file.path(paste0(data_dir, files))
 status_all_list <- map(paths, open_dataset)
 status_all <- status_all_list |> 
@@ -55,10 +59,12 @@ write_dataset(status_all, paste0(data_dir, "status_all.parquet"))
 
 # met data
 files <- c(
-  "lander/lecs_met_2023-07-24.parquet", 
+  #"lander/lecs_met_2023-07-24.parquet", 
   "surface/lecs_met_2023-09-05.parquet", 
   "surface/lecs_met_2023-11-15.parquet",
-  "surface/lecs_met_2024-01-23.parquet")
+  "surface/lecs_met_2024-01-23.parquet",
+  "surface/lecs_met_2024-02-28.parquet",
+  "surface/lecs_met_2024-05-14.parquet")
 paths <- file.path(paste0(data_dir, files))
 met_all_list <- map(paths, open_dataset)
 met_all <- met_all_list |> 
@@ -68,13 +74,6 @@ write_dataset(met_all, paste0(data_dir, "met_all.parquet"))
 ```
 
 ```{r}
-adv_data_all_p <- open_dataset(paste0(data_dir, "all.parquet"))
-glimpse(adv_data_all_p)
-```
-
-```{r}
-glimpse(adv_data_all_list[[1]])
-head(adv_data_all_list[[1]]) |> 
-  collect()
+status <- open_dataset(paste0(data_dir, "status_all.parquet"))
 ```
 

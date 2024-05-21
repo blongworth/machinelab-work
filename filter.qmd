@@ -31,7 +31,7 @@ Open minute averages to get proper ranges. Need to create hour or minute average
 
 ```{r}
 df_min <- ds |> 
-  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, ph_counts, pH, DO_percent) |>
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, ph_counts, pH, DO, DO_percent) |>
   mutate(timestamp = floor_date(timestamp, "minute")) |> 
   group_by(timestamp) |> 
   summarise(across(everything(), 
@@ -40,10 +40,37 @@ df_min <- ds |>
   collect()
 ```
 
+```{r}
+df_min |> 
+  ggplot(aes(timestamp, temp)) +
+  geom_line()
+```
 
 ```{r}
 df_min |> 
-  select(timestamp, pH) |> 
+  ggplot(aes(timestamp, DO)) +
+  geom_line()
+```
+
+```{r}
+df_min |> 
+  ggplot(aes(timestamp, pressure)) +
+  geom_line()
+```
+
+```{r}
+df_min |> 
+  ggplot(aes(timestamp, pH)) +
+  geom_line()
+```
+```{r}
+ds |> 
+  glimpse()
+```
+
+```{r}
+df_min |> 
+  select(timestamp, DO) |> 
   dygraph()
 ```
 

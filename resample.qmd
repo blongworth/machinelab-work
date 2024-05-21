@@ -12,6 +12,7 @@ library(arrow)
 library(dygraphs)
 library(tictoc)
 
+options(digits.secs = 6)
 
 data_dir <- "data/processed/"
 ```
@@ -59,6 +60,17 @@ write_dataset(ds_minute,
               paste0(data_dir, "adv_all_filt_cal_minute.parquet"))
 ```
 
+```{r}
+df_minute <- ds_minute |> 
+  collect()
+```
+
+```{r}
+df_minute |> 
+  ggplot(aes(timestamp, pH)) +
+  geom_line()
+```
+
 Resample to 4Hz and impute missing data
 
 Up to 4 missing samples?
@@ -72,5 +84,117 @@ ds_4hz <- ds |>
                    ~ mean(.x, na.rm = TRUE))) |> 
   ungroup()
 
+```
+
+create complete 4Hz timeseries and join to add NA's for missing data
+
+```{r}
+names(ds_4hz)
+df_4hz <- ds_4hz |> 
+  arrange(timestamp) |> 
+  collect()
+
+head(df_4hz)
+tail(df_4hz)
+
+# ts <- collect(ds_4hz$timestamp) # doesn't work
+st <- min(df_4hz$timestamp, na.rm = TRUE) 
+et <- max(df_4hz$timestamp, na.rm = TRUE) 
+ts_4hz <- seq(from = st, to = et, by = 0.25) 
+head(ts_4hz)
+
+df_ts_4hz <- tibble(timestamp = ts_4hz)
+
+df_4hz_all <- df_ts_4hz |> 
+  left_join(df_4hz)
+
+write_dataset(df_4hz_all, paste0(data_dir, "adv_4hz.parquet"))
+
+head(df_4hz_all, n = 1000) |> View()
+```
+
+check missingness with imputeTS
+
+```{r}
+library(imputeTS)
+```
+
+
+```{r}
+# pick a small "good" subset
+pts <- df_4hz_all |> 
+  filter(timestamp > "2024-01-01 00:00:00",
+         timestamp < "2024-01-01 01:00:00") |> 
+  collect() |> 
+  pull(pH) |> 
+  ts(frequency = 4)
+
+ggplot_na_distribution2(pts)
+```
+
+same for full frequency dataset
+
+```{r}
+# pick a small "good" subset
+df <- ds |> 
+  filter(timestamp > "2024-01-01 00:00:00",
+         timestamp < "2024-01-01 01:00:00") |> 
+  collect()
+
+length(unique(df$timestamp))
+```
+
+Uh oh, we have duplicates
+
+```{r}
+ggplot(df, aes(1:nrow(df), timestamp)) +
+  geom_point()
+```
+
+wth? time goes back 30 min for a bit?
+
+how much does this happen over the course of a day?
+
+```{r}
+df <- ds |> 
+  filter(timestamp > "2024-01-01 00:00:00",
+         timestamp < "2024-01-02 00:00:00") |> 
+  collect()
+
+length(unique(df$timestamp))
+```
+
+Uh oh, we have duplicates again
+
+```{r}
+df |> 
+  arrange(timestamp) |> 
+ggplot(aes(1:nrow(df), timestamp)) +
+  geom_point()
+
+```
+
+```{r}
+df |> 
+  select(timestamp) |> 
+  arrange(timestamp) |> 
+  mutate(dup = duplicated(timestamp)) |> 
+  head(150)
+```
+
+
+```{r}
+st <- min(df$timestamp) 
+et <- max(df$timestamp) 
+df_ts <- tibble(timestamp = seq(from = st, to = et, by = 0.0625))
+  
+df_ts <- df_ts |> 
+  left_join(df)
+
+pts <- df_ts |> 
+  pull(pH) |> 
+  ts(frequency = 16)
+
+ggplot_na_distribution2(pts)
 ```
 
