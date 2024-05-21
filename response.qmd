@@ -1,0 +1,479 @@
+---
+title: "Response time"
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+Load a LECS file, parse, and plot response time curves in frequency domain.
+
+```{r}
+library(tidyverse)
+library(mlabtools)
+
+# gsignal used for pwelch, but overwrites some base and dplyr functions
+#library(gsignal)
+
+options(digits.secs = 6)
+```
+
+## Read and process file
+
+Most recent 4h file before download.
+
+```{r}
+datalist <- lecs_parse_file("data/SD Card Data/LECS_surface_sd/lecs_surface_2024-05-14/2024_05_14_04_13_00.txt", clean = TRUE)
+```
+
+## Check data
+
+Check for status timestamp duplicates.
+
+```{r}
+datalist[["status"]] |> 
+  group_by(timestamp) |> 
+  filter(n() > 1) |> 
+  nrow()
+```
+
+Check for adv data timestamp dups.
+
+```{r}
+datalist[["adv_data"]] |> 
+  group_by(timestamp) |> 
+  filter(n() > 1)
+```
+
+Dups are NA timestamps. Need to investigate why time alignment is producing NA's.
+Suspect count=165 is out of sequence due to corrupted serial read.
+
+Plot pressure timeseries
+
+```{r}
+ggplot(datalist[["adv_data"]], aes(timestamp, pressure)) +
+  geom_line()
+```
+
+Spikes are corrupt ADV reads. Need to add moving mean outlier elimination.
+
+
+# Resample to 4Hz
+
+Should impute missing data? Should we drop 4Hz data with more than x/4 missing?
+
+Remove NA timestamps while resampling.
+
+```{r}
+adv_4hz <- datalist[["adv_data"]] |> 
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  filter(!is.na(timestamp)) |> 
+  mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+```
+
+Create complete 4Hz timeseries and join to add NA's for missing data.
+Not certain this is needed for pwelch.
+
+Create complete timeseries for duration of data.
+
+```{r}
+st <- min(adv_4hz$timestamp) 
+et <- max(adv_4hz$timestamp) 
+ts_4hz <- seq(from = st, to = et, by = 0.25) 
+df_ts_4hz <- tibble(timestamp = ts_4hz)
+```
+
+Join to actual data to make timeseries with NA's for missing 4Hz blocks.
+
+```{r}
+df_4hz_all <- df_ts_4hz |> 
+  left_join(adv_4hz)
+```
+
+## 4Hz plots
+
+### Pressure
+
+```{r}
+ggplot(df_4hz_all, aes(timestamp, pressure)) +
+  geom_line()
+```
+
+I think "ticks" are bad adv packets. We may need to filter by a moving mean outlier.
+I suspect "wobbles" at 6:45, 7:45, and 8:10 are waves from Naushon ferry or other boat traffic.
+
+### Vertical velocity
+
+Again, ticks are bad packet reads. 
+
+```{r}
+ggplot(df_4hz_all, aes(timestamp, w)) +
+  geom_line()
+```
+
+We can remove those by filtering on velocity
+
+```{r}
+ggplot(df_4hz_all, aes(timestamp, w)) +
+  geom_line() +
+  ylim(-0.5,0.5)
+```
+
+### Temperature
+
+```{r}
+ggplot(df_4hz_all, aes(timestamp, temp)) +
+  geom_line()
+```
+
+Temp is good because it's read on the teensy via i2c. No corrupt serial reads.
+
+### pH
+
+pH is roughly calibrated from voltage/counts
+
+```{r}
+ggplot(df_4hz_all, aes(timestamp, pH)) +
+  geom_line()
+```
+
+I think ticks are again bad ADV packets. Need to cross check with other ADV data.
+
+# Response time
+
+## Temp
+
+Trying temp first as it's tick free.
+
+Missing values cause issues. Select continuous bit
+
+```{r}
+df <- df_4hz_all |> 
+  filter(timestamp > as.POSIXct("2024-05-14 04:27:00", tz = "UTC"),
+         timestamp < as.POSIXct("2024-05-14 08:10:00", tz = "UTC"))
+```
+
+Confirm no NA's
+
+```{r}
+df |> 
+  filter(is.na(temp)) |> 
+  nrow()
+```
+
+Convert to timeseries
+
+```{r}
+ts <- xts::as.xts(df$temp, order.by = df$timestamp, frequency = 4)
+```
+
+Spectra
+Run Welch
+
+```{r}
+temp_welch <- gsignal::pwelch(ts, fs = 4)
+plot(temp_welch, plot.type = "spectrum", yscale = "log")
+mar_temp <- tibble(freq = temp_welch[["freq"]], spec = temp_welch[["spec"]][,1]) 
+
+mar_temp |> 
+  ggplot(aes(freq, spec)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10()
+```
+
+## pH
+
+```{r}
+ts <- xts::as.xts(df$pH, order.by = df$timestamp, frequency = 4)
+```
+
+Spectra
+Run Welch
+
+```{r}
+ph_welch <- gsignal::pwelch(ts, fs = 4)
+plot(ph_welch, plot.type = "spectrum", yscale = "log")
+```
+
+Not a lot of signal. Try removing outliers.
+
+pH, no outliers
+
+remove pH > 8 and resample to 4Hz.
+
+```{r}
+adv_4hz <- datalist[["adv_data"]] |> 
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  filter(!is.na(timestamp),
+         pH <= 8) |> 
+  mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+
+st <- min(adv_4hz$timestamp) 
+et <- max(adv_4hz$timestamp) 
+ts_4hz <- seq(from = st, to = et, by = 0.25) 
+df_ts_4hz <- tibble(timestamp = ts_4hz)
+
+df_4hz_all <- df_ts_4hz |> 
+  left_join(adv_4hz)
+
+df <- df_4hz_all |> 
+  filter(timestamp > as.POSIXct("2024-05-14 04:27:00", tz = "UTC"),
+         timestamp < as.POSIXct("2024-05-14 08:10:00", tz = "UTC"))
+```
+
+Confirm no NA's after removing bad data.
+
+```{r}
+df |> 
+  filter(is.na(pH)) |> 
+  nrow()
+```
+
+Write clean(er) data to file
+
+```{r}
+write_csv(df, "LECS_adv_2024-05-14_04_clean.csv")
+```
+
+Convert to timeseries
+
+```{r}
+ts <- xts::as.xts(df$pH, order.by = df$timestamp, frequency = 4)
+```
+
+Run Welch
+
+```{r}
+ph_welch <- gsignal::pwelch(ts, fs = 4)
+plot(ph_welch, plot.type = "spectrum", yscale = "log")
+mar_ph <- tibble(freq = ph_welch[["freq"]], spec = ph_welch[["spec"]][,1])
+
+mar_ph |> 
+  ggplot(aes(freq, spec)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10()
+```
+
+Not much better. Low response time on pH sensor,
+or not a lot of H flux?
+
+### Oxygen
+
+```{r}
+ts <- xts::as.xts(df$DO_percent, order.by = df$timestamp, frequency = 4)
+```
+
+Run Welch
+
+```{r}
+o2_welch <- gsignal::pwelch(ts, fs = 4)
+plot(o2_welch, plot.type = "spectrum", yscale = "log")
+may_o2 <- tibble(freq = o2_welch[["freq"]], spec = o2_welch[["spec"]][,1])
+
+may_o2 |> 
+  ggplot(aes(freq, spec)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10()
+```
+
+# Post deployment
+
+Compare with data immediately post redeployment
+Initial week of 2019 timestamps won't work without correction due to cleaning.
+
+```{r}
+datalist <- lecs_parse_file("data/SD Card Data/LECS_surface_sd/lecs_surface_2024-05-14/2024_03_13_20_13_06.txt", clean = TRUE)
+```
+
+## Check data
+
+Check for status timestamp duplicates.
+
+```{r}
+datalist[["status"]] |> 
+  group_by(timestamp) |> 
+  filter(n() > 1) |> 
+  nrow()
+```
+
+Check for adv data timestamp dups.
+
+```{r}
+datalist[["adv_data"]] |> 
+  group_by(timestamp) |> 
+  filter(n() > 1)
+```
+
+Plot pressure timeseries
+
+```{r}
+ggplot(datalist[["adv_data"]], aes(timestamp, pressure)) +
+  geom_line()
+```
+
+Plot pH timeseries
+
+```{r}
+ggplot(datalist[["adv_data"]], aes(timestamp, pH)) +
+  geom_line()
+```
+
+remove pH > 8 and resample to 4Hz.
+
+```{r}
+adv_4hz <- datalist[["adv_data"]] |> 
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  filter(!is.na(timestamp),
+         pH <= 8.2) |> 
+  mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+
+st <- min(adv_4hz$timestamp) 
+et <- max(adv_4hz$timestamp) 
+ts_4hz <- seq(from = st, to = et, by = 0.25) 
+df_ts_4hz <- tibble(timestamp = ts_4hz)
+
+df_4hz_all <- df_ts_4hz |> 
+  left_join(adv_4hz)
+
+df <- df_4hz_all |> 
+   filter(timestamp < as.POSIXct("2024-03-14 00:10:00", tz = "UTC"))
+```
+
+## Temp
+
+Confirm no NA's
+
+```{r}
+df |> 
+  filter(is.na(temp)) |> 
+  nrow()
+```
+
+Convert to timeseries
+
+```{r}
+ts <- xts::as.xts(df$temp, order.by = df$timestamp, frequency = 4)
+```
+
+Spectra
+Run Welch
+
+```{r}
+temp_welch <- gsignal::pwelch(ts, fs = 4)
+plot(temp_welch, plot.type = "spectrum", yscale = "log")
+may_temp <- tibble(freq = temp_welch[["freq"]], spec = temp_welch[["spec"]][,1]) 
+
+may_temp |> 
+  ggplot(aes(freq, spec)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10()
+```
+
+Convert to timeseries
+
+```{r}
+ts <- xts::as.xts(df$pH, order.by = df$timestamp, frequency = 4)
+```
+
+Run Welch
+
+```{r}
+ph_welch <- gsignal::pwelch(ts, fs = 4)
+plot(ph_welch, plot.type = "spectrum", yscale = "log")
+may_ph <- tibble(freq = ph_welch[["freq"]], spec = ph_welch[["spec"]][,1])
+
+may_ph |> 
+  ggplot(aes(freq, spec)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10()
+```
+
+Not much better. Low response time on pH sensor,
+or not a lot of H flux?
+
+### Oxygen
+
+```{r}
+ts <- xts::as.xts(df$DO_percent, order.by = df$timestamp, frequency = 4)
+```
+
+Run Welch
+
+```{r}
+o2_welch <- gsignal::pwelch(ts, fs = 4)
+plot(o2_welch, plot.type = "spectrum", yscale = "log")
+mar_o2 <- tibble(freq = o2_welch[["freq"]], spec = o2_welch[["spec"]][,1]) 
+
+mar_o2 |> 
+  ggplot(aes(freq, spec)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10()
+```
+
+## compare curves
+
+### temp
+
+```{r}
+mar_temp["date"] <- "march"
+may_temp["date"] <- "may"
+
+temp <- bind_rows(mar_temp, may_temp)
+
+temp |> 
+  ggplot(aes(freq, spec, color = date)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10() +
+  ggtitle("RINKO temperature spectral power", subtitle = "Post redeploy vs +2 months")
+```
+
+### Oxygen
+
+```{r}
+mar_o2["date"] <- "march"
+may_o2["date"] <- "may"
+
+ox <- bind_rows(mar_o2, may_o2)
+
+ox |> 
+  ggplot(aes(freq, spec, color = date)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10() +
+  ggtitle("RINKO oxygen spectral power", subtitle = "Post redeploy vs +2 months")
+```
+
+### pH
+
+```{r}
+mar_ph["date"] <- "march"
+may_ph["date"] <- "may"
+
+ph <- bind_rows(mar_ph, may_ph)
+
+ph |> 
+  ggplot(aes(freq, spec, color = date)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10() +
+  ggtitle("pH spectral power", subtitle = "Post redeploy vs +2 months")
+```

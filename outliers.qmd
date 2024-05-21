@@ -1,0 +1,182 @@
+---
+title: "Outliers"
+format: html
+---
+
+```{r}
+library(mlabtools)
+library(tidyverse)
+library(forecast)
+library(dygraphs)
+
+options(digits.secs = 6)
+
+datalist <- lecs_parse_file("data/SD Card Data/LECS_surface_sd/lecs_surface_2024-05-14/2024_05_14_04_13_00.txt", clean = TRUE)
+
+adv <- datalist[["adv_data"]]
+status <- datalist[["status"]]
+met <- datalist[["met"]]
+```
+
+filter NA timestamps
+
+```{r}
+adv <- filter(adv, !is.na(timestamp))
+```
+
+create full timeseries
+
+```{r}
+st <- min(adv$timestamp) 
+et <- max(adv$timestamp) 
+ts_full <- seq(from = st, to = et, by = 1/16) 
+df_ts <- tibble(timestamp = ts_full)
+
+df_adv_ts <- df_ts |> 
+  left_join(adv)
+```
+
+```{r}
+lecs_fill_timestamps <- function(adv_data, frequency = 16) {
+  ts <-  1/frequency
+  st <- min(adv_data[["timestamp"]]) 
+  et <- max(adv_data[["timestamp"]]) 
+  ts_full <- seq(from = st, to = et, by = ts) 
+  df_ts <- tibble(timestamp = ts_full)
+  
+  df_ts |> 
+    left_join(adv_data)
+}
+```
+
+Convert to timeseries
+
+```{r}
+temp <- xts::as.xts(df_adv_ts$temp, order.by = df_adv_ts$timestamp, frequency = 16)
+tempts <- as.ts(temp)
+temp2 <- na.interp(tempts)
+
+autoplot(temp2, series="Interpolated") +
+  autolayer(tempts, series="Original") +
+  scale_colour_manual(
+    values=c(`Interpolated`="red",`Original`="gray"))
+```
+
+
+```{r}
+library(xts)
+temp2 <- na.approx(temp)
+dygraph(temp2)
+
+```
+
+Outlier elimination using Hampel filter. seismicRoll has a fast CPP implementation
+
+Work with pressure
+
+```{r}
+adv |> 
+  select(timestamp, pressure) |> 
+  dygraph()
+```
+
+
+```{r}
+library(seismicRoll)
+
+to <- findOutliers(adv$pressure)
+adv <- adv |> 
+  mutate(pressure = replace(pressure, to, NA))
+```
+
+```{r}
+adv |> 
+  select(timestamp, pressure) |> 
+  ggplot(aes(timestamp, pressure)) + 
+  geom_line()
+```
+
+Works! Try for all variables
+
+```{r}
+adv <- adv |> 
+  mutate(across(c(temp, pH, w), function(x) replace(x, findOutliers(x), NA)))
+```
+
+```{r}
+adv |> 
+  ggplot(aes(timestamp, w)) + 
+  geom_line()
+```
+
+
+Generate full timeseries and impute missing
+
+```{r}
+st <- min(adv$timestamp) 
+et <- max(adv$timestamp) 
+ts_full <- seq(from = st, to = et, by = 1/16) 
+df_ts <- tibble(timestamp = ts_full)
+
+df_adv_ts <- df_ts |> 
+  left_join(adv)
+```
+
+
+
+
+try imputeTS
+
+```{r}
+library(imputeTS)
+
+df_adv_ts <- df_adv_ts |> 
+  mutate(int_pressure = na_interpolation(pressure))
+```
+
+
+```{r}
+df_adv_ts |> 
+  select(timestamp, pressure, int_pressure) |> 
+  pivot_longer(c(pressure, int_pressure)) |> 
+  ggplot(aes(timestamp, value, color = name)) + 
+  geom_line()
+```
+
+Resample, check response
+
+```{r}
+adv_4hz <- df_adv_ts |> 
+  select(timestamp, pressure = pressure_med, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  filter(!is.na(timestamp)) |> 
+  mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+
+df <- adv_4hz |> 
+  filter(timestamp > as.POSIXct("2024-05-14 04:13:00.00", tz = "UTC"),
+         timestamp < as.POSIXct("2024-05-14 08:10:00.00", tz = "UTC"))
+```
+
+
+```{r}
+ts <- xts::as.xts(df$pressure, order.by = df$timestamp, frequency = 4)
+tsf <- xts::as.xts(adv_4hz$pressure, order.by = adv_4hz$timestamp, frequency = 4)
+```
+
+Spectra
+Run Welch
+
+```{r}
+temp_welch <- gsignal::pwelch(ts, fs = 4)
+plot(temp_welch, plot.type = "spectrum", yscale = "log")
+mar_temp <- tibble(freq = temp_welch[["freq"]], spec = temp_welch[["spec"]][,1]) 
+
+mar_temp |> 
+  ggplot(aes(freq, spec)) +
+  geom_line() +
+  scale_x_log10() + 
+  scale_y_log10()
+```
