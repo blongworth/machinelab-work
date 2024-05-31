@@ -96,7 +96,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Get and parse data sent to LECS website. Data from 2024-05-22 to present.</p>
+<p>Get and parse data sent to LECS website. Data from 2024-05-24 to present.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
@@ -122,16 +122,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="ot">&lt;-</span> <span class="fu">lecs_post_times</span>(df) </span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>met <span class="ot">&lt;-</span> <span class="fu">lecs_met_data</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 14 rows [7, 8, 9, 10, 12, 15,
-17, 19, 26, 30, 31, 32, 41, 43].</code></pre>
+<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 10 rows [3, 5, 7, 14, 18, 19,
+20, 29, 31, 39].</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>status <span class="ot">&lt;-</span> <span class="fu">lecs_status_data</span>(df)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>adv_data <span class="ot">&lt;-</span> <span class="fu">lecs_adv_data</span>(df, rinko_cals) <span class="sc">|&gt;</span> </span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">make_lecs_ts</span>(status) <span class="sc">|&gt;</span> </span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">missing =</span> <span class="fu">lecs_missing</span>(count, line))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 16 pieces. Additional pieces discarded in 4 rows [11624, 17679, 19390,
-20093].</code></pre>
+<pre><code>Warning: Expected 16 pieces. Additional pieces discarded in 5 rows [6452, 12507, 14218,
+14921, 17128].</code></pre>
 </div>
 </div>
 <p>Filter bad data</p>
@@ -178,8 +178,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
 <span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="last-post-was-2024-05-29-121112" class="level4">
-<h4 class="anchored" data-anchor-id="last-post-was-2024-05-29-121112">Last post was 2024-05-29 12:11:12</h4>
+<section id="last-post-was-2024-05-31-081112" class="level4">
+<h4 class="anchored" data-anchor-id="last-post-was-2024-05-31-081112">Last post was 2024-05-31 08:11:12</h4>
 <p>How many status lines are in the wrong year?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ct <span class="ot">&lt;-</span> post_times <span class="sc">|&gt;</span> </span>
@@ -216,10 +216,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
 </div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
-(`geom_segment()`).</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -232,10 +228,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="par" class="level3">
 <h3 class="anchored" data-anchor-id="par">PAR</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(PAR_mean, PAR_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(PAR_mean, PAR_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 46 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 45 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -250,12 +246,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="wind-speed" class="level3">
 <h3 class="anchored" data-anchor-id="wind-speed">Wind Speed</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(wind_speed_mean, wind_speed_sd) <span class="sc">+</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(wind_speed_mean, wind_speed_sd) <span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 46 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 45 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -270,12 +266,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="wind-direction" class="level3">
 <h3 class="anchored" data-anchor-id="wind-direction">Wind direction</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(met_mean, <span class="fu">aes</span>(wind_dir_mean, wind_speed_mean)) <span class="sc">+</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_polar</span>() <span class="sc">+</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">360</span>),</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">360</span>, <span class="at">by =</span> <span class="dv">45</span>),</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">minor_breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">360</span>, <span class="at">by =</span> <span class="dv">15</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(met_mean, <span class="fu">aes</span>(wind_dir_mean, wind_speed_mean)) <span class="sc">+</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_polar</span>() <span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">360</span>),</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">360</span>, <span class="at">by =</span> <span class="dv">45</span>),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">minor_breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">360</span>, <span class="at">by =</span> <span class="dv">15</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -288,11 +284,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="pressuredepth" class="level3">
 <h3 class="anchored" data-anchor-id="pressuredepth">Pressure/Depth</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pressure_mean, pressure_sd) <span class="sc">+</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_reverse</span>() <span class="sc">+</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pressure"</span>,</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Pressure (dbar)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pressure_mean, pressure_sd) <span class="sc">+</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_reverse</span>() <span class="sc">+</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pressure"</span>,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Pressure (dbar)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -305,9 +301,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="ph" class="level3">
 <h3 class="anchored" data-anchor-id="ph">pH</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pH_mean, pH_sd) <span class="sc">+</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"pH"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pH_mean, pH_sd) <span class="sc">+</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"pH"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -320,10 +316,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="temperature" class="level3">
 <h3 class="anchored" data-anchor-id="temperature">Temperature</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(temp_mean, temp_sd) <span class="sc">+</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Temperature"</span>,</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Temp (C)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(temp_mean, temp_sd) <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Temperature"</span>,</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Temp (C)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -336,10 +332,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="oxygen" class="level3">
 <h3 class="anchored" data-anchor-id="oxygen">Oxygen</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(DO_percent_mean, DO_percent_sd) <span class="sc">+</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Oxygen"</span>,</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Oxygen saturation (%)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(DO_percent_mean, DO_percent_sd) <span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Oxygen"</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Oxygen saturation (%)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -352,16 +348,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="adv-correlation" class="level3">
 <h3 class="anchored" data-anchor-id="adv-correlation">ADV Correlation</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(timestamp_mean, corr1_mean, corr2_mean, corr3_mean) <span class="sc">|&gt;</span> </span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">starts_with</span>(<span class="st">"corr"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp_mean, value, <span class="at">color =</span> name)) <span class="sc">+</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(timestamp_mean, value), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(timestamp_mean, value, <span class="at">color =</span> <span class="cn">NULL</span>)) <span class="sc">+</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ADV correlation"</span>,</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Correlation (%)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(timestamp_mean, corr1_mean, corr2_mean, corr3_mean) <span class="sc">|&gt;</span> </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">starts_with</span>(<span class="st">"corr"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp_mean, value, <span class="at">color =</span> name)) <span class="sc">+</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(timestamp_mean, value), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(timestamp_mean, value, <span class="at">color =</span> <span class="cn">NULL</span>)) <span class="sc">+</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ADV correlation"</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Correlation (%)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
 `geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
@@ -378,16 +374,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="adv-amplitude" class="level3">
 <h3 class="anchored" data-anchor-id="adv-amplitude">ADV Amplitude</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(timestamp_mean, amp1_mean, amp2_mean, amp3_mean) <span class="sc">|&gt;</span> </span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">starts_with</span>(<span class="st">"amp"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp_mean, value, <span class="at">color =</span> name)) <span class="sc">+</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(timestamp_mean, value), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(timestamp_mean, value, <span class="at">color =</span> <span class="cn">NULL</span>)) <span class="sc">+</span></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ADV amplitude"</span>,</span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Amplitude"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(timestamp_mean, amp1_mean, amp2_mean, amp3_mean) <span class="sc">|&gt;</span> </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">starts_with</span>(<span class="st">"amp"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp_mean, value, <span class="at">color =</span> name)) <span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(timestamp_mean, value), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(timestamp_mean, value, <span class="at">color =</span> <span class="cn">NULL</span>)) <span class="sc">+</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ADV amplitude"</span>,</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Amplitude"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
 `geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
@@ -404,13 +400,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="adv-vertical-velocity" class="level3">
 <h3 class="anchored" data-anchor-id="adv-vertical-velocity">ADV Vertical Velocity</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(w_mean, w_sd) <span class="sc">+</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.1</span>, <span class="fl">0.1</span>) <span class="sc">+</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Vertical velocity"</span>,</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(w_mean, w_sd) <span class="sc">+</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.1</span>, <span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Vertical velocity"</span>,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 11 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 13 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -426,11 +422,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="adv-onshore-velocity">ADV Onshore Velocity</h3>
 <p>Positive is towards shore ADV set up with x axis towards shore as of 2024-03-07, unsure earlier</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(u_mean, u_sd) <span class="sc">+</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Onshore velocity"</span>,</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(u_mean, u_sd) <span class="sc">+</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Onshore velocity"</span>,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
@@ -448,11 +444,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="adv-alongshore-velocity">ADV Alongshore velocity</h3>
 <p>Positive is southerly current</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(v_mean, v_sd) <span class="sc">+</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Alongshore velocity"</span>,</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(v_mean, v_sd) <span class="sc">+</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Alongshore velocity"</span>,</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 2 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
@@ -469,45 +465,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="imu-data" class="level2">
 <h2 class="anchored" data-anchor-id="imu-data">IMU data</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>hp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(heading_mean, heading_sd) <span class="sc">+</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Heading"</span>,</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>pp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pitch_mean, pitch_sd) <span class="sc">+</span></span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pitch"</span>,</span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>rp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(roll_mean, roll_sd) <span class="sc">+</span></span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
-<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Roll"</span>,</span>
-<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
-<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>hp <span class="sc">/</span> pp <span class="sc">/</span> rp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>hp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(heading_mean, heading_sd) <span class="sc">+</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Heading"</span>,</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>pp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pitch_mean, pitch_sd) <span class="sc">+</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pitch"</span>,</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>rp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(roll_mean, roll_sd) <span class="sc">+</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Roll"</span>,</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>hp <span class="sc">/</span> pp <span class="sc">/</span> rp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
-(`geom_segment()`).</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
-(`geom_segment()`).</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
-(`geom_segment()`).</code></pre>
+<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -521,24 +501,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="missing-data">Missing data</h3>
 <p>Most missing data is in first 30 lines per send. This is the beginning of a new file. This is likely a gap as DAQ gets started again after pausing for send. The following plot is missing fraction without the first 25 lines of each send.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>adv_missing <span class="ot">&lt;-</span> adv_data <span class="sc">|&gt;</span> </span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(count <span class="sc">&gt;=</span> <span class="dv">0</span>, count <span class="sc">&lt;</span> <span class="dv">256</span>, </span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>         line <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#timestamp &lt; "2024-10-01") |&gt; </span></span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, missing) <span class="sc">|&gt;</span> </span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(post_times) <span class="sc">|&gt;</span> </span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(timestamp) <span class="sc">|&gt;</span> </span>
-<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
-<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>adv_missing <span class="ot">&lt;-</span> adv_data <span class="sc">|&gt;</span> </span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(count <span class="sc">&gt;=</span> <span class="dv">0</span>, count <span class="sc">&lt;</span> <span class="dv">256</span>, </span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>         line <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#timestamp &lt; "2024-10-01") |&gt; </span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, missing) <span class="sc">|&gt;</span> </span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(post_times) <span class="sc">|&gt;</span> </span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(timestamp) <span class="sc">|&gt;</span> </span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(send)`</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>adv_missing <span class="sc">|&gt;</span> </span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, missing_frac)) <span class="sc">+</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fraction missing by send, without first 30 lines"</span>,</span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Fraction missing"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>adv_missing <span class="sc">|&gt;</span> </span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, missing_frac)) <span class="sc">+</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fraction missing by send, without first 30 lines"</span>,</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Fraction missing"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -551,7 +531,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="post-times" class="level3">
 <h3 class="anchored" data-anchor-id="post-times">Post times</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(post_times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(post_times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="table table-sm table-striped small">
 <thead>
@@ -563,233 +543,228 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">2024-05-21 20:11:12</td>
+<td style="text-align: left;">2024-05-23 20:11:12</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">NA</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-22 00:11:12</td>
+<td style="text-align: left;">2024-05-24 00:11:12</td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-22 04:11:12</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-22 08:11:12</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-22 12:11:12</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">28</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-22 16:11:12</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-22 20:11:12</td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-23 00:11:12</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-23 04:11:12</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-23 08:11:12</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-23 12:11:12</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-23 16:11:12</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-23 20:11:12</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-24 00:11:12</td>
-<td style="text-align: right;">14</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;">2024-05-24 04:11:12</td>
-<td style="text-align: right;">15</td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">347</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-24 08:11:12</td>
-<td style="text-align: right;">16</td>
+<td style="text-align: right;">4</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-24 12:11:12</td>
-<td style="text-align: right;">17</td>
+<td style="text-align: right;">5</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-24 16:11:12</td>
-<td style="text-align: right;">18</td>
+<td style="text-align: right;">6</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-24 20:11:12</td>
-<td style="text-align: right;">19</td>
+<td style="text-align: right;">7</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-25 00:11:12</td>
-<td style="text-align: right;">20</td>
+<td style="text-align: right;">8</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-25 04:11:12</td>
-<td style="text-align: right;">21</td>
+<td style="text-align: right;">9</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-25 12:11:12</td>
-<td style="text-align: right;">22</td>
+<td style="text-align: right;">10</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-25 16:11:12</td>
-<td style="text-align: right;">23</td>
+<td style="text-align: right;">11</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-25 20:11:12</td>
-<td style="text-align: right;">24</td>
+<td style="text-align: right;">12</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-26 00:11:12</td>
-<td style="text-align: right;">25</td>
+<td style="text-align: right;">13</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-26 04:11:12</td>
-<td style="text-align: right;">26</td>
+<td style="text-align: right;">14</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-26 08:11:12</td>
-<td style="text-align: right;">27</td>
+<td style="text-align: right;">15</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-26 12:11:12</td>
-<td style="text-align: right;">28</td>
+<td style="text-align: right;">16</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-26 16:11:12</td>
-<td style="text-align: right;">29</td>
+<td style="text-align: right;">17</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-26 20:11:12</td>
-<td style="text-align: right;">30</td>
+<td style="text-align: right;">18</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-27 00:11:12</td>
-<td style="text-align: right;">31</td>
+<td style="text-align: right;">19</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-27 04:11:12</td>
-<td style="text-align: right;">32</td>
+<td style="text-align: right;">20</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-27 08:11:12</td>
-<td style="text-align: right;">33</td>
+<td style="text-align: right;">21</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-27 12:11:12</td>
-<td style="text-align: right;">34</td>
+<td style="text-align: right;">22</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-27 16:11:12</td>
-<td style="text-align: right;">35</td>
+<td style="text-align: right;">23</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-27 20:11:12</td>
-<td style="text-align: right;">36</td>
+<td style="text-align: right;">24</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-28 00:11:12</td>
-<td style="text-align: right;">37</td>
+<td style="text-align: right;">25</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-28 04:11:12</td>
-<td style="text-align: right;">38</td>
+<td style="text-align: right;">26</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-28 08:11:12</td>
-<td style="text-align: right;">39</td>
+<td style="text-align: right;">27</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-28 12:11:12</td>
-<td style="text-align: right;">40</td>
+<td style="text-align: right;">28</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-28 16:11:12</td>
-<td style="text-align: right;">41</td>
+<td style="text-align: right;">29</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-28 20:11:12</td>
-<td style="text-align: right;">42</td>
+<td style="text-align: right;">30</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-29 00:11:12</td>
-<td style="text-align: right;">43</td>
+<td style="text-align: right;">31</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-29 04:11:12</td>
-<td style="text-align: right;">44</td>
+<td style="text-align: right;">32</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2024-05-29 08:11:12</td>
-<td style="text-align: right;">45</td>
+<td style="text-align: right;">33</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2024-05-29 12:11:12</td>
-<td style="text-align: right;">46</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-05-29 16:11:12</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-05-29 20:11:12</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-05-30 00:11:12</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-05-30 04:11:12</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-05-30 08:11:12</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-05-30 12:11:12</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-05-30 16:11:12</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-05-30 20:11:12</td>
+<td style="text-align: right;">42</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-05-31 00:11:12</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-05-31 04:11:12</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-05-31 08:11:12</td>
+<td style="text-align: right;">45</td>
 <td style="text-align: right;">501</td>
 </tr>
 </tbody>
@@ -800,12 +775,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="lines-per-post" class="level3">
 <h3 class="anchored" data-anchor-id="lines-per-post">Lines per post</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="sc">|&gt;</span> </span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, row_count)) <span class="sc">+</span></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Lines per post"</span>,</span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Lines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="sc">|&gt;</span> </span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, row_count)) <span class="sc">+</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Lines per post"</span>,</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Lines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
 (`geom_point()`).</code></pre>
