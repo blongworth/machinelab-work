@@ -96,7 +96,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Get and parse data sent to LECS website. Data from 2024-05-24 to present.</p>
+<p>Get and parse data sent to LECS website. Data from 2024-05-27 to present.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
@@ -122,16 +122,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="ot">&lt;-</span> <span class="fu">lecs_post_times</span>(df) </span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>met <span class="ot">&lt;-</span> <span class="fu">lecs_met_data</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 10 rows [3, 5, 7, 14, 18, 19,
-20, 29, 31, 39].</code></pre>
+<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 14 rows [1, 2, 3, 12, 14, 22,
+30, 32, 34, 35, 38, 42, 44, 45].</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>status <span class="ot">&lt;-</span> <span class="fu">lecs_status_data</span>(df)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>adv_data <span class="ot">&lt;-</span> <span class="fu">lecs_adv_data</span>(df, rinko_cals) <span class="sc">|&gt;</span> </span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">make_lecs_ts</span>(status) <span class="sc">|&gt;</span> </span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">missing =</span> <span class="fu">lecs_missing</span>(count, line))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 16 pieces. Additional pieces discarded in 5 rows [6452, 12507, 14218,
-14921, 17128].</code></pre>
+<pre><code>Warning: Expected 16 pieces. Additional pieces discarded in 6 rows [4703, 6414, 7117,
+9324, 14839, 14854].</code></pre>
 </div>
 </div>
 <p>Filter bad data</p>
@@ -178,8 +178,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
 <span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="last-post-was-2024-05-31-081112" class="level4">
-<h4 class="anchored" data-anchor-id="last-post-was-2024-05-31-081112">Last post was 2024-05-31 08:11:12</h4>
+<section id="last-post-was-2024-06-03-121112" class="level4">
+<h4 class="anchored" data-anchor-id="last-post-was-2024-06-03-121112">Last post was 2024-06-03 12:11:12</h4>
 <p>How many status lines are in the wrong year?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ct <span class="ot">&lt;-</span> post_times <span class="sc">|&gt;</span> </span>
@@ -231,7 +231,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(PAR_mean, PAR_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 45 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 46 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -251,7 +251,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 45 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 46 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -406,7 +406,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Vertical velocity"</span>,</span>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 13 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 14 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -428,7 +428,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Onshore velocity"</span>,</span>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
+<pre><code>Warning: Removed 2 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -543,228 +543,233 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">2024-05-23 20:11:12</td>
+<td style="text-align: left;">2024-05-26 20:11:12</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">NA</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-24 00:11:12</td>
+<td style="text-align: left;">2024-05-27 00:11:12</td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-24 04:11:12</td>
+<td style="text-align: left;">2024-05-27 04:11:12</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: right;">347</td>
+<td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-24 08:11:12</td>
+<td style="text-align: left;">2024-05-27 08:11:12</td>
 <td style="text-align: right;">4</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-24 12:11:12</td>
+<td style="text-align: left;">2024-05-27 12:11:12</td>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-24 16:11:12</td>
+<td style="text-align: left;">2024-05-27 16:11:12</td>
 <td style="text-align: right;">6</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-24 20:11:12</td>
+<td style="text-align: left;">2024-05-27 20:11:12</td>
 <td style="text-align: right;">7</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-25 00:11:12</td>
+<td style="text-align: left;">2024-05-28 00:11:12</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-25 04:11:12</td>
+<td style="text-align: left;">2024-05-28 04:11:12</td>
 <td style="text-align: right;">9</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-25 12:11:12</td>
+<td style="text-align: left;">2024-05-28 08:11:12</td>
 <td style="text-align: right;">10</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-25 16:11:12</td>
+<td style="text-align: left;">2024-05-28 12:11:12</td>
 <td style="text-align: right;">11</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-25 20:11:12</td>
+<td style="text-align: left;">2024-05-28 16:11:12</td>
 <td style="text-align: right;">12</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-26 00:11:12</td>
+<td style="text-align: left;">2024-05-28 20:11:12</td>
 <td style="text-align: right;">13</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-26 04:11:12</td>
+<td style="text-align: left;">2024-05-29 00:11:12</td>
 <td style="text-align: right;">14</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-26 08:11:12</td>
+<td style="text-align: left;">2024-05-29 04:11:12</td>
 <td style="text-align: right;">15</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-26 12:11:12</td>
+<td style="text-align: left;">2024-05-29 08:11:12</td>
 <td style="text-align: right;">16</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-26 16:11:12</td>
+<td style="text-align: left;">2024-05-29 12:11:12</td>
 <td style="text-align: right;">17</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-26 20:11:12</td>
+<td style="text-align: left;">2024-05-29 16:11:12</td>
 <td style="text-align: right;">18</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-27 00:11:12</td>
+<td style="text-align: left;">2024-05-29 20:11:12</td>
 <td style="text-align: right;">19</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-27 04:11:12</td>
+<td style="text-align: left;">2024-05-30 00:11:12</td>
 <td style="text-align: right;">20</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-27 08:11:12</td>
+<td style="text-align: left;">2024-05-30 04:11:12</td>
 <td style="text-align: right;">21</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-27 12:11:12</td>
+<td style="text-align: left;">2024-05-30 08:11:12</td>
 <td style="text-align: right;">22</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-27 16:11:12</td>
+<td style="text-align: left;">2024-05-30 12:11:12</td>
 <td style="text-align: right;">23</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-27 20:11:12</td>
+<td style="text-align: left;">2024-05-30 16:11:12</td>
 <td style="text-align: right;">24</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-28 00:11:12</td>
+<td style="text-align: left;">2024-05-30 20:11:12</td>
 <td style="text-align: right;">25</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-28 04:11:12</td>
+<td style="text-align: left;">2024-05-31 00:11:12</td>
 <td style="text-align: right;">26</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-28 08:11:12</td>
+<td style="text-align: left;">2024-05-31 04:11:12</td>
 <td style="text-align: right;">27</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-28 12:11:12</td>
+<td style="text-align: left;">2024-05-31 08:11:12</td>
 <td style="text-align: right;">28</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-28 16:11:12</td>
+<td style="text-align: left;">2024-05-31 12:11:12</td>
 <td style="text-align: right;">29</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-28 20:11:12</td>
+<td style="text-align: left;">2024-05-31 16:11:12</td>
 <td style="text-align: right;">30</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-29 00:11:12</td>
+<td style="text-align: left;">2024-05-31 20:11:12</td>
 <td style="text-align: right;">31</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-29 04:11:12</td>
+<td style="text-align: left;">2024-06-01 00:11:12</td>
 <td style="text-align: right;">32</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-29 08:11:12</td>
+<td style="text-align: left;">2024-06-01 04:11:12</td>
 <td style="text-align: right;">33</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-29 12:11:12</td>
+<td style="text-align: left;">2024-06-01 08:11:12</td>
 <td style="text-align: right;">34</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-29 16:11:12</td>
+<td style="text-align: left;">2024-06-01 12:11:12</td>
 <td style="text-align: right;">35</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-29 20:11:12</td>
+<td style="text-align: left;">2024-06-01 16:11:12</td>
 <td style="text-align: right;">36</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-30 00:11:12</td>
+<td style="text-align: left;">2024-06-01 20:11:12</td>
 <td style="text-align: right;">37</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-30 04:11:12</td>
+<td style="text-align: left;">2024-06-02 00:11:12</td>
 <td style="text-align: right;">38</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-30 08:11:12</td>
+<td style="text-align: left;">2024-06-02 04:11:12</td>
 <td style="text-align: right;">39</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-30 12:11:12</td>
+<td style="text-align: left;">2024-06-02 08:11:12</td>
 <td style="text-align: right;">40</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-30 16:11:12</td>
+<td style="text-align: left;">2024-06-02 12:11:12</td>
 <td style="text-align: right;">41</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-30 20:11:12</td>
+<td style="text-align: left;">2024-06-02 16:11:12</td>
 <td style="text-align: right;">42</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-31 00:11:12</td>
+<td style="text-align: left;">2024-06-02 20:11:12</td>
 <td style="text-align: right;">43</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-05-31 04:11:12</td>
+<td style="text-align: left;">2024-06-03 00:11:12</td>
 <td style="text-align: right;">44</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-05-31 08:11:12</td>
+<td style="text-align: left;">2024-06-03 08:11:12</td>
 <td style="text-align: right;">45</td>
+<td style="text-align: right;">501</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-06-03 12:11:12</td>
+<td style="text-align: right;">46</td>
 <td style="text-align: right;">501</td>
 </tr>
 </tbody>
