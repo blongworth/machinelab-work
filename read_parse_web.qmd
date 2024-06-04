@@ -3,7 +3,7 @@ title: "Parse LECS Web"
 format: html
 editor: source
 params:
-  start_date: 2024-04-23
+  start_date: 2024-05-23
 ---
 
 Get and parse data sent to LECS website. Data from `r params$start_date` to present.
@@ -104,10 +104,13 @@ How many status lines are in the wrong year?
 ct <- post_times |> 
   select(post_time = timestamp, send)
 
-status |> 
+dt <- status |> 
   select(send, lander_time = timestamp) |> 
   inner_join(ct) |> 
-  filter(lander_time > "2024-06-01") |> 
+  mutate(td = as.numeric(difftime(post_time, lander_time, units = 'secs'))) |> 
+  filter(td < 13000 | td > 20000) 
+
+dt |> 
   ggplot(aes(post_time, lander_time)) +
   geom_point() + 
   scale_x_datetime(date_labels = "%Y-%m-%d") +
