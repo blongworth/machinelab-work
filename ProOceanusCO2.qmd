@@ -1,0 +1,35 @@
+---
+title: "ProOceanis CO2"
+format: html
+---
+
+Read and analyse CO2 data from ProOceanus CO2.
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(mlabtools)
+```
+
+Read data
+
+line 45 is header, data starts at 47
+
+```{r}
+
+file <- "data/ProOceanisCO2/prooceanis_co2_lecs_2024-05-14.txt"
+
+
+df <- read_prooceanus(file)
+```
+
+```{r}
+theme_set(theme_classic())
+df |> 
+  filter(ts < "2024-05-14 06:00:00") |> 
+ggplot(aes(ts, co2)) +
+  geom_line()
+```
+
+

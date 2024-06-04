@@ -1,0 +1,44 @@
+---
+title: "March SeapHOx"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(mlabtools)
+library(dygraphs)
+```
+
+```{r}
+df <- read_seaphox("data/SeapHOx Data/Shallow SeapHox2-0000453-Data-20240401T121125.csv")
+```
+
+```{r}
+dygraph(df)
+```
+
+```{r}
+df |> 
+  select(timestamp, pH) |> 
+dygraph()
+```
+```{r}
+df |> 
+  select(timestamp, pressure) |> 
+  dygraph()
+```
+
+
+```{r}
+df |> 
+  select(timestamp, temp) |> 
+  dygraph()
+```
+
+
+```{r}
+df |> 
+  select(timestamp, oxygen) |> 
+  dygraph()
+```
