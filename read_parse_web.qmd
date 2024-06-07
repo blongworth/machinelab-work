@@ -110,11 +110,15 @@ dt <- status |>
   mutate(td = as.numeric(difftime(post_time, lander_time, units = 'secs'))) |> 
   filter(td < 13000 | td > 20000) 
 
-dt |> 
-  ggplot(aes(post_time, lander_time)) +
-  geom_point() + 
-  scale_x_datetime(date_labels = "%Y-%m-%d") +
-  ggtitle("Incorrect Lander timestamps")
+if (nrow(dt > 0)) {
+  dt |> 
+    ggplot(aes(post_time, lander_time)) +
+    geom_point() + 
+    scale_x_datetime(date_labels = "%Y-%m-%d") +
+    ggtitle("Incorrect Lander timestamps")
+} else {
+  "No incorrect lander timestamps!"
+}
 ```
 
 ### Battery
