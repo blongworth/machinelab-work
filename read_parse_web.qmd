@@ -3,7 +3,7 @@ title: "Parse LECS Web"
 format: html
 editor: source
 params:
-  start_date: 2024-03-23
+  start_date: 2024-06-03
 ---
 
 Get and parse data sent to LECS website. Data from `r params$start_date` to present.
@@ -59,7 +59,7 @@ adv_data <- adv_data |>
 
 Filter bad data (now done above)
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 status_qc <- status |> 
   filter(soundspeed > 1450, 
          adv_day < 32, adv_month > 0, adv_month < 13, 
@@ -272,7 +272,9 @@ adv_data_mean |>
 
 ## Flux and response
 
-Response time plot
+### Sensor Response
+
+These plots show change in mean spectral power from 0.1 to 1 Hz over time.
 
 temp
 
