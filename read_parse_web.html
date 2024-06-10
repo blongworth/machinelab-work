@@ -96,7 +96,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Get and parse data sent to LECS website. Data from 2024-03-23 to present.</p>
+<p>Get and parse data sent to LECS website. Data from 2024-06-03 to present.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
@@ -122,22 +122,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="ot">&lt;-</span> <span class="fu">lecs_post_times</span>(df) </span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>met <span class="ot">&lt;-</span> <span class="fu">lecs_met_data</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 160 rows [4, 5, 6, 7, 8, 9,
-12, 14, 15, 24, 26, 28, 30, 31, 35, 36, 37, 38, 40, 41, ...].</code></pre>
+<pre><code>Warning: Expected 9 pieces. Additional pieces discarded in 13 rows [2, 3, 5, 8, 16, 22,
+23, 24, 26, 27, 30, 33, 34].</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>met_qc <span class="ot">&lt;-</span> <span class="fu">lecs_clean_met</span>(met)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>status <span class="ot">&lt;-</span> <span class="fu">lecs_status_data</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 21 pieces. Additional pieces discarded in 1 rows [15416].</code></pre>
+<pre><code>Warning: Expected 21 pieces. Additional pieces discarded in 1 rows [1416].</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>status_qc <span class="ot">&lt;-</span> <span class="fu">lecs_clean_status</span>(status)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>adv_data <span class="ot">&lt;-</span> <span class="fu">lecs_adv_data</span>(df, rinko_cals) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Expected 16 pieces. Additional pieces discarded in 69 rows [529, 5145, 12016,
-13540, 14523, 15172, 15411, 15848, 15862, 16622, 16667, 20793, 20867, 23507,
-26072, 26400, 60009, 60010, 65414, 68973, ...].</code></pre>
+<pre><code>Warning: Expected 16 pieces. Additional pieces discarded in 26 rows [6877, 6921, 6922,
+8966, 8967, 9055, 9436, 10186, 10616, 11818, 11862, 12042, 12325, 12505, 12754,
+13455, 15082, 17951, 18115, 19011, ...].</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>adv_data_qc <span class="ot">&lt;-</span> <span class="fu">lecs_clean_adv_data</span>(adv_data) <span class="sc">|&gt;</span> </span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">make_lecs_ts</span>(status_qc) <span class="sc">|&gt;</span> </span>
@@ -217,29 +217,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"No incorrect lander timestamps!"</span></span>
 <span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="read_parse_web_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "No incorrect lander timestamps!"</code></pre>
 </div>
 </div>
 </section>
 <section id="battery" class="level3">
 <h3 class="anchored" data-anchor-id="battery">Battery</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>status_mean <span class="sc">|&gt;</span> </span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(bat_mean, bat_sd) <span class="sc">+</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Battery Voltage"</span>,</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Volts"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>status_mean <span class="sc">|&gt;</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(bat_mean, bat_sd) <span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Battery Voltage"</span>,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Volts"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 3 rows containing missing values or values outside the scale range
-(`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -256,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>met_mean <span class="sc">|&gt;</span> </span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(PAR_mean, PAR_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 458 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 45 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -276,7 +268,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wind Speed"</span>,</span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Wind Speed (m/s)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 458 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 45 rows containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -385,7 +377,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Correlation (%)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
-`geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'</code></pre>
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -411,7 +403,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Amplitude"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
-`geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'</code></pre>
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -430,6 +422,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.1</span>, <span class="fl">0.1</span>) <span class="sc">+</span></span>
 <span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Vertical velocity"</span>,</span>
 <span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 11 rows containing missing values or values outside the scale range
+(`geom_segment()`).</code></pre>
+</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -443,11 +439,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="adv-onshore-velocity">ADV Onshore Velocity</h3>
 <p>Positive is towards shore ADV set up with x axis towards shore as of 2024-03-07, unsure earlier</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(u_mean, u_sd) <span class="sc">+</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Onshore velocity"</span>,</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(u_mean, u_sd) <span class="sc">+</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Onshore velocity"</span>,</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 2 rows containing missing values or values outside the scale range
+(`geom_segment()`).</code></pre>
+</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -461,13 +461,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="adv-alongshore-velocity">ADV Alongshore velocity</h3>
 <p>Positive is southerly current</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(v_mean, v_sd) <span class="sc">+</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Alongshore velocity"</span>,</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>adv_data_mean <span class="sc">|&gt;</span> </span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(v_mean, v_sd) <span class="sc">+</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Alongshore velocity"</span>,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"cm/s"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 2 rows containing missing values or values outside the scale range
+<pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
 (`geom_segment()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -484,24 +484,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Response time plot</p>
 <p>temp</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>adv_data_qc <span class="sc">|&gt;</span> </span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(send <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">356</span>))) <span class="sc">|&gt;</span> </span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(timestamp) <span class="sc">|&gt;</span> </span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(send) <span class="sc">|&gt;</span> </span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(line <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">|&gt;</span></span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">resp =</span> <span class="fu">calc_response</span>(temp, timestamp, <span class="dv">16</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, resp) <span class="sc">|&gt;</span> </span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(post_times) <span class="sc">|&gt;</span> </span>
-<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, resp)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
-<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Temperature response"</span>,</span>
-<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">subtitle =</span> <span class="st">"mean spectral power between 0.1 and 1 Hz"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>adv_data_qc <span class="sc">|&gt;</span> </span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(send <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">356</span>))) <span class="sc">|&gt;</span> </span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(timestamp) <span class="sc">|&gt;</span> </span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(send) <span class="sc">|&gt;</span> </span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(line <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">|&gt;</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">resp =</span> <span class="fu">calc_response</span>(temp, timestamp, <span class="dv">16</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, resp) <span class="sc">|&gt;</span> </span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(post_times) <span class="sc">|&gt;</span> </span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, resp)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Temperature response"</span>,</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">subtitle =</span> <span class="st">"mean spectral power between 0.1 and 1 Hz"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(send)`</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 172 rows containing missing values or values outside the scale range
-(`geom_line()`).</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -513,24 +509,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>pH</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>adv_data_qc <span class="sc">|&gt;</span> </span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(send <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">356</span>))) <span class="sc">|&gt;</span> </span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(timestamp) <span class="sc">|&gt;</span> </span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(send) <span class="sc">|&gt;</span> </span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(line <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">|&gt;</span></span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">resp =</span> <span class="fu">calc_response</span>(pH, timestamp, <span class="dv">16</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, resp) <span class="sc">|&gt;</span> </span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(post_times) <span class="sc">|&gt;</span> </span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, resp)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
-<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
-<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"pH response"</span>,</span>
-<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">subtitle =</span> <span class="st">"mean spectral power between 0.1 and 1 Hz"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>adv_data_qc <span class="sc">|&gt;</span> </span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(send <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">356</span>))) <span class="sc">|&gt;</span> </span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(timestamp) <span class="sc">|&gt;</span> </span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(send) <span class="sc">|&gt;</span> </span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(line <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">|&gt;</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">resp =</span> <span class="fu">calc_response</span>(pH, timestamp, <span class="dv">16</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, resp) <span class="sc">|&gt;</span> </span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(post_times) <span class="sc">|&gt;</span> </span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, resp)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"pH response"</span>,</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">subtitle =</span> <span class="st">"mean spectral power between 0.1 and 1 Hz"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(send)`</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 172 rows containing missing values or values outside the scale range
-(`geom_line()`).</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -557,10 +549,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(send)`</code></pre>
 </div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 172 rows containing missing values or values outside the scale range
-(`geom_line()`).</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -573,45 +561,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="imu-data" class="level2">
 <h2 class="anchored" data-anchor-id="imu-data">IMU data</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>hp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(heading_mean, heading_sd) <span class="sc">+</span></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Heading"</span>,</span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>pp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pitch_mean, pitch_sd) <span class="sc">+</span></span>
-<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
-<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pitch"</span>,</span>
-<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
-<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>rp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
-<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(roll_mean, roll_sd) <span class="sc">+</span></span>
-<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
-<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Roll"</span>,</span>
-<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
-<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>hp <span class="sc">/</span> pp <span class="sc">/</span> rp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>hp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(heading_mean, heading_sd) <span class="sc">+</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Heading"</span>,</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>pp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(pitch_mean, pitch_sd) <span class="sc">+</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pitch"</span>,</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>rp <span class="ot">&lt;-</span> status_mean <span class="sc">|&gt;</span> </span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_mean</span>(roll_mean, roll_sd) <span class="sc">+</span></span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>() <span class="sc">+</span></span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Roll"</span>,</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Degrees"</span>)</span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>hp <span class="sc">/</span> pp <span class="sc">/</span> rp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 3 rows containing missing values or values outside the scale range
-(`geom_segment()`).</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 3 rows containing missing values or values outside the scale range
-(`geom_segment()`).</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 3 rows containing missing values or values outside the scale range
-(`geom_segment()`).</code></pre>
+<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -625,24 +597,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="missing-data">Missing data</h3>
 <p>Most missing data is in first 30 lines per send. This is the beginning of a new file. This is likely a gap as DAQ gets started again after pausing for send. The following plot is missing fraction without the first 25 lines of each send.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>adv_missing <span class="ot">&lt;-</span> adv_data <span class="sc">|&gt;</span> </span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(count <span class="sc">&gt;=</span> <span class="dv">0</span>, count <span class="sc">&lt;</span> <span class="dv">256</span>, </span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>         line <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#timestamp &lt; "2024-10-01") |&gt; </span></span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, missing) <span class="sc">|&gt;</span> </span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(post_times) <span class="sc">|&gt;</span> </span>
-<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(timestamp) <span class="sc">|&gt;</span> </span>
-<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
-<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>adv_missing <span class="ot">&lt;-</span> adv_data <span class="sc">|&gt;</span> </span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(count <span class="sc">&gt;=</span> <span class="dv">0</span>, count <span class="sc">&lt;</span> <span class="dv">256</span>, </span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>         line <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#timestamp &lt; "2024-10-01") |&gt; </span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(send, missing) <span class="sc">|&gt;</span> </span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(post_times) <span class="sc">|&gt;</span> </span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(timestamp) <span class="sc">|&gt;</span> </span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">missing_frac =</span> <span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">/</span> (<span class="fu">sum</span>(missing, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">n</span>()),</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">N =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(send)`</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>adv_missing <span class="sc">|&gt;</span> </span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, missing_frac)) <span class="sc">+</span></span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fraction missing by send, without first 30 lines"</span>,</span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Fraction missing"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>adv_missing <span class="sc">|&gt;</span> </span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, missing_frac)) <span class="sc">+</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fraction missing by send, without first 30 lines"</span>,</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Fraction missing"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -655,7 +627,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="post-times" class="level3">
 <h3 class="anchored" data-anchor-id="post-times">Post times</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(post_times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(post_times)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
@@ -667,2348 +639,233 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">2024-03-23 00:11:12</td>
+<td style="text-align: left;">2024-06-02 20:11:12</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">NA</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-23 08:11:12</td>
+<td style="text-align: left;">2024-06-03 00:11:12</td>
 <td style="text-align: right;">2</td>
-<td style="text-align: right;">544</td>
+<td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-23 12:11:12</td>
+<td style="text-align: left;">2024-06-03 08:11:12</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-23 16:11:12</td>
+<td style="text-align: left;">2024-06-03 12:11:12</td>
 <td style="text-align: right;">4</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-23 20:11:12</td>
+<td style="text-align: left;">2024-06-03 16:11:12</td>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-24 00:11:12</td>
+<td style="text-align: left;">2024-06-03 20:11:12</td>
 <td style="text-align: right;">6</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-24 04:11:12</td>
+<td style="text-align: left;">2024-06-04 00:11:12</td>
 <td style="text-align: right;">7</td>
-<td style="text-align: right;">415</td>
+<td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-24 08:11:12</td>
+<td style="text-align: left;">2024-06-04 04:11:12</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-24 12:11:12</td>
+<td style="text-align: left;">2024-06-04 08:11:12</td>
 <td style="text-align: right;">9</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-24 16:11:12</td>
+<td style="text-align: left;">2024-06-04 12:11:12</td>
 <td style="text-align: right;">10</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-24 20:11:12</td>
+<td style="text-align: left;">2024-06-04 16:11:12</td>
 <td style="text-align: right;">11</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-25 00:11:12</td>
+<td style="text-align: left;">2024-06-04 20:11:12</td>
 <td style="text-align: right;">12</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-25 04:11:12</td>
+<td style="text-align: left;">2024-06-05 00:11:12</td>
 <td style="text-align: right;">13</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-25 08:11:12</td>
+<td style="text-align: left;">2024-06-05 04:11:12</td>
 <td style="text-align: right;">14</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-25 12:11:12</td>
+<td style="text-align: left;">2024-06-05 08:11:12</td>
 <td style="text-align: right;">15</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-25 16:11:12</td>
+<td style="text-align: left;">2024-06-05 12:11:12</td>
 <td style="text-align: right;">16</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-25 20:11:12</td>
+<td style="text-align: left;">2024-06-05 16:11:12</td>
 <td style="text-align: right;">17</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-26 00:11:12</td>
+<td style="text-align: left;">2024-06-05 20:11:12</td>
 <td style="text-align: right;">18</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-26 04:11:12</td>
+<td style="text-align: left;">2024-06-06 00:11:12</td>
 <td style="text-align: right;">19</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-26 08:11:12</td>
+<td style="text-align: left;">2024-06-06 04:11:12</td>
 <td style="text-align: right;">20</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-26 12:11:12</td>
+<td style="text-align: left;">2024-06-06 08:11:12</td>
 <td style="text-align: right;">21</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-26 16:11:12</td>
+<td style="text-align: left;">2024-06-06 12:11:12</td>
 <td style="text-align: right;">22</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-26 20:11:12</td>
+<td style="text-align: left;">2024-06-06 16:11:12</td>
 <td style="text-align: right;">23</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-27 00:11:12</td>
+<td style="text-align: left;">2024-06-06 20:11:12</td>
 <td style="text-align: right;">24</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-27 04:11:12</td>
+<td style="text-align: left;">2024-06-07 00:11:12</td>
 <td style="text-align: right;">25</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-27 08:11:12</td>
+<td style="text-align: left;">2024-06-07 04:11:12</td>
 <td style="text-align: right;">26</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-27 12:11:12</td>
+<td style="text-align: left;">2024-06-07 08:11:12</td>
 <td style="text-align: right;">27</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-27 16:11:12</td>
+<td style="text-align: left;">2024-06-07 12:11:12</td>
 <td style="text-align: right;">28</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-27 20:11:12</td>
+<td style="text-align: left;">2024-06-07 16:11:12</td>
 <td style="text-align: right;">29</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-28 00:11:12</td>
+<td style="text-align: left;">2024-06-07 20:11:12</td>
 <td style="text-align: right;">30</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-28 04:11:12</td>
+<td style="text-align: left;">2024-06-08 00:11:12</td>
 <td style="text-align: right;">31</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-28 08:11:12</td>
+<td style="text-align: left;">2024-06-08 04:11:12</td>
 <td style="text-align: right;">32</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-28 12:11:12</td>
+<td style="text-align: left;">2024-06-08 08:11:12</td>
 <td style="text-align: right;">33</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-28 16:11:12</td>
+<td style="text-align: left;">2024-06-08 12:11:12</td>
 <td style="text-align: right;">34</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-28 20:11:12</td>
+<td style="text-align: left;">2024-06-08 16:11:12</td>
 <td style="text-align: right;">35</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-29 00:11:12</td>
+<td style="text-align: left;">2024-06-08 20:11:12</td>
 <td style="text-align: right;">36</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-29 04:11:12</td>
+<td style="text-align: left;">2024-06-09 00:11:12</td>
 <td style="text-align: right;">37</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-29 08:11:12</td>
+<td style="text-align: left;">2024-06-09 04:11:12</td>
 <td style="text-align: right;">38</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-29 12:11:12</td>
+<td style="text-align: left;">2024-06-09 08:11:12</td>
 <td style="text-align: right;">39</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-29 16:11:12</td>
+<td style="text-align: left;">2024-06-09 12:11:12</td>
 <td style="text-align: right;">40</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-29 20:11:12</td>
+<td style="text-align: left;">2024-06-09 16:11:12</td>
 <td style="text-align: right;">41</td>
-<td style="text-align: right;">282</td>
+<td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-30 00:11:12</td>
+<td style="text-align: left;">2024-06-09 20:11:12</td>
 <td style="text-align: right;">42</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-30 04:11:12</td>
+<td style="text-align: left;">2024-06-10 00:11:12</td>
 <td style="text-align: right;">43</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-30 08:11:12</td>
+<td style="text-align: left;">2024-06-10 04:11:12</td>
 <td style="text-align: right;">44</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2024-03-30 12:11:12</td>
+<td style="text-align: left;">2024-06-10 08:11:12</td>
 <td style="text-align: right;">45</td>
 <td style="text-align: right;">501</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">2024-03-30 16:11:12</td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-03-30 20:11:12</td>
-<td style="text-align: right;">47</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-03-31 00:11:12</td>
-<td style="text-align: right;">48</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-03-31 04:11:12</td>
-<td style="text-align: right;">49</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-03-31 08:11:12</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-03-31 12:11:12</td>
-<td style="text-align: right;">51</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-03-31 20:11:12</td>
-<td style="text-align: right;">52</td>
-<td style="text-align: right;">2329</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-01 00:11:12</td>
-<td style="text-align: right;">53</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-01 04:11:12</td>
-<td style="text-align: right;">54</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-01 08:11:12</td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-01 12:11:12</td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-01 16:11:12</td>
-<td style="text-align: right;">57</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-01 20:11:12</td>
-<td style="text-align: right;">58</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-02 00:11:12</td>
-<td style="text-align: right;">59</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-02 04:11:12</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-02 08:11:12</td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-02 12:11:12</td>
-<td style="text-align: right;">62</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-02 16:11:12</td>
-<td style="text-align: right;">63</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-02 20:11:12</td>
-<td style="text-align: right;">64</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-03 00:11:12</td>
-<td style="text-align: right;">65</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-03 04:11:12</td>
-<td style="text-align: right;">66</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-03 08:11:12</td>
-<td style="text-align: right;">67</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-03 12:11:12</td>
-<td style="text-align: right;">68</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-03 16:11:12</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-04 00:11:12</td>
-<td style="text-align: right;">70</td>
-<td style="text-align: right;">834</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-04 04:11:12</td>
-<td style="text-align: right;">71</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-04 08:11:12</td>
-<td style="text-align: right;">72</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-04 12:11:12</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-04 16:11:12</td>
-<td style="text-align: right;">74</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-04 20:11:12</td>
-<td style="text-align: right;">75</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-05 00:11:12</td>
-<td style="text-align: right;">76</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-05 04:11:12</td>
-<td style="text-align: right;">77</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-05 08:11:12</td>
-<td style="text-align: right;">78</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-05 12:11:12</td>
-<td style="text-align: right;">79</td>
-<td style="text-align: right;">256</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-05 16:11:12</td>
-<td style="text-align: right;">80</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-05 20:11:12</td>
-<td style="text-align: right;">81</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-06 00:11:12</td>
-<td style="text-align: right;">82</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-06 04:11:12</td>
-<td style="text-align: right;">83</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-06 08:11:12</td>
-<td style="text-align: right;">84</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-06 12:11:12</td>
-<td style="text-align: right;">85</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-06 16:11:12</td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">400</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-06 20:11:12</td>
-<td style="text-align: right;">87</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-07 00:11:12</td>
-<td style="text-align: right;">88</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-07 04:11:12</td>
-<td style="text-align: right;">89</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-07 08:11:12</td>
-<td style="text-align: right;">90</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-07 12:11:12</td>
-<td style="text-align: right;">91</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-07 16:11:12</td>
-<td style="text-align: right;">92</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-07 20:11:12</td>
-<td style="text-align: right;">93</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-08 00:11:12</td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-08 04:11:12</td>
-<td style="text-align: right;">95</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-08 08:11:12</td>
-<td style="text-align: right;">96</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-08 12:11:12</td>
-<td style="text-align: right;">97</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-08 16:11:12</td>
-<td style="text-align: right;">98</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-08 20:11:12</td>
-<td style="text-align: right;">99</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-09 00:11:12</td>
-<td style="text-align: right;">100</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-09 04:11:12</td>
-<td style="text-align: right;">101</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-09 08:11:12</td>
-<td style="text-align: right;">102</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-09 12:11:12</td>
-<td style="text-align: right;">103</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-09 15:22:28</td>
-<td style="text-align: right;">104</td>
-<td style="text-align: right;">1889</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-09 16:11:12</td>
-<td style="text-align: right;">105</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-09 20:11:12</td>
-<td style="text-align: right;">106</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-10 00:11:12</td>
-<td style="text-align: right;">107</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-10 04:11:12</td>
-<td style="text-align: right;">108</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-10 08:11:12</td>
-<td style="text-align: right;">109</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-10 12:11:12</td>
-<td style="text-align: right;">110</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-10 16:11:12</td>
-<td style="text-align: right;">111</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-10 20:11:12</td>
-<td style="text-align: right;">112</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-11 00:11:12</td>
-<td style="text-align: right;">113</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-11 04:11:12</td>
-<td style="text-align: right;">114</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-11 08:11:12</td>
-<td style="text-align: right;">115</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-11 16:11:12</td>
-<td style="text-align: right;">116</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-11 20:11:12</td>
-<td style="text-align: right;">117</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-12 00:11:12</td>
-<td style="text-align: right;">118</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-12 04:11:12</td>
-<td style="text-align: right;">119</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-12 08:11:12</td>
-<td style="text-align: right;">120</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-12 12:11:12</td>
-<td style="text-align: right;">121</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-12 16:11:12</td>
-<td style="text-align: right;">122</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-12 20:11:12</td>
-<td style="text-align: right;">123</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-13 00:11:12</td>
-<td style="text-align: right;">124</td>
-<td style="text-align: right;">369</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-13 04:11:12</td>
-<td style="text-align: right;">125</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-13 08:11:12</td>
-<td style="text-align: right;">126</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-13 12:11:12</td>
-<td style="text-align: right;">127</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-13 16:11:12</td>
-<td style="text-align: right;">128</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-13 20:11:12</td>
-<td style="text-align: right;">129</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-14 00:11:12</td>
-<td style="text-align: right;">130</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-14 04:11:12</td>
-<td style="text-align: right;">131</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-14 08:11:12</td>
-<td style="text-align: right;">132</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-14 12:11:12</td>
-<td style="text-align: right;">133</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-14 16:11:12</td>
-<td style="text-align: right;">134</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-14 20:11:12</td>
-<td style="text-align: right;">135</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-15 00:11:12</td>
-<td style="text-align: right;">136</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-15 04:11:12</td>
-<td style="text-align: right;">137</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-15 08:11:12</td>
-<td style="text-align: right;">138</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-15 16:11:12</td>
-<td style="text-align: right;">139</td>
-<td style="text-align: right;">503</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-15 20:11:12</td>
-<td style="text-align: right;">140</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-16 00:11:12</td>
-<td style="text-align: right;">141</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-16 04:11:12</td>
-<td style="text-align: right;">142</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-16 08:11:12</td>
-<td style="text-align: right;">143</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-16 12:11:12</td>
-<td style="text-align: right;">144</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-16 20:11:12</td>
-<td style="text-align: right;">145</td>
-<td style="text-align: right;">1109</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-17 00:11:12</td>
-<td style="text-align: right;">146</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-17 04:11:12</td>
-<td style="text-align: right;">147</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-17 08:11:12</td>
-<td style="text-align: right;">148</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-17 12:11:12</td>
-<td style="text-align: right;">149</td>
-<td style="text-align: right;">412</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-17 16:11:12</td>
-<td style="text-align: right;">150</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-17 20:11:12</td>
-<td style="text-align: right;">151</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-18 00:11:12</td>
-<td style="text-align: right;">152</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-18 04:11:12</td>
-<td style="text-align: right;">153</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-18 08:11:12</td>
-<td style="text-align: right;">154</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-18 12:11:12</td>
-<td style="text-align: right;">155</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-18 16:11:12</td>
-<td style="text-align: right;">156</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-18 20:11:12</td>
-<td style="text-align: right;">157</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-19 00:11:12</td>
-<td style="text-align: right;">158</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-19 04:11:12</td>
-<td style="text-align: right;">159</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-19 08:11:12</td>
-<td style="text-align: right;">160</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-19 12:11:12</td>
-<td style="text-align: right;">161</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-19 16:11:12</td>
-<td style="text-align: right;">162</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-19 20:11:12</td>
-<td style="text-align: right;">163</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-20 00:11:12</td>
-<td style="text-align: right;">164</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-20 04:11:12</td>
-<td style="text-align: right;">165</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-20 08:11:12</td>
-<td style="text-align: right;">166</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-20 12:11:12</td>
-<td style="text-align: right;">167</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-20 16:11:12</td>
-<td style="text-align: right;">168</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-20 20:11:12</td>
-<td style="text-align: right;">169</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-21 00:11:12</td>
-<td style="text-align: right;">170</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-21 04:11:12</td>
-<td style="text-align: right;">171</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-21 08:11:12</td>
-<td style="text-align: right;">172</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-21 12:11:12</td>
-<td style="text-align: right;">173</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-21 16:11:12</td>
-<td style="text-align: right;">174</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-21 20:11:12</td>
-<td style="text-align: right;">175</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-22 00:11:12</td>
-<td style="text-align: right;">176</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-22 04:11:12</td>
-<td style="text-align: right;">177</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-22 08:11:12</td>
-<td style="text-align: right;">178</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-22 12:11:12</td>
-<td style="text-align: right;">179</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-22 16:11:12</td>
-<td style="text-align: right;">180</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-22 20:11:12</td>
-<td style="text-align: right;">181</td>
-<td style="text-align: right;">2343</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-23 00:11:12</td>
-<td style="text-align: right;">182</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-23 04:11:12</td>
-<td style="text-align: right;">183</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-23 08:11:12</td>
-<td style="text-align: right;">184</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-23 12:11:12</td>
-<td style="text-align: right;">185</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-23 16:11:12</td>
-<td style="text-align: right;">186</td>
-<td style="text-align: right;">412</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-23 20:11:12</td>
-<td style="text-align: right;">187</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-24 00:11:12</td>
-<td style="text-align: right;">188</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-24 04:11:12</td>
-<td style="text-align: right;">189</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-24 08:11:12</td>
-<td style="text-align: right;">190</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-24 12:11:12</td>
-<td style="text-align: right;">191</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-24 16:11:12</td>
-<td style="text-align: right;">192</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-24 20:11:12</td>
-<td style="text-align: right;">193</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-25 00:11:12</td>
-<td style="text-align: right;">194</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-25 04:11:12</td>
-<td style="text-align: right;">195</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-25 08:11:12</td>
-<td style="text-align: right;">196</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-25 12:11:12</td>
-<td style="text-align: right;">197</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-25 16:11:12</td>
-<td style="text-align: right;">198</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-25 20:11:12</td>
-<td style="text-align: right;">199</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-26 00:11:12</td>
-<td style="text-align: right;">200</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-26 04:11:12</td>
-<td style="text-align: right;">201</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-26 08:11:12</td>
-<td style="text-align: right;">202</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-26 12:11:12</td>
-<td style="text-align: right;">203</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-26 16:11:12</td>
-<td style="text-align: right;">204</td>
-<td style="text-align: right;">960</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-26 20:11:12</td>
-<td style="text-align: right;">205</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-27 00:11:12</td>
-<td style="text-align: right;">206</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-27 04:11:12</td>
-<td style="text-align: right;">207</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-27 08:11:12</td>
-<td style="text-align: right;">208</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-27 12:11:12</td>
-<td style="text-align: right;">209</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-27 16:11:12</td>
-<td style="text-align: right;">210</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-27 20:11:12</td>
-<td style="text-align: right;">211</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-28 00:11:12</td>
-<td style="text-align: right;">212</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-28 04:11:12</td>
-<td style="text-align: right;">213</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-28 08:11:12</td>
-<td style="text-align: right;">214</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-28 12:11:12</td>
-<td style="text-align: right;">215</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-28 16:11:12</td>
-<td style="text-align: right;">216</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-28 20:11:12</td>
-<td style="text-align: right;">217</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-29 00:11:12</td>
-<td style="text-align: right;">218</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-29 04:11:12</td>
-<td style="text-align: right;">219</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-29 08:11:12</td>
-<td style="text-align: right;">220</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-29 12:11:12</td>
-<td style="text-align: right;">221</td>
-<td style="text-align: right;">261</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-29 16:11:12</td>
-<td style="text-align: right;">222</td>
-<td style="text-align: right;">2752</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-29 20:11:12</td>
-<td style="text-align: right;">223</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-30 00:11:12</td>
-<td style="text-align: right;">224</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-30 04:11:12</td>
-<td style="text-align: right;">225</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-30 08:11:12</td>
-<td style="text-align: right;">226</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-30 12:11:12</td>
-<td style="text-align: right;">227</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-04-30 16:11:12</td>
-<td style="text-align: right;">228</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-04-30 20:11:12</td>
-<td style="text-align: right;">229</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-01 00:11:12</td>
-<td style="text-align: right;">230</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-01 04:11:12</td>
-<td style="text-align: right;">231</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-01 08:11:12</td>
-<td style="text-align: right;">232</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-01 12:11:12</td>
-<td style="text-align: right;">233</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-01 16:11:12</td>
-<td style="text-align: right;">234</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-01 20:11:12</td>
-<td style="text-align: right;">235</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-02 00:11:12</td>
-<td style="text-align: right;">236</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-02 04:11:12</td>
-<td style="text-align: right;">237</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-02 08:11:12</td>
-<td style="text-align: right;">238</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-02 12:11:12</td>
-<td style="text-align: right;">239</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-02 16:11:12</td>
-<td style="text-align: right;">240</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-02 20:11:12</td>
-<td style="text-align: right;">241</td>
-<td style="text-align: right;">164</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-03 00:11:12</td>
-<td style="text-align: right;">242</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-03 04:11:12</td>
-<td style="text-align: right;">243</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-03 08:11:12</td>
-<td style="text-align: right;">244</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-03 12:11:12</td>
-<td style="text-align: right;">245</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-03 16:11:12</td>
-<td style="text-align: right;">246</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-03 20:11:12</td>
-<td style="text-align: right;">247</td>
-<td style="text-align: right;">970</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-04 00:11:12</td>
-<td style="text-align: right;">248</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-04 04:11:12</td>
-<td style="text-align: right;">249</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-04 08:11:12</td>
-<td style="text-align: right;">250</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-04 12:11:12</td>
-<td style="text-align: right;">251</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-04 20:11:12</td>
-<td style="text-align: right;">252</td>
-<td style="text-align: right;">4726</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-05 00:11:12</td>
-<td style="text-align: right;">253</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-05 04:11:12</td>
-<td style="text-align: right;">254</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-05 08:11:12</td>
-<td style="text-align: right;">255</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-05 12:11:12</td>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-05 16:11:12</td>
-<td style="text-align: right;">257</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-05 20:11:12</td>
-<td style="text-align: right;">258</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-06 00:11:12</td>
-<td style="text-align: right;">259</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-06 04:11:12</td>
-<td style="text-align: right;">260</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-06 08:11:12</td>
-<td style="text-align: right;">261</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-06 12:11:12</td>
-<td style="text-align: right;">262</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-06 16:11:12</td>
-<td style="text-align: right;">263</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-06 20:11:12</td>
-<td style="text-align: right;">264</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-07 00:11:12</td>
-<td style="text-align: right;">265</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-07 04:11:12</td>
-<td style="text-align: right;">266</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-07 08:11:12</td>
-<td style="text-align: right;">267</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-07 12:11:12</td>
-<td style="text-align: right;">268</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-07 16:11:12</td>
-<td style="text-align: right;">269</td>
-<td style="text-align: right;">385</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-07 20:11:12</td>
-<td style="text-align: right;">270</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-08 00:11:12</td>
-<td style="text-align: right;">271</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-08 04:11:12</td>
-<td style="text-align: right;">272</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-08 08:11:12</td>
-<td style="text-align: right;">273</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-08 12:11:12</td>
-<td style="text-align: right;">274</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-08 16:11:12</td>
-<td style="text-align: right;">275</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-08 20:11:12</td>
-<td style="text-align: right;">276</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-09 00:11:12</td>
-<td style="text-align: right;">277</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-09 04:11:12</td>
-<td style="text-align: right;">278</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-09 08:11:12</td>
-<td style="text-align: right;">279</td>
-<td style="text-align: right;">500</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-09 12:11:12</td>
-<td style="text-align: right;">280</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-09 16:11:12</td>
-<td style="text-align: right;">281</td>
-<td style="text-align: right;">971</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-09 20:11:12</td>
-<td style="text-align: right;">282</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-10 00:11:12</td>
-<td style="text-align: right;">283</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-10 04:11:12</td>
-<td style="text-align: right;">284</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-10 08:11:12</td>
-<td style="text-align: right;">285</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-10 12:11:12</td>
-<td style="text-align: right;">286</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-10 16:11:12</td>
-<td style="text-align: right;">287</td>
-<td style="text-align: right;">968</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-10 20:11:12</td>
-<td style="text-align: right;">288</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-11 00:11:12</td>
-<td style="text-align: right;">289</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-11 04:11:12</td>
-<td style="text-align: right;">290</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-11 08:11:12</td>
-<td style="text-align: right;">291</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-11 12:11:12</td>
-<td style="text-align: right;">292</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-11 16:11:12</td>
-<td style="text-align: right;">293</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-11 20:11:12</td>
-<td style="text-align: right;">294</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-12 00:11:12</td>
-<td style="text-align: right;">295</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-12 04:11:12</td>
-<td style="text-align: right;">296</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-12 08:11:12</td>
-<td style="text-align: right;">297</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-12 12:11:12</td>
-<td style="text-align: right;">298</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-12 16:11:12</td>
-<td style="text-align: right;">299</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-12 20:11:12</td>
-<td style="text-align: right;">300</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-13 00:11:12</td>
-<td style="text-align: right;">301</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-13 04:11:12</td>
-<td style="text-align: right;">302</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-13 12:11:12</td>
-<td style="text-align: right;">303</td>
-<td style="text-align: right;">504</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-13 16:11:12</td>
-<td style="text-align: right;">304</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-13 20:11:12</td>
-<td style="text-align: right;">305</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-14 00:11:12</td>
-<td style="text-align: right;">306</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-14 04:11:12</td>
-<td style="text-align: right;">307</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-14 10:44:52</td>
-<td style="text-align: right;">308</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-14 12:11:12</td>
-<td style="text-align: right;">309</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-14 16:11:12</td>
-<td style="text-align: right;">310</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-14 20:11:12</td>
-<td style="text-align: right;">311</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-15 00:11:12</td>
-<td style="text-align: right;">312</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-15 04:11:12</td>
-<td style="text-align: right;">313</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-15 08:11:12</td>
-<td style="text-align: right;">314</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-15 12:11:12</td>
-<td style="text-align: right;">315</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-15 16:11:12</td>
-<td style="text-align: right;">316</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-15 20:11:12</td>
-<td style="text-align: right;">317</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-16 00:11:12</td>
-<td style="text-align: right;">318</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-16 04:11:12</td>
-<td style="text-align: right;">319</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-16 08:11:12</td>
-<td style="text-align: right;">320</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-16 12:11:12</td>
-<td style="text-align: right;">321</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-16 16:11:12</td>
-<td style="text-align: right;">322</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-16 20:11:12</td>
-<td style="text-align: right;">323</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-17 00:11:12</td>
-<td style="text-align: right;">324</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-17 04:11:12</td>
-<td style="text-align: right;">325</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-17 08:11:12</td>
-<td style="text-align: right;">326</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-17 12:11:12</td>
-<td style="text-align: right;">327</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-17 16:11:12</td>
-<td style="text-align: right;">328</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-17 20:11:12</td>
-<td style="text-align: right;">329</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-18 00:11:12</td>
-<td style="text-align: right;">330</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-18 04:11:12</td>
-<td style="text-align: right;">331</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-18 08:11:12</td>
-<td style="text-align: right;">332</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-18 12:11:12</td>
-<td style="text-align: right;">333</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-18 16:11:12</td>
-<td style="text-align: right;">334</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-18 20:11:12</td>
-<td style="text-align: right;">335</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-19 00:11:12</td>
-<td style="text-align: right;">336</td>
-<td style="text-align: right;">368</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-19 04:11:12</td>
-<td style="text-align: right;">337</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-19 08:11:12</td>
-<td style="text-align: right;">338</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-19 12:11:12</td>
-<td style="text-align: right;">339</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-19 16:11:12</td>
-<td style="text-align: right;">340</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-19 20:11:12</td>
-<td style="text-align: right;">341</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-20 00:11:12</td>
-<td style="text-align: right;">342</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-20 04:11:12</td>
-<td style="text-align: right;">343</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-20 08:11:12</td>
-<td style="text-align: right;">344</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-20 12:11:12</td>
-<td style="text-align: right;">345</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-20 16:11:12</td>
-<td style="text-align: right;">346</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-20 20:11:12</td>
-<td style="text-align: right;">347</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-21 00:11:12</td>
-<td style="text-align: right;">348</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-21 04:11:12</td>
-<td style="text-align: right;">349</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-21 08:11:12</td>
-<td style="text-align: right;">350</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-21 12:11:12</td>
-<td style="text-align: right;">351</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-21 16:11:12</td>
-<td style="text-align: right;">352</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-21 20:11:12</td>
-<td style="text-align: right;">353</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-22 00:11:12</td>
-<td style="text-align: right;">354</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-22 04:11:12</td>
-<td style="text-align: right;">355</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-22 08:11:12</td>
-<td style="text-align: right;">356</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-22 12:11:12</td>
-<td style="text-align: right;">357</td>
-<td style="text-align: right;">28</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-22 16:11:12</td>
-<td style="text-align: right;">358</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-22 20:11:12</td>
-<td style="text-align: right;">359</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-23 00:11:12</td>
-<td style="text-align: right;">360</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-23 04:11:12</td>
-<td style="text-align: right;">361</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-23 08:11:12</td>
-<td style="text-align: right;">362</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-23 12:11:12</td>
-<td style="text-align: right;">363</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-23 16:11:12</td>
-<td style="text-align: right;">364</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-23 20:11:12</td>
-<td style="text-align: right;">365</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-24 00:11:12</td>
-<td style="text-align: right;">366</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-24 04:11:12</td>
-<td style="text-align: right;">367</td>
-<td style="text-align: right;">347</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-24 08:11:12</td>
-<td style="text-align: right;">368</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-24 12:11:12</td>
-<td style="text-align: right;">369</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-24 16:11:12</td>
-<td style="text-align: right;">370</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-24 20:11:12</td>
-<td style="text-align: right;">371</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-25 00:11:12</td>
-<td style="text-align: right;">372</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-25 04:11:12</td>
-<td style="text-align: right;">373</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-25 12:11:12</td>
-<td style="text-align: right;">374</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-25 16:11:12</td>
-<td style="text-align: right;">375</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-25 20:11:12</td>
-<td style="text-align: right;">376</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-26 00:11:12</td>
-<td style="text-align: right;">377</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-26 04:11:12</td>
-<td style="text-align: right;">378</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-26 08:11:12</td>
-<td style="text-align: right;">379</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-26 12:11:12</td>
-<td style="text-align: right;">380</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-26 16:11:12</td>
-<td style="text-align: right;">381</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-26 20:11:12</td>
-<td style="text-align: right;">382</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-27 00:11:12</td>
-<td style="text-align: right;">383</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-27 04:11:12</td>
-<td style="text-align: right;">384</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-27 08:11:12</td>
-<td style="text-align: right;">385</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-27 12:11:12</td>
-<td style="text-align: right;">386</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-27 16:11:12</td>
-<td style="text-align: right;">387</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-27 20:11:12</td>
-<td style="text-align: right;">388</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-28 00:11:12</td>
-<td style="text-align: right;">389</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-28 04:11:12</td>
-<td style="text-align: right;">390</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-28 08:11:12</td>
-<td style="text-align: right;">391</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-28 12:11:12</td>
-<td style="text-align: right;">392</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-28 16:11:12</td>
-<td style="text-align: right;">393</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-28 20:11:12</td>
-<td style="text-align: right;">394</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-29 00:11:12</td>
-<td style="text-align: right;">395</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-29 04:11:12</td>
-<td style="text-align: right;">396</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-29 08:11:12</td>
-<td style="text-align: right;">397</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-29 12:11:12</td>
-<td style="text-align: right;">398</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-29 16:11:12</td>
-<td style="text-align: right;">399</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-29 20:11:12</td>
-<td style="text-align: right;">400</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-30 00:11:12</td>
-<td style="text-align: right;">401</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-30 04:11:12</td>
-<td style="text-align: right;">402</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-30 08:11:12</td>
-<td style="text-align: right;">403</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-30 12:11:12</td>
-<td style="text-align: right;">404</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-30 16:11:12</td>
-<td style="text-align: right;">405</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-30 20:11:12</td>
-<td style="text-align: right;">406</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-31 00:11:12</td>
-<td style="text-align: right;">407</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-31 04:11:12</td>
-<td style="text-align: right;">408</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-31 08:11:12</td>
-<td style="text-align: right;">409</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-31 12:11:12</td>
-<td style="text-align: right;">410</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-05-31 16:11:12</td>
-<td style="text-align: right;">411</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-05-31 20:11:12</td>
-<td style="text-align: right;">412</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-01 00:11:12</td>
-<td style="text-align: right;">413</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-01 04:11:12</td>
-<td style="text-align: right;">414</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-01 08:11:12</td>
-<td style="text-align: right;">415</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-01 12:11:12</td>
-<td style="text-align: right;">416</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-01 16:11:12</td>
-<td style="text-align: right;">417</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-01 20:11:12</td>
-<td style="text-align: right;">418</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-02 00:11:12</td>
-<td style="text-align: right;">419</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-02 04:11:12</td>
-<td style="text-align: right;">420</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-02 08:11:12</td>
-<td style="text-align: right;">421</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-02 12:11:12</td>
-<td style="text-align: right;">422</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-02 16:11:12</td>
-<td style="text-align: right;">423</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-02 20:11:12</td>
-<td style="text-align: right;">424</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-03 00:11:12</td>
-<td style="text-align: right;">425</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-03 08:11:12</td>
-<td style="text-align: right;">426</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-03 12:11:12</td>
-<td style="text-align: right;">427</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-03 16:11:12</td>
-<td style="text-align: right;">428</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-03 20:11:12</td>
-<td style="text-align: right;">429</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-04 00:11:12</td>
-<td style="text-align: right;">430</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-04 04:11:12</td>
-<td style="text-align: right;">431</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-04 08:11:12</td>
-<td style="text-align: right;">432</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-04 12:11:12</td>
-<td style="text-align: right;">433</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-04 16:11:12</td>
-<td style="text-align: right;">434</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-04 20:11:12</td>
-<td style="text-align: right;">435</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-05 00:11:12</td>
-<td style="text-align: right;">436</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-05 04:11:12</td>
-<td style="text-align: right;">437</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-05 08:11:12</td>
-<td style="text-align: right;">438</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-05 12:11:12</td>
-<td style="text-align: right;">439</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-05 16:11:12</td>
-<td style="text-align: right;">440</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-05 20:11:12</td>
-<td style="text-align: right;">441</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-06 00:11:12</td>
-<td style="text-align: right;">442</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-06 04:11:12</td>
-<td style="text-align: right;">443</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-06 08:11:12</td>
-<td style="text-align: right;">444</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-06 12:11:12</td>
-<td style="text-align: right;">445</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-06 16:11:12</td>
-<td style="text-align: right;">446</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-06 20:11:12</td>
-<td style="text-align: right;">447</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-07 00:11:12</td>
-<td style="text-align: right;">448</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-07 04:11:12</td>
-<td style="text-align: right;">449</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-07 08:11:12</td>
-<td style="text-align: right;">450</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-07 12:11:12</td>
-<td style="text-align: right;">451</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-07 16:11:12</td>
-<td style="text-align: right;">452</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-07 20:11:12</td>
-<td style="text-align: right;">453</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-08 00:11:12</td>
-<td style="text-align: right;">454</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-08 04:11:12</td>
-<td style="text-align: right;">455</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-08 08:11:12</td>
-<td style="text-align: right;">456</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-08 12:11:12</td>
-<td style="text-align: right;">457</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-08 16:11:12</td>
-<td style="text-align: right;">458</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-08 20:11:12</td>
-<td style="text-align: right;">459</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-09 00:11:12</td>
-<td style="text-align: right;">460</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-09 04:11:12</td>
-<td style="text-align: right;">461</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-09 08:11:12</td>
-<td style="text-align: right;">462</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-09 12:11:12</td>
-<td style="text-align: right;">463</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-09 16:11:12</td>
-<td style="text-align: right;">464</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-09 20:11:12</td>
-<td style="text-align: right;">465</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-10 00:11:12</td>
-<td style="text-align: right;">466</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">2024-06-10 04:11:12</td>
-<td style="text-align: right;">467</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2024-06-10 08:11:12</td>
-<td style="text-align: right;">468</td>
-<td style="text-align: right;">501</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;">2024-06-10 12:11:12</td>
-<td style="text-align: right;">469</td>
+<td style="text-align: right;">46</td>
 <td style="text-align: right;">501</td>
 </tr>
 </tbody>
@@ -3019,12 +876,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="lines-per-post" class="level3">
 <h3 class="anchored" data-anchor-id="lines-per-post">Lines per post</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="sc">|&gt;</span> </span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, row_count)) <span class="sc">+</span></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Lines per post"</span>,</span>
-<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Lines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>post_times <span class="sc">|&gt;</span> </span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(timestamp, row_count)) <span class="sc">+</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Lines per post"</span>,</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Lines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 1 row containing missing values or values outside the scale range
 (`geom_point()`).</code></pre>
