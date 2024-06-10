@@ -3,7 +3,7 @@ title: "Parse LECS Web"
 format: html
 editor: source
 params:
-  start_date: 2024-05-23
+  start_date: 2024-03-23
 ---
 
 Get and parse data sent to LECS website. Data from `r params$start_date` to present.
@@ -42,27 +42,38 @@ Separate data into post times, met, status, and adv data
 ```{r}
 post_times <- lecs_post_times(df) 
 met <- lecs_met_data(df)
+met_qc <- lecs_clean_met(met)
+
 status <- lecs_status_data(df)
-adv_data <- lecs_adv_data(df, rinko_cals) |> 
+status_qc <- lecs_clean_status(status)
+
+adv_data <- lecs_adv_data(df, rinko_cals) 
+adv_data_qc <- lecs_clean_adv_data(adv_data) |> 
+  make_lecs_ts(status_qc) |> 
+  mutate(missing = lecs_missing(count, line)) |> 
+  filter(!is.na(timestamp))
+adv_data <- adv_data |> 
   make_lecs_ts(status) |> 
   mutate(missing = lecs_missing(count, line))
 ```
 
-Filter bad data
+Filter bad data (now done above)
 
-```{r}
+```{r, eval=FALSE}
 status_qc <- status |> 
   filter(soundspeed > 1450, 
          adv_day < 32, adv_month > 0, adv_month < 13, 
          adv_min < 61, adv_hour < 24, adv_year < 100,
          #timestamp > "2023-01-01",
-         timestamp < "2024-10-01")
+         timestamp < "2024-10-01",
+         !is.na(timestamp))
 
 adv_data_qc <- adv_data |> 
   filter(count >= 0, count < 256, 
          #ana_in2 == 1, 
          #timestamp > "2023-01-01",
-         timestamp < "2024-10-01")
+         timestamp < "2024-10-01",
+         !is.na(timestamp))
 ```
 
 Calculate per-send means
@@ -258,6 +269,63 @@ adv_data_mean |>
   labs(title = "Alongshore velocity",
        y = "cm/s")
 ```
+
+## Flux and response
+
+Response time plot
+
+temp
+
+```{r}
+adv_data_qc |> 
+  filter(!(send %in% c(356))) |> 
+  arrange(timestamp) |> 
+  group_by(send) |> 
+  filter(line > 30) |>
+  mutate(resp = calc_response(temp, timestamp, 16)) |> 
+  select(send, resp) |> 
+  left_join(post_times) |> 
+  ggplot(aes(timestamp, resp)) + geom_line() +
+  scale_y_log10() +
+  ggtitle("Temperature response",
+          subtitle = "mean spectral power between 0.1 and 1 Hz")
+```
+
+pH
+
+```{r}
+adv_data_qc |> 
+  filter(!(send %in% c(356))) |> 
+  arrange(timestamp) |> 
+  group_by(send) |> 
+  filter(line > 30) |>
+  mutate(resp = calc_response(pH, timestamp, 16)) |> 
+  select(send, resp) |> 
+  left_join(post_times) |> 
+  ggplot(aes(timestamp, resp)) + geom_line() + 
+  scale_y_log10() +
+  ggtitle("pH response",
+          subtitle = "mean spectral power between 0.1 and 1 Hz")
+```
+
+Oxygen
+
+```{r}
+adv_data_qc |> 
+  filter(!(send %in% c(356))) |> 
+  arrange(timestamp) |> 
+  group_by(send) |> 
+  filter(line > 30) |>
+  mutate(resp = calc_response(DO, timestamp, 16)) |> 
+  select(send, resp) |> 
+  left_join(post_times) |> 
+  ggplot(aes(timestamp, resp)) + geom_line() +
+  scale_y_log10() +
+  ggtitle("Oxygen response",
+          subtitle = "mean spectral power between 0.1 and 1 Hz")
+```
+
+
 
 ## IMU data
 
