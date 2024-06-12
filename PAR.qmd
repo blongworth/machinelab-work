@@ -1,0 +1,41 @@
+---
+title: "PAR"
+format: html
+---
+
+LECS PAR and light sensor data.
+
+LECS has a surface PAR sensor (LICOR) on the surface buoy
+and a submerged sensor on the lander (PAR Odyssey).
+Underwater sensor is a logger and should produce
+calibrated (?) PAR. 
+The LICOR sensor is in units of counts which represent voltage.
+It needs calibration, either from the factory data sheet or
+by cross-calibration with another sensor.
+
+Matt has a paper on calibrating these and HOBO light sensors:
+DOI 10.4319/lom.2012.10.416
+
+
+```{r}
+library(tidyverse)
+library(mlabtools)
+library(dygraphs)
+theme_set(theme_bw())
+```
+
+# Underwater PAR
+
+```{r}
+files <- c("data/PAR/LECS_10-5-23.CSV", "data/PAR/LECS_PAR_2024-02-28.CSV")
+df <- lecs_read_par_odyssey(files)
+
+ggplot(df, aes(timestamp, cal_par)) + geom_line()
+```
+
+
+```{r}
+dygraph(select(df, timestamp, cal_par))
+```
+
+
