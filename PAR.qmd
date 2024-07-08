@@ -21,7 +21,25 @@ DOI 10.4319/lom.2012.10.416
 library(tidyverse)
 library(mlabtools)
 library(dygraphs)
+library(arrow)
 theme_set(theme_bw())
+```
+
+# surface PAR
+
+surface PAR is currently uncalibrated in ADC counts.
+Needs calibration in environmental chamber or via codeployed sensor.
+
+Data also needs QC. Some periods need outlier elimination, 
+others look unrecoverable.
+
+```{r}
+sfc_par <- open_dataset("data/processed/met_all.parquet")
+names(sfc_par)
+sfc_par <- sfc_par |> 
+  select(timestamp, PAR) |> 
+  collect()
+dygraph(sfc_par)
 ```
 
 # Underwater PAR
