@@ -6,6 +6,10 @@ editor: source
 
 Combine LECS Parquet files
 
+NO LONGER USED
+
+parquet files are now written partitioned by download initially.
+
 
 ```{r}
 #| warning: false

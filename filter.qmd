@@ -15,13 +15,13 @@ library(arrow)
 library(tidyverse)
 library(dygraphs)
 
-data_dir <- "data/processed/"
+data_dir <- "data/processed/surface"
 ```
 
 Open dataset
 
 ```{r}
-ds <- open_dataset(paste0(data_dir, "adv_all.parquet/"))
+ds <- open_dataset(file.path(data_dir, "lecs_adv_data.parquet"))
 names(ds)
 nrow(ds)
 ds
@@ -100,5 +100,7 @@ nrow(ds_filt)
 ## Save data
 
 ```{r}
-write_dataset(ds_filt, paste0(data_dir, "adv_all_filt.parquet"))
+ds_filt %>% 
+  group_by(year = year(timestamp), month = month(timestamp)) %>% 
+  write_dataset(file.path(data_dir, "lecs_adv_filt.parquet"))
 ```
