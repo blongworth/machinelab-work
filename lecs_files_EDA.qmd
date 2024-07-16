@@ -225,14 +225,14 @@ Data issues cause wild flyers
 ```{r}
 #| eval: false
 adv_data_qc |> 
-  ggplot(aes(timestamp, pH)) +
+  ggplot(aes(time, pH)) +
   geom_point()
 ```
 
 
 ```{r}
 adv_data_mean |> 
-  plot_mean(pH_mean, pH_sd) +
+  plot_mean(ph_counts_mean, ph_counts_sd) +
   labs(title = "pH")
 ```
 
@@ -249,7 +249,7 @@ adv_data_mean |>
 
 ```{r}
 adv_data_mean |> 
-  plot_mean(oxy_mean, oxy_sd) +
+  plot_mean(DO_percent_mean, DO_percent_sd) +
   labs(title = "Oxygen")
 ```
 

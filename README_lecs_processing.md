@@ -89,11 +89,12 @@ Spectral methods are from work by Long et al. `https://doi.org/10.1029/2020JC016
 and ADV parquet datasets for each directory of LECS raw files.
 This will also filter impossible data and timestamp ADV data
 
-2. Run `combine.qmd` to combine all files into single adv, met, 
-and status files containing all data.
+2. Parquet files are written such that Arrow views them as a single dataset,
+partitioned by download. 
+Combining them explicitly with `combine.qmd` is no longer necessary.
 
 3. Run `filter.qmd` to filter bad data by value. 
-Inspection of new data is needed to see what kind of wierd data 
+Inspection of new data is needed to see what kind of weird data 
 is in there.
 
 4. Run `calibrate.qmd` to calibrate pH using seapHOx data.

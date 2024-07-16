@@ -12,6 +12,11 @@ Noted duplicate rows in processed adv data at 2024-01-01 05:00:07
 library(tidyverse)
 library(mlabtools)
 library(arrow)
+library(tictoc)
+library(Rcpp)
+library(dygraphs)
+
+options(digits.secs=3)
 ```
 
 read processed data
@@ -53,33 +58,60 @@ Need to think a little about keeping the ADV time corrected without introducing 
 look at when ADV timestamp diff changes over entire record
 
 ```{r}
-ds <- open_dataset("data/processed/status_all.parquet/")
-nrow(ds)
+status_all <- open_dataset("data/processed/status_all.parquet/") |> 
+  collect()
 ```
 
 find an example skippy period with otherwise good data
 
 ```{r}
-stm <- ds |> 
-  select(-adv_timestamp) |> 
+stm <- status_all |> 
+  #select(-adv_timestamp) |> 
   mutate(timestamp = floor_date(timestamp, "minutes")) |> 
   group_by(timestamp) |> 
   summarize(across(everything(), mean)) |> 
   collect()
+
+stm |> 
+  select(orig_timestamp, timestamp, adv_timestamp, adv_timestamp_cor) |> 
+  View()
 ```
 
 ```{r}
-dygraph(select(stm, timestamp, bat))
+dygraph(select(status_all, timestamp, bat)) |> 
+  dyRangeSelector()
 ```
 
 ```{r}
-ts <- ds |> 
-  collect() |> 
+ts <- status_all |> 
   select(timestamp, adv_timestamp) |> 
   filter(timestamp > "2023-10-29", 
          timestamp < "2023-10-30") |> 
-  arrange(timestamp) |> 
+  arrange(timestamp)
+```
+
+```{r}
+status_all |> 
+  group_by(timestamp) |> 
+  filter(n() > 1)
+```
+
+```{r}
+adv_all <- open_dataset("data/processed/adv_all_filt_cal.parquet/") 
+
+nrow(adv_all)
+
+adv_d <- adv_all |> 
+  count(timestamp) |> 
+  filter(n > 1) |> 
   collect()
+nrow(adv_d)
+```
+
+```{r}
+status_all |> 
+  filter(heading != 0) |> 
+  View()
 ```
 
 toy example for loop correction for duplicates
@@ -116,18 +148,23 @@ running the loop in C++ is much faster!
 
 ```{r}
 x <- ts[["timestamp"]]
+y <- ts[["adv_timestamp"]]
+
 Rcpp::cppFunction('
-IntegerVector fix(IntegerVector vec) {
-  for (int i = 0; i < vec.size(); i++) {
-    if (vec[i] == vec[i - 1]) {
-      vec[i] = vec[i] + 1;
+IntegerVector fix_status_timestamps(IntegerVector timestamp, IntegerVector adv_timestamp) {
+  for (int i = 0; i < timestamp.size(); i++) {
+    if (timestamp[i] == timestamp[i - 1]) {
+      timestamp[i] = timestamp[i] + 1;
+    }
+    if (adv_timestamp[i] == adv_timestamp[i - i] + 1 && timestamp[i] == timestamp[i - 1] + 2) {
+      timestamp[i] = timestamp[i] - 1;
     }
   }
-  return vec;
+  return timestamp;
 }
 ')
 tic()
-xc <- fix(x)
+xc <- fix_status_timestamps(x, y)
 toc()
 ```
 
@@ -137,8 +174,60 @@ check results
 xcdf <- tibble(xc, ts)
 
 xcdf <- xcdf |> 
-  mutate(diff = c(NA, diff(xc)))
+  mutate(diff = c(NA, diff(xc)),
+         org_diff = c(NA, diff(timestamp)),
+         adv_diff = c(NA, diff(adv_timestamp)),
+         adv_teensy_diff = difftime(adv_timestamp, timestamp, units = "secs"))
 ```
+
+No duplicates!
+
+```{r}
+filter(xcdf, diff == 0)
+```
+
+still some gaps of 2 or more
+
+```{r}
+xcdf |> filter(diff != 1) |> nrow()
+```
+
+better than the original by a factor of 200
+
+```{r}
+xcdf |> filter(org_diff != 1) |> nrow()
+```
+
+```{r}
+xcdf |> filter(adv_diff != 1) |> nrow()
+```
+
+```{r}
+xcdf |> filter(adv_diff == 2) |> nrow()
+```
+what's happening there?
+
+```{r}
+xcdf <- xcdf |> 
+  mutate(miss = diff > 1 | lag(diff) > 1 | lead(diff) > 1 | lead(diff, 2) > 1)
+
+xcdf |> filter(miss)
+```
+
+another try using offset from ADV time
+
+```{r}
+correct_status_timestamp_adv <- function(timestamp, adv_timestamp) {
+  offset <- difftime(timestamp[1], adv_timestamp[1], units = "secs")
+  adv_timestamp + offset
+}
+
+tsc <- ts |> 
+  mutate(ts_cor = correct_status_timestamp_adv(timestamp, adv_timestamp))
+```
+
+This works great for this test set and all data from the 2024-01-23 download,
+but causes garbage data with earlier datasets.
 
 these methods will have issues with triplicate or more timestamps.
 looks like there are a few of those in the data
