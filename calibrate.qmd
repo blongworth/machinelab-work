@@ -4,7 +4,10 @@ format: html
 editor: source
 ---
 
-TODO: plot seaphox with lecs before and after calibration (confirm timestamps)
+TODO: abstract calibration
+TODO: add data from mar, apr, may, jun deployments
+TODO: handle May sensor change
+TODO: Calibrate O2 from seaphox
 
 Apply ph calibration to entire dataset
 
@@ -20,13 +23,13 @@ library(dygraphs)
 #library(clock)
 #library(data.table)
 
-data_dir <- "data/processed/"
+data_dir <- "data/processed/surface"
 ```
 
 Open dataset
 
 ```{r}
-ds <- open_dataset(paste0(data_dir, "adv_all_filt.parquet"))
+ds <- open_dataset(file.path(data_dir, "lecs_adv_filt.parquet"))
 ```
 
 
@@ -38,7 +41,9 @@ add col for calibration periods
 
 ```{r}
 ds <- ds |> 
-  mutate(ph_group = if_else(timestamp > "2023-12-22 06:45:00", 1L, 0L))
+  mutate(ph_group = case_when(timestamp > "2023-12-22 06:45:00" ~ 1L,
+                              timestamp > "2024-06-05 11:45:00" ~ 2L,
+                              TRUE ~ 0L))
 ```
 
 ## Seaphox calibration data
