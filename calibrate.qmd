@@ -94,8 +94,6 @@ ggplot(sp_jul_26, aes(timestamp, pH)) +
 
 ### Oct calibration
 
-Removing this for now, because the seaphox data is funky
-
 ```{r}
 sp_oct <- read_excel("data/SeapHOx Data/Seaphox_LECS_10052023.xlsx") |> 
   clean_names() |> 
@@ -340,8 +338,9 @@ df_cal <- df %>%
 ds_cal <- df_cal |> 
   select(-c(ph_group, ph_i, ph_c, ph_t)) |> 
   arrow_table() 
-ds_cal |> 
-  write_dataset(paste0(data_dir, "adv_all_filt_cal.parquet"))
+ds_cal %>% 
+  group_by(year = year(timestamp), month = month(timestamp)) %>% 
+  write_dataset(file.path(data_dir, "lecs_adv_cal.parquet"))
 ```
 
 Calculate per-hour mean
