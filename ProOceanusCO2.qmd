@@ -17,10 +17,7 @@ Read data
 line 45 is header, data starts at 47
 
 ```{r}
-
 file <- "data/ProOceanisCO2/prooceanis_co2_lecs_2024-05-14.txt"
-
-
 df <- read_prooceanus(file)
 ```
 
@@ -32,4 +29,21 @@ ggplot(aes(ts, co2)) +
   geom_line()
 ```
 
+
+
+```{r}
+file <- "data/ProOceanisCO2/prooceanis_co2_lecs_2024-06-21.txt"
+df <- read_prooceanus(file)
+```
+
+```{r}
+theme_set(theme_classic())
+ggplot(df, aes(ts, co2)) +
+  geom_line()
+```
+
+```{r}
+ggplot(df, aes(ts, irga_temp)) +
+  geom_line()
+```
 

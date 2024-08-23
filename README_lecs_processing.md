@@ -22,7 +22,7 @@ Raw lecs data is read and processed by files
 before joining files into a larger dataset.
 Lines are given a row index then divided into their types
 before parsing into tabular data.
-Rough calibrations are applied to various data, 
+Rough corrections and some calibrations are applied to various data, 
 including temp, O2, pH, pressure, 
 ADV parameters like voltage and inertial measurements, etc.
 ADV data is timestamped using the timestamp of the closest status line,
