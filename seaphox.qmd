@@ -8,10 +8,25 @@ editor: source
 library(tidyverse)
 library(mlabtools)
 library(dygraphs)
+library(patchwork)
 ```
 
 ```{r}
-df <- read_seaphox("data/SeapHOx Data/Shallow SeapHox2-0000453-Data-20240401T121125.csv")
+df <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_122223.csv")
+```
+
+```{r}
+dygraph(df)
+```
+```{r}
+df <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240401.csv")
+```
+
+```{r}
+dygraph(df)
+```
+```{r}
+df <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240621.csv")
 ```
 
 ```{r}
@@ -19,9 +34,25 @@ dygraph(df)
 ```
 
 ```{r}
-df |> 
+df <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240815.csv")
+```
+
+```{r}
+dygraph(df)
+```
+
+```{r}
+ph <- df |> 
   select(timestamp, pH) |> 
-dygraph()
+  ggplot(aes(timestamp, pH)) + 
+  geom_line()
+
+sal <- df |> 
+  select(timestamp, sal) |> 
+  ggplot(aes(timestamp, sal)) + 
+  geom_line()
+
+ph / sal
 ```
 ```{r}
 df |> 
@@ -41,4 +72,19 @@ df |>
 df |> 
   select(timestamp, oxygen) |> 
   dygraph()
+```
+
+```{r}
+df <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240903.csv")
+```
+
+```{r}
+dygraph(df)
+```
+```{r}
+df <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240917.csv")
+```
+
+```{r}
+dygraph(df)
 ```
