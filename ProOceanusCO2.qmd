@@ -7,9 +7,9 @@ Read and analyse CO2 data from ProOceanus CO2.
 
 ```{r}
 library(tidyverse)
-library(lubridate)
-library(janitor)
 library(mlabtools)
+library(dygraphs)
+#library(xts)
 ```
 
 Read data
@@ -24,10 +24,29 @@ df <- read_prooceanus(file)
 ```{r}
 theme_set(theme_classic())
 df |> 
-  filter(ts < "2024-05-14 06:00:00") |> 
+  #filter(ts < "2024-05-14 06:00:00") |> 
 ggplot(aes(ts, co2)) +
   geom_line()
 ```
+```{r}
+df %>% 
+  select(timestamp = ts, co2) %>% 
+  na.omit() %>% 
+  as.xts() %>% 
+  dygraph()
+```
+
+```{r}
+ts_data <- df %>% 
+  select(timestamp = ts, co2) %>% 
+  na.omit() %>% 
+  as.xts()
+
+library(gsignal)
+dfp <- pwelch(ts_data, fs = 1/3)
+plot(dfp)
+```
+
 
 
 
@@ -43,7 +62,61 @@ ggplot(df, aes(ts, co2)) +
 ```
 
 ```{r}
+df %>% 
+  select(ts, co2) %>% 
+  na.omit() %>% 
+  dygraph()
+```
+
+```{r}
 ggplot(df, aes(ts, irga_temp)) +
   geom_line()
 ```
 
+# Sept 2024
+
+```{r}
+file <- "data/ProOceanisCO2/prooceanus_co2_lecs_2024-09-03.txt"
+df <- read_prooceanus(file)
+```
+
+```{r}
+df %>% 
+  select(timestamp = ts, co2) %>% 
+  na.omit() %>% 
+  #as.xts() %>% 
+  dygraph()
+```
+
+# Sept 17, 2024
+
+```{r}
+file <- "data/ProOceanisCO2/prooceanus_co2_lecs_2024-09-17.txt"
+df <- read_prooceanus(file)
+```
+
+```{r}
+df %>% 
+  select(timestamp = ts, co2) %>% 
+  na.omit() %>% 
+  dygraph() %>% 
+  dyAxis("y", "CO2 (ppm)")
+```
+
+filter out zeros
+
+```{r}
+df_filt <- df %>% 
+  filter(!(hour(ts) %in% c(5, 11, 17, 23) &
+             minute(ts) > 10 &
+             minute(ts) < 20))
+```
+
+```{r}
+df_filt %>% 
+  select(timestamp = ts, co2) %>% 
+  na.omit() %>% 
+  dygraph() %>% 
+  dyOptions(useDataTimezone = TRUE) %>% 
+  dyAxis("y", "CO2 (ppm)")
+```
