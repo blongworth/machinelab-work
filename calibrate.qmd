@@ -5,7 +5,6 @@ editor: source
 ---
 
 TODO: abstract calibration
-TODO: add data from mar, apr, may, jun deployments
 TODO: handle May sensor change
 TODO: Calibrate O2 from seaphox
 
@@ -271,6 +270,204 @@ ggplot(sp_jan_s, aes(timestamp, pH)) +
   geom_line(data = lecs_jan_s, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
+## Apr 2024 calibration
+
+Seaphox fell over and moved in storm. 
+Looks like pH shifted during deployment.
+Seacat died at end of deployment
+
+Note that seapHOx data have UTC timestamps
+
+```{r}
+sp_apr <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240401.csv") |> 
+  mutate(timestamp = timestamp - 5 * 60 * 60)
+
+sp_apr %>% 
+  select(timestamp, sal, temp, pressure, pH) %>% 
+  dygraph()
+```
+
+
+```{r}
+sp_apr <- filter(sp_apr, timestamp > "2024-03-22 14:00:00",
+                 timestamp < "2024-04-01 05:52:00")
+```
+
+check alignment with LECS data
+
+```{r}
+lecs_apr <- ds |> 
+  select(timestamp, pH) |> 
+  filter(timestamp > "2024-03-22 14:00:00",
+                 timestamp < "2024-04-01 05:52:00") |> 
+  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
+  group_by(timestamp) |> 
+  summarize(LECS_pH = mean(pH)) |> 
+  collect()
+
+ggplot(sp_apr, aes(timestamp, pH)) +
+  geom_line() +
+  geom_line(data = lecs_apr, aes(timestamp, LECS_pH), color = "blue") 
+```
+
+## May 2024 calibration
+
+Seacat also may have run out of batteries.
+
+Note that seapHOx data have UTC timestamps
+
+```{r}
+sp_may <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240514.csv") |> 
+  mutate(timestamp = timestamp - 5 * 60 * 60)
+
+sp_may %>% 
+  select(timestamp, sal, temp, pressure, pH) %>% 
+  dygraph()
+```
+
+
+```{r}
+sp_may <- filter(sp_may, timestamp > "2024-04-25 14:00:00",
+                 timestamp < "2024-05-01 10:54:00")
+```
+
+check alignment with LECS data
+
+```{r}
+lecs_may <- ds |> 
+  select(timestamp, pH) |> 
+  filter(timestamp > "2024-04-25 14:00:00",
+                 timestamp < "2024-05-01 11:00:00") |> 
+  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
+  group_by(timestamp) |> 
+  summarize(LECS_pH = mean(pH)) |> 
+  collect()
+
+ggplot(sp_may, aes(timestamp, pH)) +
+  geom_line() +
+  geom_line(data = lecs_may, aes(timestamp, LECS_pH), color = "blue") 
+```
+
+## June 2024 calibration
+
+No salinity or pressure data- dead seacat.
+
+Note that seapHOx data have UTC timestamps
+
+```{r}
+sp_jun <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240621.csv") |> 
+  mutate(timestamp = timestamp - 5 * 60 * 60)
+
+sp_jun %>% 
+  select(timestamp, sal, temp, pressure, pH) %>% 
+  dygraph()
+```
+
+```{r}
+sp_jun %>% 
+  select(timestamp, temp, pH) %>% 
+  dygraph()
+```
+
+```{r}
+sp_jun <- filter(sp_jun, timestamp > "2024-06-03 11:30:00",
+                 timestamp < "2024-06-14 18:15:00")
+```
+
+check alignment with LECS data
+
+```{r}
+lecs_jun <- ds |> 
+  select(timestamp, pH) |> 
+  filter(timestamp > "2024-06-03 11:30:00",
+                 timestamp < "2024-06-14 18:15:00") |> 
+  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
+  group_by(timestamp) |> 
+  summarize(LECS_pH = mean(pH)) |> 
+  collect()
+
+ggplot(sp_jun, aes(timestamp, pH)) +
+  geom_line() +
+  geom_line(data = lecs_jun, aes(timestamp, LECS_pH), color = "blue") 
+```
+
+## Aug 2024 calibration
+
+seaphet and microcat batteries replaced
+sal issue- sensor not working in first part of deployment
+
+Note that seapHOx data have UTC timestamps
+
+```{r}
+sp_aug <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240815.csv") |> 
+  mutate(timestamp = timestamp - 5 * 60 * 60)
+
+sp_aug %>% 
+  select(timestamp, sal, temp, pressure, pH) %>% 
+  dygraph()
+```
+
+```{r}
+sp_aug <- filter(sp_aug, timestamp > "2024-08-10 14:30:00",
+                 timestamp < "2024-08-15 04:24:00")
+```
+
+check alignment with LECS data
+
+```{r}
+lecs_aug <- ds |> 
+  select(timestamp, pH) |> 
+  filter(timestamp > "2024-08-10 14:30:00",
+                 timestamp < "2024-08-15 04:24:00") |> 
+  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
+  group_by(timestamp) |> 
+  summarize(LECS_pH = mean(pH)) |> 
+  collect()
+
+ggplot(sp_aug, aes(timestamp, pH)) +
+  geom_line() +
+  geom_line(data = lecs_aug, aes(timestamp, LECS_pH), color = "blue") 
+```
+
+## Sept 2024 calibration
+
+2024-09-03 deployment had no salinity, 
+then was picked up and dragged to deeper water (boat?).
+Last half of data may be usable, but deeper/further from lander.
+
+This is mid sept deployment
+
+```{r}
+sp_sep <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240917.csv") |> 
+  mutate(timestamp = timestamp - 5 * 60 * 60)
+
+sp_sep %>% 
+  select(timestamp, sal, temp, pressure, pH) %>% 
+  dygraph()
+```
+
+```{r}
+sp_sep <- filter(sp_sep, timestamp > "2024-09-06 17:00:00",
+                 timestamp < "2024-09-17 04:30:00")
+```
+
+check alignment with LECS data
+
+```{r}
+lecs_sep <- ds |> 
+  select(timestamp, pH) |> 
+  filter(timestamp > "2024-09-06 17:00:00",
+                 timestamp < "2024-09-17 04:30:00") |> 
+  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
+  group_by(timestamp) |> 
+  summarize(LECS_pH = mean(pH)) |> 
+  collect()
+
+ggplot(sp_sep, aes(timestamp, pH)) +
+  geom_line() +
+  geom_line(data = lecs_sep, aes(timestamp, LECS_pH), color = "blue") 
+```
+
 # Calibration
 
 do regression of temp and ph_counts on seaphox ph and add to df
@@ -283,6 +480,12 @@ oct_coef <- generate_ph_model(sp_oct, ds)
 nov_coef <- generate_ph_model(sp_nov, ds)
 dec_coef <- generate_ph_model(sp_dec, ds)
 jan_coef <- generate_ph_model(sp_jan, ds)
+#apr_coef <- generate_ph_model(sp_apr, ds) # seaphox tipped and moved in storm
+may_coef <- generate_ph_model(sp_may, ds)
+#jun_coef <- generate_ph_model(sp_jun, ds) # dead seacat
+aug_coef <- generate_ph_model(sp_aug, ds)
+#sep_coef <- generate_ph_model(sp_sep, ds) # no lecs data yet
+
 ```
 
 ## Smooth between regressions
@@ -301,6 +504,8 @@ cal_df <- bind_cols(as.data.frame(cal_time), coefs)
 ```
 
 Apply linear fit between calibrations
+
+calibrate groups between sensor changes separately
 
 convert to dataframe
 

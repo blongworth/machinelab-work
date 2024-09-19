@@ -24,6 +24,7 @@ Open dataset
 ds <- open_dataset(file.path(data_dir, "lecs_adv_data.parquet"))
 names(ds)
 nrow(ds)
+summarize(ds, start = min(timestamp), end = max(timestamp)) %>% collect()
 ds
 ```
 
@@ -79,7 +80,7 @@ ds |>
 
 ```{r}
 df_min |> 
-  select(timestamp, DO) |> 
+  select(timestamp, pressure) |> 
   dygraph()
 ```
 
@@ -98,12 +99,16 @@ ds_filt <- ds |>
          pressure < 3,
          temp > 0,
          temp < 30,
-         ph_counts > 6000,
+         ph_counts > 0,
          ph_counts < 14000,
          DO > 0.5,
          DO < 2.5)
 
 nrow(ds_filt)
+```
+
+```{r}
+summarize(ds_filt, start = min(timestamp), end = max(timestamp)) %>% collect()
 ```
 
 ## Save data
