@@ -40,9 +40,9 @@ add col for calibration periods
 
 ```{r}
 ds <- ds |> 
-  mutate(ph_group = case_when(timestamp > "2023-12-22 06:45:00" ~ 1L,
-                              timestamp > "2024-06-05 11:45:00" ~ 2L,
-                              TRUE ~ 0L))
+  mutate(ph_group = 0L,
+         ph_group = ifelse(timestamp > "2023-12-22 06:45:00", 1, ph_group),
+         ph_group = ifelse(timestamp > "2024-06-05 11:45:00", 2, ph_group))
 ```
 
 ## Seaphox calibration data
@@ -391,6 +391,16 @@ ggplot(sp_jun, aes(timestamp, pH)) +
   geom_line(data = lecs_jun, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
+This one needs special work - no temp or sal correction, but we need the pH!
+Maybe calibrate seaphox to lecs before Jun 5 sensor change and then use the
+rest to calibrate lecs post sensor change?
+```{r}
+lecs_jun %>% 
+  select(timestamp, LECS_pH) %>% 
+  dygraph() 
+  
+```
+
 ## Aug 2024 calibration
 
 seaphet and microcat batteries replaced
@@ -484,13 +494,20 @@ jan_coef <- generate_ph_model(sp_jan, ds)
 may_coef <- generate_ph_model(sp_may, ds)
 #jun_coef <- generate_ph_model(sp_jun, ds) # dead seacat
 aug_coef <- generate_ph_model(sp_aug, ds)
-#sep_coef <- generate_ph_model(sp_sep, ds) # no lecs data yet
-
+sep_coef <- generate_ph_model(sp_sep, ds) 
 ```
 
 ## Smooth between regressions
 
 Smoothly transition between fit parameters to account for drift
+
+convert to dataframe
+
+```{r}
+df <- collect(ds)
+```
+
+### Jul-Jan fit
 
 make df with timestamp and cal factors
 don't use jan cal (do stepwise due to sensor change)
@@ -503,84 +520,121 @@ cal_time <- do.call(c, cal_time)
 cal_df <- bind_cols(as.data.frame(cal_time), coefs)
 ```
 
-Apply linear fit between calibrations
-
-calibrate groups between sensor changes separately
-
-convert to dataframe
-
-```{r}
-df <- collect(ds)
-```
-
 
 ```{r}
 i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
 c_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_ph_counts, rule = 2)
 t_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_temp, rule = 2)
-i_fit <- i_ap_fun(df$timestamp)
-c_fit <- c_ap_fun(df$timestamp)
-t_fit <- t_ap_fun(df$timestamp)
+i_fit_0 <- i_ap_fun(df$timestamp)
+c_fit_0 <- c_ap_fun(df$timestamp)
+t_fit_0 <- t_ap_fun(df$timestamp)
+```
+
+### Jan-Jun fit
+
+make df with timestamp and cal factors
+
+```{r}
+cals <- list(sp_jan, sp_may)
+coefs <- bind_rows(jan_coef, may_coef)
+cal_time <- map(cals, ~mean(.x$timestamp))
+cal_time <- do.call(c, cal_time)
+cal_df <- bind_cols(as.data.frame(cal_time), coefs)
 ```
 
 ```{r}
-df_cal <- df %>% 
+i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
+c_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_ph_counts, rule = 2)
+t_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_temp, rule = 2)
+i_fit_1 <- i_ap_fun(df$timestamp)
+c_fit_1 <- c_ap_fun(df$timestamp)
+t_fit_1 <- t_ap_fun(df$timestamp)
+```
+
+### Jun-Sep fit
+
+Don't need linear fit until we're using sept data
+
+make df with timestamp and cal factors
+
+```{r}
+cals <- list(sp_aug, sp_sep)
+coefs <- bind_rows(aug_coef, sep_coef)
+cal_time <- map(cals, ~mean(.x$timestamp))
+cal_time <- do.call(c, cal_time)
+cal_df <- bind_cols(as.data.frame(cal_time), coefs)
+```
+
+Can't do this until we're using 2 calibration intervals
+
+```{r}
+i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
+c_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_ph_counts, rule = 2)
+t_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_temp, rule = 2)
+i_fit_2 <- i_ap_fun(df$timestamp)
+c_fit_2 <- c_ap_fun(df$timestamp)
+t_fit_2 <- t_ap_fun(df$timestamp)
+```
+
+Apply linear fit between calibrations
+
+calibrate groups between sensor changes separately
+
+```{r}
+df <- df %>% 
   mutate(
-    ph_i = i_fit,
-    ph_c = c_fit,
-    ph_t = t_fit,
-    #ph_i = if_else(ph_group == 1, jan_coef[1], ph_i),
-    #ph_c = if_else(ph_group == 1, jan_coef[2], ph_c),
-    #ph_t = if_else(ph_group == 1, jan_coef[3], ph_t),
-    ph_i = replace(ph_i, ph_group == 1, jan_coef[1]),
-    ph_c = replace(ph_c, ph_group == 1, jan_coef[2]),
-    ph_t = replace(ph_t, ph_group == 1, jan_coef[3]),
-    pH = ph_i + ph_c * ph_counts + ph_t * temp)
+    ph_i = i_fit_0,
+    ph_c = c_fit_0,
+    ph_t = t_fit_0,
+    ph_i = ifelse(ph_group == 1, i_fit_1, ph_i),
+    ph_c = ifelse(ph_group == 1, c_fit_1, ph_c),
+    ph_t = ifelse(ph_group == 1, t_fit_1, ph_t),
+    ph_i = ifelse(ph_group == 2, i_fit_2, ph_i),
+    ph_c = ifelse(ph_group == 2, c_fit_2, ph_c),
+    ph_t = ifelse(ph_group == 2, t_fit_2, ph_t))
 ```
 
 
 ```{r}
-ds_cal <- df_cal |> 
-  select(-c(ph_group, ph_i, ph_c, ph_t)) |> 
-  arrow_table() 
-ds_cal %>% 
-  group_by(year = year(timestamp), month = month(timestamp)) %>% 
+df <- df %>% 
+```
+
+Write to parquet
+
+```{r}
+ds_cal <- df |> 
+  arrow_table() |>
+  mutate(pH = ph_i + ph_c * ph_counts + ph_t * temp) |>
+  select(-c(ph_group, ph_i, ph_c, ph_t))
+  
+ds_cal |>
+  group_by(year = year(timestamp), month = month(timestamp)) |>
   write_dataset(file.path(data_dir, "lecs_adv_cal.parquet"))
 ```
 
-Calculate per-hour mean
-
-
-with duckdb. also doesn't work with timezone!
+Check calibration
 
 ```{r}
-adv_data_mean <- ds |>
-  to_duckdb() |> 
-  group_by(year = year(timestamp), month = month(timestamp), day = day(timestamp), hour = hour(timestamp)) |> 
-  summarise(across(-timestamp, 
+sf <- bind_rows(sp_jul, sp_oct, sp_nov, sp_dec, sp_jan, sp_may, sp_aug, sp_sep)
+
+sf_hourly <- sf %>% 
+  select(timestamp, pH) %>% 
+  mutate(timestamp = floor_date(timestamp, "hour")) %>% 
+  group_by(timestamp) %>% 
+  summarize(pH = mean(pH, na.rm = TRUE))
+
+df_hourly <- ds_cal |> 
+  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  mutate(timestamp = floor_date(timestamp, "hour")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
                    ~ mean(.x, na.rm = TRUE))) |> 
-  mutate(timestamp = make_datetime(year, month, day, hour)) |> 
-  ungroup()
-adv_data_mean
+  ungroup() %>% 
+  select(timestamp, pH) %>% 
+  collect()
 
-  
+df_hourly %>% 
+  ggplot(aes(timestamp, pH)) +
+  geom_line() +
+  geom_line(data = sf_hourly, aes(timestamp, pH), color = "blue")
 ```
-
-```{r}
-dygraph(select(adv_data_mean, timestamp, pH))
-```
-
-```{r}
-dygraph(select(adv_data_mean, time, ph_counts))
-```
-
-```{r}
-dygraph(select(adv_data_mean, time, pH))
-```
-
-```{r}
-sp <- bind_rows(sp_jul, sp_oct, sp_nov, sp_dec, sp_jan)
-
-select(sp, time, pH) |> dygraph()
-```
-
