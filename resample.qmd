@@ -4,22 +4,33 @@ format: html
 editor: source
 ---
 
-Resample filtered and calibrated data to hourly and every minute
+* Resample filtered and calibrated data to hourly and every minute
+* Resample to 4Hz
+
+impute missing points. Acceptable number?
+
+How to divide up remaining points and group
+
+* group between gaps
+* group these groups by 1h or 15 min
+* run flux on each group
 
 ```{r}
 library(tidyverse)
 library(arrow)
 library(dygraphs)
 library(tictoc)
+library(imputeTS)
 
 options(digits.secs = 6)
 
-data_dir <- "data/processed/"
+data_dir <- "data/processed/surface"
 ```
 
 ```{r}
-ds <- open_dataset(paste0(data_dir, "adv_all_filt_cal.parquet"))
+ds <- open_dataset(file.path(data_dir, "lecs_adv_cal.parquet"))
 names(ds)
+nrow(ds)
 ```
 
 resample to hourly
@@ -35,10 +46,10 @@ ds_hourly <- ds |>
 
 ds_hourly |> 
   collect() |> 
-  data.table::fwrite(paste0(data_dir, "adv_all_filt_cal_hourly.csv"))
+  data.table::fwrite(file.path(data_dir, "adv_hourly.csv"))
 
 write_dataset(ds_hourly, 
-              paste0(data_dir, "adv_all_filt_cal_hourly.parquet"))
+              file.path(data_dir, "adv_hourly.parquet"))
 ```
 
 resample to minute
@@ -54,10 +65,10 @@ ds_minute <- ds |>
 
 ds_minute |> 
   collect() |> 
-  data.table::fwrite(paste0(data_dir, "adv_all_filt_cal_minute.csv"))
+  data.table::fwrite(file.path(data_dir, "adv_minute.csv"))
 
 write_dataset(ds_minute, 
-              paste0(data_dir, "adv_all_filt_cal_minute.parquet"))
+              file.path(data_dir, "adv_minute.parquet"))
 ```
 
 ```{r}
@@ -67,13 +78,30 @@ df_minute <- ds_minute |>
 
 ```{r}
 df_minute |> 
-  ggplot(aes(timestamp, pH)) +
-  geom_line()
+  select(timestamp, pH) %>% 
+  dygraph()
+```
+
+```{r}
+ds_hourly |> 
+  select(timestamp, pH) %>% 
+  collect() %>% 
+  dygraph()
 ```
 
 Resample to 4Hz and impute missing data
 
-Up to 4 missing samples?
+Impute full timeseries for up to 4 missing samples at 16Hz. Need to populate NA's first!
+Also takes a loooooong time. Not doing this way for now.
+
+```{r, eval=FALSE}
+df_imp <- ds %>% 
+  collect() %>% 
+  mutate(across(-timestamp, \(x) na_locf(x, maxgap = 4)))
+```
+
+
+resample to 4Hz
 
 ```{r}
 ds_4hz <- ds |> 
@@ -108,9 +136,46 @@ df_ts_4hz <- tibble(timestamp = ts_4hz)
 df_4hz_all <- df_ts_4hz |> 
   left_join(df_4hz)
 
-write_dataset(df_4hz_all, paste0(data_dir, "adv_4hz.parquet"))
+df_4hz_all %>% 
+  group_by(year = year(timestamp), month = month(timestamp)) %>% 
+  write_dataset(file.path(data_dir, "lecs_adv_4hz.parquet"))
 
 head(df_4hz_all, n = 1000) |> View()
+```
+
+Impute by interpolation with a max gap of 1sec.
+
+```{r}
+df_4hz_all_imp <- df_4hz_all %>% 
+  mutate(across(-timestamp, \(x) na_interpolation(x, maxgap = 4)))
+
+df_4hz_all_imp %>% 
+  group_by(year = year(timestamp), month = month(timestamp)) %>% 
+  write_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet"))
+```
+
+Drop missing times and add grouping variable to chunks
+
+```{r}
+df_4hz_all_imp_grp <- df_4hz_all_imp %>% 
+  mutate(is_gap = is.na(pH) & !is.na(lag(pH, default = NA))) %>%
+  mutate(group = cumsum(is_gap) + 1) %>%
+  select(-is_gap) %>% 
+  drop_na()
+```
+
+Group sizes
+
+```{r}
+grp_size <- df_4hz_all_imp_grp %>% 
+  group_by(group) %>% 
+  summarize(N = n()) 
+
+grp_size %>% 
+  summarize(mean = mean(N), median = median(N), max = max(N))
+
+grp_size %>% 
+  ggplot(aes(group, N)) + geom_point()
 ```
 
 check missingness with imputeTS
@@ -124,14 +189,22 @@ library(imputeTS)
 # pick a small "good" subset
 pts <- df_4hz_all |> 
   filter(timestamp > "2024-01-01 00:00:00",
-         timestamp < "2024-01-01 01:00:00") |> 
+         timestamp < "2024-01-02 00:00:00") |> 
   collect() |> 
   pull(pH) |> 
   ts(frequency = 4)
 
-ggplot_na_distribution2(pts)
+ggplot_na_distribution(pts)
 ```
 
+Impute gaps up to 1s using linear interpolation
+
+```{r}
+pts_imp <- pts %>% 
+  na_interpolation(maxgap = 4)
+
+ggplot_na_distribution(pts_imp)
+```
 same for full frequency dataset
 
 ```{r}
