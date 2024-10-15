@@ -22,7 +22,7 @@ names(ds)
 nrow(ds)
 ```
 ```{r}
-ds_minute <- open_dataset(file.path(data_dir, "adv_minute.parquet"))
+ds_minute <- open_dataset(file.path(data_dir, "lecs_adv_minute.parquet"))
 df_minute <- ds_minute |> 
   collect()
 ```
@@ -34,7 +34,7 @@ df_minute |>
 ```
 
 ```{r}
-ds_hourly <- open_dataset(file.path(data_dir, "adv_hourly.parquet"))
+ds_hourly <- open_dataset(file.path(data_dir, "lecs_adv_hourly.parquet"))
 ds_hourly |> 
   select(timestamp, pH) %>% 
   collect() %>% 
