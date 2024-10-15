@@ -5,12 +5,17 @@ editor: source
 ---
 
 TODO: abstract calibration
-TODO: handle May sensor change
-TODO: Calibrate O2 from seaphox
 
-Apply ph calibration to entire dataset
+* Apply ph and oxygen calibration to entire dataset
+* save parquet
 
-save parquet
+linear coefficients for each calibration
+
+linear interpolation between calibrations
+
+pH calibration is done stepwise for each sensor change
+
+oxygen calibration is continuous for entire deployment
 
 ```{r}
 library(arrow)
@@ -19,8 +24,6 @@ library(janitor)
 library(readxl)
 library(mlabtools)
 library(dygraphs)
-#library(clock)
-#library(data.table)
 
 data_dir <- "data/processed/surface"
 ```
@@ -30,7 +33,6 @@ Open dataset
 ```{r}
 ds <- open_dataset(file.path(data_dir, "lecs_adv_filt.parquet"))
 ```
-
 
 # Calibration
 
@@ -45,9 +47,9 @@ ds <- ds |>
          ph_group = ifelse(timestamp > "2024-06-05 11:45:00", 2, ph_group))
 ```
 
-## Seaphox calibration data
+# Seaphox calibration data
 
-### Jul calibration
+## Jul calibration
 
 ```{r}
 sp_jul <- read_excel("data/SeapHOx Data/Seaphox_LECS_072423.xlsx") |> 
@@ -58,85 +60,29 @@ sp_jul <- read_excel("data/SeapHOx Data/Seaphox_LECS_072423.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 4 * 60 * 60)
-
-sp_jul <- filter(sp_jul, timestamp > "2023-07-24 17:00:00",
+  mutate(timestamp = timestamp - 4 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_l(oxygen, temp)) |>
+  filter(timestamp > "2023-07-24 17:00:00",
                  timestamp < "2023-08-09 8:00:00")
 ```
 
-check alignment with LECS data
-
-```{r}
-lecs_jul <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2023-07-24 17:00:00",
-                 timestamp < "2023-08-09 8:00:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_jul, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_jul, aes(timestamp, LECS_pH), color = "blue") 
-
-lecs_jul_26 <- lecs_jul |> 
-  filter(timestamp < "2023-07-27")
-
-sp_jul_26 <- sp_jul |> 
-  filter(timestamp < "2023-07-27")
-
-ggplot(sp_jul_26, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_jul_26, aes(timestamp, LECS_pH), color = "blue") 
-```
-
-### Oct calibration
+## Oct calibration
 
 ```{r}
 sp_oct <- read_excel("data/SeapHOx Data/Seaphox_LECS_10052023.xlsx") |> 
   clean_names() |> 
-  #mutate(time = mdy_hms(date_time_utc_04_00,
-  #                         tz = "UTC")) |> 
   select(timestamp = date_time_utc_04_00,
          pH = internal_p_h_p_h,
          temp = p_h_temperature_celsius,
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 4 * 60 * 60)
+  mutate(timestamp = timestamp - 4 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_oct <- filter(sp_oct, timestamp > "2023-10-19 18:00:00",
                  timestamp < "2023-11-02 04:00:00")
 ```
-
-check alignment with LECS data
-
-```{r}
-lecs_oct <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2023-10-19 18:00:00",
-                 timestamp < "2023-11-02 04:00:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_oct, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_oct, aes(timestamp, LECS_pH), color = "blue") 
-
-lecs_oct_21 <- lecs_oct |> 
-  filter(timestamp < "2023-10-22")
-
-sp_oct_21 <- sp_oct |> 
-  filter(timestamp < "2023-10-22")
-
-ggplot(sp_oct_21, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_oct_21, aes(timestamp, LECS_pH), color = "blue") 
-```
-
 ## Nov calibration
 
 ```{r}
@@ -150,37 +96,11 @@ sp_nov <- read_excel("data/SeapHOx Data/Seaphox_LECS_111523.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60)
+  mutate(timestamp = timestamp - 5 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_nov <- filter(sp_nov, timestamp > "2023-11-15 16:00:00",
                  timestamp < "2023-11-21 04:00:00")
-```
-
-check alignment with LECS data
-
-```{r}
-lecs_nov <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2023-11-15 16:00:00",
-                 timestamp < "2023-11-21 04:00:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_nov, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_nov, aes(timestamp, LECS_pH), color = "blue") 
-
-lecs_nov_s <- lecs_nov |> 
-  filter(timestamp < "2023-11-18")
-
-sp_nov_s <- sp_nov |> 
-  filter(timestamp < "2023-11-18")
-
-ggplot(sp_nov_s, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_nov_s, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
 ## December calibration
@@ -190,45 +110,17 @@ before sensor change
 ```{r}
 sp_dec <- read_excel("data/SeapHOx Data/Seaphox_LECS_120723.xlsx") |> 
   clean_names() |> 
-  #mutate(time = mdy_hms(date_time_utc_04_00,
-  #                         tz = "UTC")) |> 
   select(timestamp = date_time_utc_04_00,
          pH = internal_p_h_p_h,
          temp = p_h_temperature_celsius,
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60)
+  mutate(timestamp = timestamp - 5 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_dec <- filter(sp_dec, timestamp > "2023-12-08 06:00:00",
                  timestamp < "2023-12-14 09:00:00")
-```
-
-check alignment with LECS data
-
-```{r}
-lecs_dec <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2023-12-08 06:00:00",
-                 timestamp < "2023-12-14 14:00:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_dec, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_dec, aes(timestamp, LECS_pH), color = "blue") 
-
-lecs_dec_s <- lecs_dec |> 
-  filter(timestamp < "2023-12-12")
-
-sp_dec_s <- sp_dec |> 
-  filter(timestamp < "2023-12-12")
-
-ggplot(sp_dec_s, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_dec_s, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
 ## Jan calibration
@@ -237,37 +129,11 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_jan <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_122223.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60)
+  mutate(timestamp = timestamp - 5 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_jan <- filter(sp_jan, timestamp > "2023-12-22 14:00:00",
                  timestamp < "2024-01-03 05:00:00")
-```
-
-check alignment with LECS data
-
-```{r}
-lecs_jan <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2023-12-22 14:00:00",
-                 timestamp < "2024-01-03 06:00:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_jan, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_jan, aes(timestamp, LECS_pH), color = "blue") 
-
-lecs_jan_s <- lecs_jan |> 
-  filter(timestamp < "2023-12-25")
-
-sp_jan_s <- sp_jan |> 
-  filter(timestamp < "2023-12-25")
-
-ggplot(sp_jan_s, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_jan_s, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
 ## Apr 2024 calibration
@@ -280,34 +146,10 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_apr <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240401.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60)
-
-sp_apr %>% 
-  select(timestamp, sal, temp, pressure, pH) %>% 
-  dygraph()
-```
-
-
-```{r}
+  mutate(timestamp = timestamp - 5 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 sp_apr <- filter(sp_apr, timestamp > "2024-03-22 14:00:00",
                  timestamp < "2024-04-01 05:52:00")
-```
-
-check alignment with LECS data
-
-```{r}
-lecs_apr <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2024-03-22 14:00:00",
-                 timestamp < "2024-04-01 05:52:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_apr, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_apr, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
 ## May 2024 calibration
@@ -318,34 +160,10 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_may <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240514.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60)
-
-sp_may %>% 
-  select(timestamp, sal, temp, pressure, pH) %>% 
-  dygraph()
-```
-
-
-```{r}
+  mutate(timestamp = timestamp - 5 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 sp_may <- filter(sp_may, timestamp > "2024-04-25 14:00:00",
                  timestamp < "2024-05-01 10:54:00")
-```
-
-check alignment with LECS data
-
-```{r}
-lecs_may <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2024-04-25 14:00:00",
-                 timestamp < "2024-05-01 11:00:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_may, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_may, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
 ## June 2024 calibration
@@ -356,50 +174,15 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_jun <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240621.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60)
-
-sp_jun %>% 
-  select(timestamp, sal, temp, pressure, pH) %>% 
-  dygraph()
-```
-
-```{r}
-sp_jun %>% 
-  select(timestamp, temp, pH) %>% 
-  dygraph()
-```
-
-```{r}
+  mutate(timestamp = timestamp - 5 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 sp_jun <- filter(sp_jun, timestamp > "2024-06-03 11:30:00",
                  timestamp < "2024-06-14 18:15:00")
-```
-
-check alignment with LECS data
-
-```{r}
-lecs_jun <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2024-06-03 11:30:00",
-                 timestamp < "2024-06-14 18:15:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_jun, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_jun, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
 This one needs special work - no temp or sal correction, but we need the pH!
 Maybe calibrate seaphox to lecs before Jun 5 sensor change and then use the
 rest to calibrate lecs post sensor change?
-```{r}
-lecs_jun %>% 
-  select(timestamp, LECS_pH) %>% 
-  dygraph() 
-  
-```
 
 ## Aug 2024 calibration
 
@@ -410,33 +193,10 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_aug <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240815.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60)
-
-sp_aug %>% 
-  select(timestamp, sal, temp, pressure, pH) %>% 
-  dygraph()
-```
-
-```{r}
+  mutate(timestamp = timestamp - 5 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 sp_aug <- filter(sp_aug, timestamp > "2024-08-10 14:30:00",
                  timestamp < "2024-08-15 04:24:00")
-```
-
-check alignment with LECS data
-
-```{r}
-lecs_aug <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2024-08-10 14:30:00",
-                 timestamp < "2024-08-15 04:24:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_aug, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_aug, aes(timestamp, LECS_pH), color = "blue") 
 ```
 
 ## Sept 2024 calibration
@@ -449,36 +209,13 @@ This is mid sept deployment
 
 ```{r}
 sp_sep <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240917.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60)
-
-sp_sep %>% 
-  select(timestamp, sal, temp, pressure, pH) %>% 
-  dygraph()
-```
-
-```{r}
+  mutate(timestamp = timestamp - 5 * 60 * 60,
+         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 sp_sep <- filter(sp_sep, timestamp > "2024-09-06 17:00:00",
                  timestamp < "2024-09-17 04:30:00")
 ```
 
-check alignment with LECS data
-
-```{r}
-lecs_sep <- ds |> 
-  select(timestamp, pH) |> 
-  filter(timestamp > "2024-09-06 17:00:00",
-                 timestamp < "2024-09-17 04:30:00") |> 
-  mutate(timestamp = floor_date(timestamp, unit = "minutes")) |> 
-  group_by(timestamp) |> 
-  summarize(LECS_pH = mean(pH)) |> 
-  collect()
-
-ggplot(sp_sep, aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = lecs_sep, aes(timestamp, LECS_pH), color = "blue") 
-```
-
-# Calibration
+# pH Calibration
 
 do regression of temp and ph_counts on seaphox ph and add to df
 
@@ -502,6 +239,7 @@ sep_coef <- generate_ph_model(sp_sep, ds)
 Smoothly transition between fit parameters to account for drift
 
 convert to dataframe
+TODO: only what we need
 
 ```{r}
 df <- collect(ds)
@@ -519,7 +257,6 @@ cal_time <- map(cals, ~mean(.x$timestamp))
 cal_time <- do.call(c, cal_time)
 cal_df <- bind_cols(as.data.frame(cal_time), coefs)
 ```
-
 
 ```{r}
 i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
@@ -552,8 +289,6 @@ t_fit_1 <- t_ap_fun(df$timestamp)
 ```
 
 ### Jun-Sep fit
-
-Don't need linear fit until we're using sept data
 
 make df with timestamp and cal factors
 
@@ -594,47 +329,111 @@ df <- df %>%
     ph_t = ifelse(ph_group == 2, t_fit_2, ph_t))
 ```
 
+# Oxygen calibration
+
+do regression of oxygen on seaphox oxygen and add to df
+
+temp cor already done in rinko cal
+
+```{r}
+jul_coef <- generate_o2_model(sp_jul, ds)
+oct_coef <- generate_o2_model(sp_oct, ds)
+nov_coef <- generate_o2_model(sp_nov, ds)
+dec_coef <- generate_o2_model(sp_dec, ds)
+jan_coef <- generate_o2_model(sp_jan, ds)
+may_coef <- generate_o2_model(sp_may, ds)
+#aug_coef <- generate_o2_model(sp_aug, ds) # ox no good
+sep_coef <- generate_o2_model(sp_sep, ds) 
+```
+
+
+Smoothly transition between fit parameters to account for drift
+
+Oxygen calibrated without stepwise changes for sensor changes
+
+### Jul-Jan fit
+
+make df with timestamp and cal factors
+
+```{r}
+cals <- list(sp_jul, sp_oct, sp_nov, sp_dec, sp_jan, sp_may, sp_sep)
+coefs <- bind_rows(jul_coef, oct_coef, nov_coef, dec_coef, jan_coef, may_coef, sep_coef)
+cal_time <- map(cals, ~mean(.x$timestamp))
+cal_time <- do.call(c, cal_time)
+cal_df <- bind_cols(as.data.frame(cal_time), coefs)
+```
+
+```{r}
+i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
+o_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_oxy, rule = 2)
+i_fit_0 <- i_ap_fun(df$timestamp)
+o_fit_0 <- o_ap_fun(df$timestamp)
+```
+
+### Jan-Jun fit
+
+make df with timestamp and cal factors
+
+```{r, eval=FALSE}
+cals <- list(sp_jan, sp_may)
+coefs <- bind_rows(jan_coef, may_coef)
+cal_time <- map(cals, ~mean(.x$timestamp))
+cal_time <- do.call(c, cal_time)
+cal_df <- bind_cols(as.data.frame(cal_time), coefs)
+```
+
+```{r, eval = FALSE}
+i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
+o_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_oxy, rule = 2)
+i_fit_1 <- i_ap_fun(df$timestamp)
+o_fit_1 <- t_ap_fun(df$timestamp)
+```
+
+### Jun-Sep fit
+
+make df with timestamp and cal factors
+
+```{r, eval = FALSE}
+cals <- list(sp_aug, sp_sep)
+coefs <- bind_rows(aug_coef, sep_coef)
+cal_time <- map(cals, ~mean(.x$timestamp))
+cal_time <- do.call(c, cal_time)
+cal_df <- bind_cols(as.data.frame(cal_time), coefs)
+```
+
+```{r, eval = FALSE}
+i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
+o_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_oxy, rule = 2)
+i_fit_2 <- i_ap_fun(df$timestamp)
+o_fit_2 <- t_ap_fun(df$timestamp)
+```
+
+Apply linear fit between calibrations
 
 ```{r}
 df <- df %>% 
+  mutate(
+    ox_i = i_fit_0,
+    ox_o = o_fit_0,
+    # ox_i = ifelse(ph_group == 1, i_fit_1, ox_i),
+    # ox_o = ifelse(ph_group == 1, o_fit_1, ox_o),
+    # ox_i = ifelse(ph_group == 2, i_fit_2, ox_i),
+    # ox_o = ifelse(ph_group == 2, o_fit_2, ox_o),
+  )
 ```
 
-Write to parquet
+# Write to parquet
 
 ```{r}
 ds_cal <- df |> 
   arrow_table() |>
-  mutate(pH = ph_i + ph_c * ph_counts + ph_t * temp) |>
-  select(-c(ph_group, ph_i, ph_c, ph_t))
-  
+  mutate(pH_cal = ph_i + ph_c * ph_counts + ph_t * temp) |>
+  mutate(ox_umol_l_cal = ox_i + ox_o * ox_umol_l) |>
+  select(-c(ph_group, ph_i, ph_c, ph_t, ox_i, ox_o))
+```
+
+```{r}
 ds_cal |>
   group_by(year = year(timestamp), month = month(timestamp)) |>
   write_dataset(file.path(data_dir, "lecs_adv_cal.parquet"))
-```
-
-Check calibration
-
-```{r}
-sf <- bind_rows(sp_jul, sp_oct, sp_nov, sp_dec, sp_jan, sp_may, sp_aug, sp_sep)
-
-sf_hourly <- sf %>% 
-  select(timestamp, pH) %>% 
-  mutate(timestamp = floor_date(timestamp, "hour")) %>% 
-  group_by(timestamp) %>% 
-  summarize(pH = mean(pH, na.rm = TRUE))
-
-df_hourly <- ds_cal |> 
-  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
-  mutate(timestamp = floor_date(timestamp, "hour")) |> 
-  group_by(timestamp) |> 
-  summarise(across(everything(), 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup() %>% 
-  select(timestamp, pH) %>% 
-  collect()
-
-df_hourly %>% 
-  ggplot(aes(timestamp, pH)) +
-  geom_line() +
-  geom_line(data = sf_hourly, aes(timestamp, pH), color = "blue")
 ```
