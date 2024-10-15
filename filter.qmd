@@ -22,96 +22,30 @@ Open dataset
 
 ```{r}
 ds <- open_dataset(file.path(data_dir, "lecs_adv_data.parquet"))
-names(ds)
-nrow(ds)
-summarize(ds, start = min(timestamp), end = max(timestamp)) %>% collect()
-ds
-```
-
-Open minute averages to get proper ranges. Need to create hour or minute average dataset to do this
-
-```{r}
-df_min <- ds |> 
-  select(timestamp, pressure, 
-         u, v, w, 
-         amp1, amp2, amp3, 
-         corr1, corr2, corr3, 
-         temp, ph_counts, pH, DO, DO_percent) |>
-  mutate(timestamp = floor_date(timestamp, "minute")) |> 
-  group_by(timestamp) |> 
-  summarise(across(everything(), 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup() |> 
-  collect()
-```
-
-```{r}
-df_min |> 
-  ggplot(aes(timestamp, temp)) +
-  geom_line()
-```
-
-```{r}
-df_min |> 
-  ggplot(aes(timestamp, DO)) +
-  geom_line()
-```
-
-```{r}
-df_min |> 
-  ggplot(aes(timestamp, pressure)) +
-  geom_line()
-```
-```{r}
-df_min |> 
-  select(timestamp, pressure) |> 
-  dygraph()
-```
-
-```{r}
-df_min |> 
-  ggplot(aes(timestamp, pH)) +
-  geom_line()
-```
-```{r}
-ds |> 
-  glimpse()
-```
-
-```{r}
-df_min |> 
-  select(timestamp, pressure) |> 
-  dygraph()
 ```
 
 # Filter
-
-Ignore time for now
 
 ```{r}
 ds_filt <- ds |> 
   filter(#!(timestamp > "2023-06-23 13:00:00" & timestamp < "2023-06-26 11:00:00"),
          ##!(time > "2023-06-23 13:00:00" & time < "2023-07-20 20:00:00"),
-         #!(timestamp > "2023-08-27 04:00:00" & timestamp < "2023-09-11 16:20:00"),
-         #!(timestamp > "2023-09-15 04:00:00" & timestamp < "2023-10-17 16:00:00"),
-         #!(timestamp > "2023-12-22 11:45:00" & timestamp < "2023-12-22 12:45:00"),
+         !(timestamp > "2023-08-27 04:00:00" & timestamp < "2023-09-11 16:20:00"),
+         !(timestamp > "2023-09-15 04:00:00" & timestamp < "2023-10-17 16:00:00"),
+         !(timestamp > "2023-12-22 11:45:00" & timestamp < "2023-12-22 12:45:00"),
+         !(timestamp > "2024-01-28 00:00:00" & timestamp < "2024-02-08 10:00:00"),
+         !(timestamp > "2024-02-13 00:00:00" & timestamp < "2024-03-13 18:00:00"),
          pressure > 0.2,
          pressure < 3,
          temp > 0,
          temp < 30,
-         ph_counts > 0,
-         ph_counts < 14000,
-         DO > 0.5,
-         DO < 2.5)
-
-nrow(ds_filt)
+         pH > 7.18,
+         pH < 10,
+         ox_umol_l < 450,
+         ox_umol_l > 90) |> 
+  mutate(ph_counts = if_else(timestamp > "2023-07-21 00:00:00", ph_counts, NA))
 ```
-
-```{r}
-summarize(ds_filt, start = min(timestamp), end = max(timestamp)) %>% collect()
-```
-
-## Save data
+# Save data
 
 ```{r}
 ds_filt %>% 
