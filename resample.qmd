@@ -18,7 +18,6 @@ How to divide up remaining points and group
 ```{r}
 library(tidyverse)
 library(arrow)
-library(dygraphs)
 library(tictoc)
 library(imputeTS)
 
@@ -29,15 +28,12 @@ data_dir <- "data/processed/surface"
 
 ```{r}
 ds <- open_dataset(file.path(data_dir, "lecs_adv_cal.parquet"))
-names(ds)
-nrow(ds)
 ```
 
 resample to hourly
 
 ```{r}
 ds_hourly <- ds |> 
-  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
   mutate(timestamp = floor_date(timestamp, "hour")) |> 
   group_by(timestamp) |> 
   summarise(across(everything(), 
@@ -46,10 +42,10 @@ ds_hourly <- ds |>
 
 ds_hourly |> 
   collect() |> 
-  data.table::fwrite(file.path(data_dir, "adv_hourly.csv"))
+  data.table::fwrite(file.path(data_dir, "lecs_adv_hourly.csv"))
 
 write_dataset(ds_hourly, 
-              file.path(data_dir, "adv_hourly.parquet"))
+              file.path(data_dir, "lecs_adv_hourly.parquet"))
 ```
 
 resample to minute
@@ -65,28 +61,10 @@ ds_minute <- ds |>
 
 ds_minute |> 
   collect() |> 
-  data.table::fwrite(file.path(data_dir, "adv_minute.csv"))
+  data.table::fwrite(file.path(data_dir, "lecs_adv_minute.csv"))
 
 write_dataset(ds_minute, 
-              file.path(data_dir, "adv_minute.parquet"))
-```
-
-```{r}
-df_minute <- ds_minute |> 
-  collect()
-```
-
-```{r}
-df_minute |> 
-  select(timestamp, pH) %>% 
-  dygraph()
-```
-
-```{r}
-ds_hourly |> 
-  select(timestamp, pH) %>% 
-  collect() %>% 
-  dygraph()
+              file.path(data_dir, "lecs_adv_minute.parquet"))
 ```
 
 Resample to 4Hz and impute missing data
@@ -100,7 +78,6 @@ df_imp <- ds %>%
   mutate(across(-timestamp, \(x) na_locf(x, maxgap = 4)))
 ```
 
-
 resample to 4Hz
 
 ```{r}
@@ -111,36 +88,29 @@ ds_4hz <- ds |>
   summarise(across(everything(), 
                    ~ mean(.x, na.rm = TRUE))) |> 
   ungroup()
-
 ```
 
 create complete 4Hz timeseries and join to add NA's for missing data
 
 ```{r}
-names(ds_4hz)
 df_4hz <- ds_4hz |> 
   arrange(timestamp) |> 
   collect()
 
-head(df_4hz)
-tail(df_4hz)
-
-# ts <- collect(ds_4hz$timestamp) # doesn't work
 st <- min(df_4hz$timestamp, na.rm = TRUE) 
 et <- max(df_4hz$timestamp, na.rm = TRUE) 
 ts_4hz <- seq(from = st, to = et, by = 0.25) 
-head(ts_4hz)
 
 df_ts_4hz <- tibble(timestamp = ts_4hz)
 
 df_4hz_all <- df_ts_4hz |> 
   left_join(df_4hz)
+```
 
+```{r}
 df_4hz_all %>% 
   group_by(year = year(timestamp), month = month(timestamp)) %>% 
   write_dataset(file.path(data_dir, "lecs_adv_4hz.parquet"))
-
-head(df_4hz_all, n = 1000) |> View()
 ```
 
 Impute by interpolation with a max gap of 1sec.
@@ -153,121 +123,3 @@ df_4hz_all_imp %>%
   group_by(year = year(timestamp), month = month(timestamp)) %>% 
   write_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet"))
 ```
-
-Drop missing times and add grouping variable to chunks
-
-```{r}
-df_4hz_all_imp_grp <- df_4hz_all_imp %>% 
-  mutate(is_gap = is.na(pH) & !is.na(lag(pH, default = NA))) %>%
-  mutate(group = cumsum(is_gap) + 1) %>%
-  select(-is_gap) %>% 
-  drop_na()
-```
-
-Group sizes
-
-```{r}
-grp_size <- df_4hz_all_imp_grp %>% 
-  group_by(group) %>% 
-  summarize(N = n()) 
-
-grp_size %>% 
-  summarize(mean = mean(N), median = median(N), max = max(N))
-
-grp_size %>% 
-  ggplot(aes(group, N)) + geom_point()
-```
-
-check missingness with imputeTS
-
-```{r}
-library(imputeTS)
-```
-
-
-```{r}
-# pick a small "good" subset
-pts <- df_4hz_all |> 
-  filter(timestamp > "2024-01-01 00:00:00",
-         timestamp < "2024-01-02 00:00:00") |> 
-  collect() |> 
-  pull(pH) |> 
-  ts(frequency = 4)
-
-ggplot_na_distribution(pts)
-```
-
-Impute gaps up to 1s using linear interpolation
-
-```{r}
-pts_imp <- pts %>% 
-  na_interpolation(maxgap = 4)
-
-ggplot_na_distribution(pts_imp)
-```
-same for full frequency dataset
-
-```{r}
-# pick a small "good" subset
-df <- ds |> 
-  filter(timestamp > "2024-01-01 00:00:00",
-         timestamp < "2024-01-01 01:00:00") |> 
-  collect()
-
-length(unique(df$timestamp))
-```
-
-Uh oh, we have duplicates
-
-```{r}
-ggplot(df, aes(1:nrow(df), timestamp)) +
-  geom_point()
-```
-
-wth? time goes back 30 min for a bit?
-
-how much does this happen over the course of a day?
-
-```{r}
-df <- ds |> 
-  filter(timestamp > "2024-01-01 00:00:00",
-         timestamp < "2024-01-02 00:00:00") |> 
-  collect()
-
-length(unique(df$timestamp))
-```
-
-Uh oh, we have duplicates again
-
-```{r}
-df |> 
-  arrange(timestamp) |> 
-ggplot(aes(1:nrow(df), timestamp)) +
-  geom_point()
-
-```
-
-```{r}
-df |> 
-  select(timestamp) |> 
-  arrange(timestamp) |> 
-  mutate(dup = duplicated(timestamp)) |> 
-  head(150)
-```
-
-
-```{r}
-st <- min(df$timestamp) 
-et <- max(df$timestamp) 
-df_ts <- tibble(timestamp = seq(from = st, to = et, by = 0.0625))
-  
-df_ts <- df_ts |> 
-  left_join(df)
-
-pts <- df_ts |> 
-  pull(pH) |> 
-  ts(frequency = 16)
-
-ggplot_na_distribution2(pts)
-```
-

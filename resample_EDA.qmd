@@ -1,0 +1,168 @@
+---
+title: "Data exploration for LECS resampling"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dygraphs)
+library(tictoc)
+library(imputeTS)
+
+options(digits.secs = 6)
+
+data_dir <- "data/processed/surface"
+```
+
+```{r}
+ds <- open_dataset(file.path(data_dir, "lecs_adv_cal.parquet"))
+names(ds)
+nrow(ds)
+```
+```{r}
+ds_minute <- open_dataset(file.path(data_dir, "adv_minute.parquet"))
+df_minute <- ds_minute |> 
+  collect()
+```
+
+```{r}
+df_minute |> 
+  select(timestamp, pH) %>% 
+  dygraph()
+```
+
+```{r}
+ds_hourly <- open_dataset(file.path(data_dir, "adv_hourly.parquet"))
+ds_hourly |> 
+  select(timestamp, pH) %>% 
+  collect() %>% 
+  dygraph()
+```
+
+```{r}
+ds_4hz_all <- open_dataset(file.path(data_dir, "lecs_adv_4hz.parquet"))
+head(df_4hz_all, n = 1000) |> View()
+```
+
+Impute by interpolation with a max gap of 1sec.
+
+Drop missing times and add grouping variable to chunks
+
+```{r}
+ds_4hz_all_imp <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet"))
+df_4hz_all_imp_grp <- df_4hz_all_imp %>% 
+  mutate(is_gap = is.na(pH) & !is.na(lag(pH, default = NA))) %>%
+  mutate(group = cumsum(is_gap) + 1) %>%
+  select(-is_gap) %>% 
+  drop_na()
+```
+
+Group sizes
+
+```{r}
+grp_size <- df_4hz_all_imp_grp %>% 
+  group_by(group) %>% 
+  summarize(N = n()) 
+
+grp_size %>% 
+  summarize(mean = mean(N), median = median(N), max = max(N))
+
+grp_size %>% 
+  ggplot(aes(group, N)) + geom_point()
+```
+
+check missingness with imputeTS
+
+```{r}
+library(imputeTS)
+```
+
+
+```{r}
+# pick a small "good" subset
+pts <- df_4hz_all |> 
+  filter(timestamp > "2024-01-01 00:00:00",
+         timestamp < "2024-01-02 00:00:00") |> 
+  collect() |> 
+  pull(pH) |> 
+  ts(frequency = 4)
+
+ggplot_na_distribution(pts)
+```
+
+Impute gaps up to 1s using linear interpolation
+
+```{r}
+pts_imp <- pts %>% 
+  na_interpolation(maxgap = 4)
+
+ggplot_na_distribution(pts_imp)
+```
+same for full frequency dataset
+
+```{r}
+# pick a small "good" subset
+df <- ds |> 
+  filter(timestamp > "2024-01-01 00:00:00",
+         timestamp < "2024-01-01 01:00:00") |> 
+  collect()
+
+length(unique(df$timestamp))
+```
+
+Uh oh, we have duplicates
+
+```{r}
+ggplot(df, aes(1:nrow(df), timestamp)) +
+  geom_point()
+```
+
+wth? time goes back 30 min for a bit?
+
+how much does this happen over the course of a day?
+
+```{r}
+df <- ds |> 
+  filter(timestamp > "2024-01-01 00:00:00",
+         timestamp < "2024-01-02 00:00:00") |> 
+  collect()
+
+length(unique(df$timestamp))
+```
+
+Uh oh, we have duplicates again
+
+```{r}
+df |> 
+  arrange(timestamp) |> 
+ggplot(aes(1:nrow(df), timestamp)) +
+  geom_point()
+
+```
+
+```{r}
+df |> 
+  select(timestamp) |> 
+  arrange(timestamp) |> 
+  mutate(dup = duplicated(timestamp)) |> 
+  head(150)
+```
+
+
+```{r}
+st <- min(df$timestamp) 
+et <- max(df$timestamp) 
+df_ts <- tibble(timestamp = seq(from = st, to = et, by = 0.0625))
+  
+df_ts <- df_ts |> 
+  left_join(df)
+
+pts <- df_ts |> 
+  pull(pH) |> 
+  ts(frequency = 16)
+
+ggplot_na_distribution2(pts)
+```
+
