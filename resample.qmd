@@ -34,6 +34,7 @@ resample to hourly
 
 ```{r}
 ds_hourly <- ds |> 
+  select(-c(year, month)) |> 
   mutate(timestamp = floor_date(timestamp, "hour")) |> 
   group_by(timestamp) |> 
   summarise(across(everything(), 
@@ -52,7 +53,7 @@ resample to minute
 
 ```{r}
 ds_minute <- ds |> 
-  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  select(-c(year, month)) |> 
   mutate(timestamp = floor_date(timestamp, "minute")) |> 
   group_by(timestamp) |> 
   summarise(across(everything(), 
@@ -82,7 +83,8 @@ resample to 4Hz
 
 ```{r}
 ds_4hz <- ds |> 
-  select(timestamp, pressure, u, v, w, amp1, amp2, amp3, corr1, corr2, corr3, temp, pH, DO_percent) |>
+  select(-c(year, month)) |> 
+  mutate(timestamp = floor_date(timestamp, "minute")) |> 
   mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
   group_by(timestamp) |> 
   summarise(across(everything(), 
