@@ -84,7 +84,6 @@ resample to 4Hz
 ```{r}
 ds_4hz <- ds |> 
   select(-c(year, month)) |> 
-  mutate(timestamp = floor_date(timestamp, "minute")) |> 
   mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
   group_by(timestamp) |> 
   summarise(across(everything(), 
