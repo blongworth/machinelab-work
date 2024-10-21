@@ -1,0 +1,270 @@
+---
+title: "SeapHOx intercomparison"
+format: html
+---
+
+All three SeapHOxes (0453, 0455, 0456) were co-deployed in an ESL mesocosm
+for roughly 24h to check agreement between sensors.
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(dygraphs)
+library(patchwork)
+library(oce)
+```
+
+Read data
+
+```{r}
+files <- file.path("data/seaphox_esl_compare", list.files("data/seaphox_esl_compare", pattern = "Shallow*"))
+df <- read_csv(files) %>% 
+  clean_names() %>% 
+  mutate(timestamp = mdy_hms(date_time_utc_04_00),
+         sigma_theta = swSigmaTheta(salinity_psu, temperature_celsius, pressure_decibar),
+         oxygen_umol_l = oxygen_ml_l * 44660 / (sigma_theta + 1000),
+         seaphox = str_sub(frame_sync, -3),
+         trial = ifelse(timestamp < "2024-07-25", 1, 2))
+
+```
+
+filter deployed times
+
+```{r}
+df <- df %>% 
+  filter(timestamp > "2024-07-22 17:30:00" &
+         timestamp < "2024-07-23 15:30:00" |
+         timestamp > "2024-07-25 13:00:00" &
+         timestamp < "2024-07-26 15:00:00")
+```
+
+Write data
+
+```{r}
+write_csv(df, "data/seaphox_esl_compare/seaphox_esl_compare.csv")
+```
+
+
+```{r}
+df %>% 
+  group_by(seaphox, trial) %>% 
+  summarize(across(c(temperature_celsius,
+                     internal_p_h_volt, 
+                     external_p_h_volt,
+                     p_h_temperature_celsius,
+                     pressure_decibar, 
+                     conductivity_s_m,
+                     salinity_psu,
+                     oxygen_ml_l),
+                   list(mean = mean, sd = sd)))
+  
+```
+
+```{r}
+#|height: "800px"
+
+theme_set(theme_bw())
+
+sfp <- function(df, var, clean = TRUE) {
+  p <- ggplot(df, aes(timestamp, {{var}}, color = seaphox)) +
+    geom_line() +
+    theme(axis.title.y = element_text(angle=0))
+  
+  if (clean) {
+    p +
+      theme(axis.ticks.x = element_blank(), 
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank())
+      #legend.position = none)
+  } else {
+    p
+  }
+}
+```
+
+
+```{r}
+df1 <- df %>% 
+  filter(trial == 1)
+temp <- sfp(df1, temperature_celsius)
+cond <- sfp(df1, conductivity_s_m)
+p <- sfp(df1, pressure_decibar)
+ph <- sfp(df1, internal_p_h_p_h)
+eph <- sfp(df1, external_p_h_p_h)
+ox <- sfp(df1, oxygen_ml_l, clean = FALSE)
+
+temp / cond / p / ph / eph / ox +
+  plot_layout(guides = 'collect')
+```
+
+```{r}
+df2 <- df %>% 
+  filter(trial == 2,
+         timestamp < "2024-09-01")
+temp <- sfp(df2, temperature_celsius)
+cond <- sfp(df2, conductivity_s_m)
+p <- sfp(df2, pressure_decibar)
+ph <- sfp(df2, internal_p_h_p_h)
+eph <- sfp(df2, external_p_h_p_h)
+ox <- sfp(df2, oxygen_ml_l, clean = FALSE)
+
+temp / cond / p / ph / eph / ox +
+  plot_layout(guides = 'collect')
+```
+
+Diff plots
+
+```{r}
+df2 <- df %>% 
+  filter(trial == 2,
+         seaphox %in% c("453", "455"),
+         timestamp > "2024-07-25 15:00",
+         timestamp < "2024-07-26 10:30")
+temp <- sfp(df2, temperature_celsius)
+cond <- sfp(df2, conductivity_s_m)
+p <- sfp(df2, pressure_decibar)
+ph <- sfp(df2, internal_p_h_p_h)
+eph <- sfp(df2, external_p_h_p_h)
+ox <- sfp(df2, oxygen_ml_l, clean = FALSE)
+
+temp / cond / p / ph / eph / ox +
+  plot_layout(guides = 'collect')
+```
+
+Compare to CRISPEE data from last codeployment.
+
+```{r}
+hobo_data <- read_csv("data/seaphox_esl_compare/CRISPEE_Tank_Test_072424.csv", skip = 1) %>%
+  clean_names() %>% 
+  mutate(timestamp = mdy_hms(date_time_gmt_04_00) + 4 * 3600,
+         sigma_theta = 20.8,
+         #oxygen_umol_l = do_conc_mg_l_lgr_s_n_20601917_sen_s_n_20601917 * 31.250)
+         oxygen_umol_l = do_conc_mg_l_lgr_s_n_20601917_sen_s_n_20601917 * 31.9988 / ( 1 + sigma_theta / 1000))
+
+hobo_sal <- read_csv("data/seaphox_esl_compare/CRISPEE_Tank_Test2_072424_sal.csv", skip = 1) %>%
+  clean_names() %>% 
+  mutate(timestamp = mdy_hms(date_time_gmt_04_00) + 4 * 3600,
+         sigma_theta = 20.8,
+         #oxygen_umol_l = do_conc_mg_l_lgr_s_n_20601917_sen_s_n_20601917 * 31.250)
+         oxygen_umol_l = do_adj_conc_mg_l_lgr_s_n_20113801 * 31.9988 / ( 1 + sigma_theta / 1000))
+
+crispee_header <- read_lines("data/seaphox_esl_compare/CRISPEE61-1-311.txt", n_max = 1) %>% 
+  str_split(" ") %>% 
+  unlist()
+crispee_data <- read_csv("data/seaphox_esl_compare/CRISPEE61-1-311.txt", skip = 1, col_names = crispee_header) %>% 
+  mutate(timestamp = as.POSIXct(ts, format = "%T %m/%d/%Y") + 175536605) %>% 
+  filter(timestamp < "2024-07-26 10:20")
+```
+```{r}
+ggplot(crispee_data, aes(timestamp, umolar)) +
+  geom_line()
+```
+
+```{r}
+df2 %>% 
+  filter(seaphox == 455) %>% 
+ggplot(aes(timestamp, oxygen_umol_l)) +
+  geom_line() +
+  geom_line(data = crispee_data, aes(timestamp, umolar))
+```
+
+```{r}
+hd <- hobo_data %>% 
+  select(timestamp, oxygen_umol_l) %>% 
+  mutate(sensor = "hobo")
+
+hs <- hobo_sal %>% 
+  select(timestamp, oxygen_umol_l) %>% 
+  mutate(sensor = "hobo_sal")
+
+cd <- crispee_data %>% 
+  select(timestamp, oxygen_umol_l = umolar) %>% 
+  mutate(sensor = "crispee")
+
+sf <- df2 %>% 
+  select(timestamp, oxygen_umol_l, sensor = seaphox)
+
+dfa <- bind_rows(hd, hs, cd, sf)
+dfa %>% 
+ggplot(aes(timestamp, oxygen_umol_l, color = sensor)) +
+  geom_line()
+```
+
+Linear models
+
+same timebase
+
+```{r}
+dft <- dfa %>% 
+  mutate(minute = floor_date(timestamp, unit =  "minutes")) %>% 
+  group_by(minute, sensor) %>% 
+  summarize(oxygen_umol_l = mean(oxygen_umol_l)) %>% 
+  ungroup() %>% 
+  select(timestamp = minute, oxygen_umol_l, sensor)
+```
+
+make wider and drop pre and post deployment
+
+```{r}
+dfw <- dft %>% 
+  pivot_wider(names_from = sensor, values_from = oxygen_umol_l) %>% 
+  filter(timestamp > "2024-07-25 15:00",
+         timestamp < "2024-07-26 10:30")
+```
+
+Redo plot with trimmed/resampled data
+
+```{r}
+dft %>% 
+  filter(timestamp > "2024-07-25 15:00",
+         timestamp < "2024-07-26 10:30") %>% 
+  ggplot(aes(timestamp, oxygen_umol_l, color = sensor)) +
+  geom_line()
+```
+
+Seaphoxes 455 and 453 agree
+
+```{r}
+splm <- lm(`455` ~ `453`, data = dfw)
+summary(splm)
+```
+
+```{r}
+ggplot(dfw, aes(`453`, `455`)) +
+  geom_smooth(method = "lm") +
+  geom_point()
+```
+
+
+Hysteresis?
+
+CRISPEE
+
+```{r}
+clm <- lm(crispee ~ `455`, data = dfw)
+summary(clm)
+```
+
+```{r}
+ggplot(dfw, aes(`455`, crispee)) +
+  geom_smooth(method = "lm") +
+  geom_point()
+```
+
+# OOI ESL seaphox comparison
+
+```{r}
+df3 <- df %>% 
+  filter(timestamp > "2024-10-18 10:50",
+         timestamp < "2024-10-21 12:10")
+temp <- sfp(df3, temperature_celsius)
+sal <- sfp(df3, salinity_psu)
+p <- sfp(df3, pressure_decibar)
+ph <- sfp(df3, internal_p_h_p_h)
+eph <- sfp(df3, external_p_h_p_h)
+ox <- sfp(df3, oxygen_ml_l, clean = FALSE)
+
+temp / sal / p / ph / eph / ox +
+  plot_layout(guides = 'collect')
+```
+
