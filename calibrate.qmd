@@ -43,8 +43,8 @@ add col for calibration periods
 ```{r}
 ds <- ds |> 
   mutate(ph_group = 0L,
-         ph_group = ifelse(timestamp > "2023-12-22 06:45:00", 1, ph_group),
-         ph_group = ifelse(timestamp > "2024-06-05 11:45:00", 2, ph_group))
+         ph_group = ifelse(timestamp > "2023-12-22 07:00:00", 1, ph_group),
+         ph_group = ifelse(timestamp > "2024-06-05 11:25:00", 2, ph_group))
 ```
 
 # Seaphox calibration data
