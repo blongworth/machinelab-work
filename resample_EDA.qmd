@@ -21,31 +21,215 @@ ds <- open_dataset(file.path(data_dir, "lecs_adv_cal.parquet"))
 names(ds)
 nrow(ds)
 ```
+
+Duplicates? Big time. I think these are caused
+by multi-second gaps in the status timeseries.
+Should be flagging data that causes this NA.
+
 ```{r}
-ds_minute <- open_dataset(file.path(data_dir, "lecs_adv_minute.parquet"))
-df_minute <- ds_minute |> 
+ds |> 
+  filter(timestamp > "2023-08-05 00:00:00",
+         timestamp < "2023-08-06 00:00:00") |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+```
+
+Not sure what causes these more recent duplicates.
+Calculate duplicate fraction over a time period
+
+
+```{r}
+dsf1 <- ds |> 
+  filter(timestamp > as.POSIXct("2023-01-01 00:00:00"),
+         timestamp < "2023-12-01 00:00:00") 
+
+dss1 <- dsf1 |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+
+dsf2 <- ds |> 
+  filter(timestamp > "2023-12-01 00:00:00",
+         timestamp < "2024-06-01 00:00:00") 
+
+dss2 <- dsf2 |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+
+dsf3 <- ds |> 
+  filter(timestamp > "2024-06-01 00:00:00",
+         timestamp < "2024-10-01 00:00:00") 
+
+dss3 <- dsf3 |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+
+dss <- bind_rows(dss1, dss2, dss3)
+
+ggplot(dss, aes(timestamp)) +
+  geom_histogram(binwidth = 3600 * 24)
+```
+
+```{r}
+ds |> 
+  filter(timestamp > "2024-08-05 05:18:50",
+         timestamp < "2024-08-05 05:19:00") |>
+  arrange(timestamp) |> 
+  collect() |> 
+  view()
+```
+
+Early subset
+
+```{r}
+df <- ds |> 
+  filter(timestamp > "2023-08-05 00:00:00",
+         timestamp < "2023-08-06 00:00:00") |> 
   collect()
 ```
 
 ```{r}
-df_minute |> 
-  select(timestamp, pH) %>% 
-  dygraph()
+df |> 
+  select(timestamp, pressure) |> 
+  dygraph() |> 
+  dyRangeSelector()
 ```
+
+```{r}
+df |> 
+  select(timestamp, pH_cal) |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
+```{r}
+df |> 
+  filter(corr1 > 60,
+         corr2 > 60,
+         corr3 > 60) |> 
+  select(timestamp, pH_cal) |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
+```{r}
+df |> 
+  select(timestamp, amp1) |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
+```{r}
+df |> 
+  ggplot(aes(u, corr1)) +
+  geom_point()
+```
+
+Recent data
+
+```{r}
+df <- ds |> 
+  filter(timestamp > "2024-08-05 00:00:00",
+         timestamp < "2024-08-06 00:00:00") |> 
+  collect()
+```
+
+```{r}
+df |> 
+  select(timestamp, pH_cal) |> 
+  dygraph(group = "recent") |> 
+  dyRangeSelector()
+```
+
+
+```{r}
+df |> 
+  select(timestamp, w) |> 
+  dygraph(group = "recent") |> 
+  dyRangeSelector()
+```
+
+```{r}
+df |> 
+  select(timestamp, amp1) |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
+```{r}
+df |> 
+  ggplot(aes(u, corr1)) +
+  geom_point()
+```
+
+
+```{r}
+df |> 
+  select(timestamp, pressure) |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
+Minute averages
+
+```{r}
+ds_minute <- open_dataset(file.path(data_dir, "lecs_adv_minute.parquet"))
+df_min <- ds_minute |> 
+  collect()
+```
+
+```{r}
+df_min |> 
+  select(timestamp, pressure) %>% 
+  dygraph(group = "minute") |> 
+  dyRangeSelector()
+```
+
+
+```{r}
+df_min |> 
+  select(timestamp, pH_cal) %>% 
+  dygraph(group = "minute") |> 
+  dyRangeSelector()
+```
+
+hourly averages
 
 ```{r}
 ds_hourly <- open_dataset(file.path(data_dir, "lecs_adv_hourly.parquet"))
 ds_hourly |> 
-  select(timestamp, pH) %>% 
+  select(timestamp, pH_cal) %>% 
   collect() %>% 
   dygraph()
 ```
+
+4hz data
 
 Check 4Hz resample. Should be missing sends.
 
 ```{r}
 ds_4hz_all <- open_dataset(file.path(data_dir, "lecs_adv_4hz.parquet"))
+```
 
+
+Duplicates? No, resampling will average duplicates from upstream timeseries.
+
+```{r}
+ds_4hz_all |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+```
+
+```{r}
 ds_4hz_all |> 
   select(timestamp, pH_cal) |>
   filter(timestamp > "2024-04-01 04:09:00") |> 
@@ -69,26 +253,51 @@ ds_4hz_imp |>
   View()
 ```
 
-```{r}
-ds_4hz_imp_grp <- ds_4hz_imp %>% 
-  mutate(is_gap = is.na(pH) & !is.na(lag(pH, default = NA))) %>%
-  mutate(group = cumsum(is_gap) + 1) %>%
-  select(-is_gap) %>% 
-  drop_na()
-```
-
 Group sizes
 
 ```{r}
-grp_size <- df_4hz_all_imp_grp %>% 
+ds_4hz_imp_grp <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp.parquet"))
+```
+
+```{r}
+nrow(ds_4hz_imp_grp)
+
+grp_size <- ds_4hz_imp_grp %>% 
   group_by(group) %>% 
-  summarize(N = n()) 
+  summarize(timestamp = min(timestamp), N = n())
+```
 
-grp_size %>% 
-  summarize(mean = mean(N), median = median(N), max = max(N))
+```{r}
+grp_size |> 
+  filter(N > (4*60*15)) |> 
+  mutate(timestamp = floor_date(timestamp, "day")) |> 
+  group_by(timestamp) |> 
+  summarize(N = n()) |> 
+  collect() |> 
+  ggplot(aes(timestamp, N)) + 
+  geom_point()
+  
+```
 
-grp_size %>% 
-  ggplot(aes(group, N)) + geom_point()
+
+```{r}
+grp_day <- grp_size %>% 
+  mutate(timestamp = floor_date(timestamp, "day")) |> 
+  group_by(timestamp) |> 
+  summarize(mean = mean(N),
+            median = median(N), 
+            min = min(N), 
+            max = max(N),
+  )
+  
+grp_day |> 
+  collect() |> 
+  pivot_longer(cols = c(min, median, max), values_to = "N", names_to = "sumtype") |> 
+ggplot(aes(timestamp, N/4/60, color = sumtype)) + geom_point() +
+  scale_y_log10() +
+  labs(title = "Continuous group sizes by day",
+       x = "",
+       y = "Group length [min]")
 ```
 
 check missingness with imputeTS

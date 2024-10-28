@@ -124,3 +124,32 @@ df_4hz_all_imp %>%
   group_by(year = year(timestamp), month = month(timestamp)) %>% 
   write_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet"))
 ```
+
+Add groups representing continuous data
+
+```{r}
+ds_4hz_all_imp <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet"))
+
+imp_grps <- ds_4hz_all_imp |> 
+  arrange(timestamp) |> 
+  select(pH_cal) |> 
+  collect() |> 
+  mutate(is_gap = is.na(pH_cal) & !is.na(lag(pH_cal, default = NA))) |> 
+  mutate(group = cumsum(is_gap) + 1) |> 
+  pull(group)
+
+df_4hz_imp_grp <- ds_4hz_imp |> 
+  arrange(timestamp) |> 
+  collect() |> 
+  mutate(group = imp_grps)
+```
+
+remove NA's and write to parquet
+
+```{r}
+df_4hz_imp_grp |> 
+  drop_na(pressure) |> 
+  group_by(year = year(timestamp), month = month(timestamp)) |> 
+  write_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp.parquet"))
+```
+
