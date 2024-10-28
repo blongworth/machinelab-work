@@ -1,0 +1,206 @@
+---
+title: "Met and status data"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dygraphs)
+
+data_dir <- "data/processed/surface"
+```
+
+# Met data
+
+```{r}
+ds <- open_dataset(file.path(data_dir, "lecs_met.parquet"))
+```
+
+Dimensions
+
+```{r}
+names(ds)
+nrow(ds)
+```
+
+```{r}
+ds |> 
+  summarize(time_min = min(timestamp), 
+            time_max = max(timestamp) 
+  ) |> 
+  collect()
+```
+
+Duplicates?
+
+```{r}
+ds |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+```
+
+## PAR
+
+PAR looks pretty questionable. 
+Is noise clouds, electronic issues or something else.
+
+TODO: Calibrate by codeployment with radiometer.
+TODO: Denoise?
+TODO: Test system (codeployment will be initial test)
+
+```{r}
+ds |> 
+  select(timestamp, PAR) |> 
+  collect() |> 
+  dygraph()
+```
+## Wind
+
+```{r}
+ds |> 
+  select(timestamp, wind_speed) |> 
+  collect() |> 
+  dygraph()
+```
+
+
+```{r}
+ds |> 
+  select(timestamp, wind_dir) |> 
+  collect() |> 
+  dygraph()
+```
+
+# Status
+
+```{r}
+status <- open_dataset(file.path(data_dir, "lecs_status.parquet"))
+```
+
+Dimensions
+
+```{r}
+names(status)
+nrow(status)
+```
+
+```{r}
+status |> 
+  summarize(time_min = min(timestamp), 
+            time_max = max(timestamp) 
+  ) |> 
+  collect()
+```
+
+Duplicates?
+
+```{r}
+ds |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+```
+
+minute average
+
+```{r}
+st_min <- status |> 
+  mutate(timestamp = floor_date(timestamp, "minutes")) |> 
+  group_by(timestamp) |> 
+  summarise(across(!adv_timestamp,
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup()
+```
+
+## Battery    
+
+```{r}
+st_min |> 
+  select(timestamp, bat) |> 
+  collect() |> 
+  dygraph()
+```
+
+daily average
+
+```{r}
+status |> 
+  mutate(timestamp = floor_date(timestamp, "day")) |> 
+  group_by(timestamp) |> 
+  summarise(across(!adv_timestamp,
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup() |> 
+  select(timestamp, bat) |> 
+  collect() |> 
+  dygraph()
+```
+
+## IMU
+
+```{r}
+st_min |> 
+  select(timestamp, pitch, roll) |> 
+  collect() |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
+bad IMU data
+
+```{r}
+status |> 
+  select(timestamp, pitch, roll, heading) |> 
+  filter(timestamp > "2023-10-05 00:00:00",
+         timestamp < "2023-10-07 00:00:00") |> 
+  collect() |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
+Tag points where lander is reoriented
+
+```{r}
+library(dplyr)
+library(slider)
+
+detect_mean_changes <- function(df, ts_col, window_size = 10, threshold = 2) {
+  df %>%
+    mutate(
+      running_mean = slide_dbl({{ts_col}}, 
+                              mean,
+                              .before = floor(window_size/2),
+                              .after = floor(window_size/2),
+                              .complete = FALSE),
+      mean_change = running_mean - lag(running_mean),
+      is_change_point = abs(mean_change) > threshold
+    )
+}
+
+lander_change <- st_min |> 
+  select(timestamp, roll) |> 
+  collect() |> 
+  detect_mean_changes(roll)
+```
+
+```{r}
+lander_change |> 
+  select(timestamp, roll, is_change_point) |> 
+  mutate(is_change_point = is_change_point * 200) |> 
+  dygraph()
+```
+
+soundspeed
+
+```{r}
+st_min |> 
+  select(timestamp, soundspeed) |> 
+  collect() |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
