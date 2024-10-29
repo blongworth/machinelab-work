@@ -8,6 +8,7 @@ editor: source
 library(tidyverse)
 library(arrow)
 library(dygraphs)
+library(suntools)
 
 data_dir <- "data/processed/surface"
 ```
@@ -58,6 +59,55 @@ ds |>
   collect() |> 
   dygraph()
 ```
+
+
+calculate potential insolation curve to help correct timestamps
+
+```{r}
+crds <- matrix(c(-70.7003, 41.51875), nrow = 1)
+
+# calculate predicted par from solar azimuth
+pred_par <- function(crds, timestamp) {
+  altitude <- solarpos(crds, timestamp)[,2]
+  altitude <- replace(altitude, altitude <= 0, 0)
+  insolation = sin(altitude * pi / 180)
+  par = 0.45 * insolation * 4.6 * 1000
+  par
+}    
+
+par_15m <- ds |> 
+  mutate(timestamp = floor_date(timestamp, "15min")) |>
+  group_by(timestamp) |>
+  summarize(par = mean(PAR)) |>
+  ungroup() |>
+  collect() |> 
+  mutate(#timestamp = timestamp + 3600 * 4, # time offset
+         par = par/117 - 25, # approximate par calibration umol/m2/s
+         pred_par = pred_par(crds, timestamp))
+
+par_15m |> 
+  select(timestamp, par, pred_par) |> 
+  collect() |> 
+  dygraph(main = "LECS Surface PAR vs predicted PAR",
+          ylab = "PAR [µmol m<sup>-2</sup> s<sup>-1</sup>]") |> 
+  dyRangeSelector()
+```
+
+```{r}
+par_15m |> 
+  select(timestamp, par, pred_par) |> 
+  filter(timestamp > "2024-08-18",
+         timestamp < "2024-08-25") |> 
+  collect() |> 
+  pivot_longer(cols = c(par, pred_par), names_to = "type", values_to = "par") |> 
+  ggplot(aes(timestamp, par, color = type)) + 
+    geom_line()
+  dygraph(main = "LECS Surface PAR vs predicted PAR",
+          ylab = "PAR [µmol m<sup>-2</sup> s<sup>-1</sup>]") |> 
+  dyRangeSelector()
+
+```
+
 ## Wind
 
 ```{r}
