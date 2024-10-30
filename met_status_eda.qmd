@@ -53,7 +53,7 @@ TODO: Calibrate by codeployment with radiometer.
 TODO: Denoise?
 TODO: Test system (codeployment will be initial test)
 
-```{r}
+```{r, exec = FALSE}
 ds |> 
   select(timestamp, PAR) |> 
   collect() |> 
@@ -76,9 +76,12 @@ pred_par <- function(crds, timestamp) {
 }    
 
 par_15m <- ds |> 
+  rename(par = PAR) |> 
   mutate(timestamp = floor_date(timestamp, "15min")) |>
   group_by(timestamp) |>
-  summarize(par = mean(PAR)) |>
+  summarize(par = mean(par),
+            wind_speed = mean(wind_speed),
+            wind_dir = mean(wind_dir)) |>
   ungroup() |>
   collect() |> 
   mutate(#timestamp = timestamp + 3600 * 4, # time offset
@@ -90,6 +93,7 @@ par_15m |>
   collect() |> 
   dygraph(main = "LECS Surface PAR vs predicted PAR",
           ylab = "PAR [µmol m<sup>-2</sup> s<sup>-1</sup>]") |> 
+  #dySeries("wind_speed", axis = "y2", color = "lightblue", drawPoints = TRUE, strokeWidth = 0) |> 
   dyRangeSelector()
 ```
 
@@ -102,10 +106,6 @@ par_15m |>
   pivot_longer(cols = c(par, pred_par), names_to = "type", values_to = "par") |> 
   ggplot(aes(timestamp, par, color = type)) + 
     geom_line()
-  dygraph(main = "LECS Surface PAR vs predicted PAR",
-          ylab = "PAR [µmol m<sup>-2</sup> s<sup>-1</sup>]") |> 
-  dyRangeSelector()
-
 ```
 
 ## Wind
