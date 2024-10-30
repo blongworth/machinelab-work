@@ -54,16 +54,15 @@ sp_jul <- read_excel("data/SeapHOx Data/Seaphox_LECS_072423.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 4 * 60 * 60,
-         oxygen = o2_ml_l_to_umol_l(oxygen, temp)) |>
-  filter(timestamp > "2023-07-24 17:00:00",
-                 timestamp < "2023-08-09 8:00:00")
+  mutate(oxygen = o2_ml_l_to_umol_l(oxygen, temp)) |>
+  filter(timestamp > "2023-07-25 01:00:00",
+                 timestamp < "2023-08-09 9:00:00")
 ```
 
 check alignment with LECS data
 
 ```{r}
-lecs_jul <- get_lecs(ds, "2023-07-24 17:00:00", "2023-08-09 8:00:00")
+lecs_jul <- get_lecs(ds, "2023-07-25 01:00:00", "2023-08-09 9:00:00")
 
 ggplot(sp_jul, aes(timestamp, pH)) +
   geom_line() +
@@ -73,10 +72,12 @@ ggplot(sp_jul, aes(timestamp, pH)) +
 oxygen
 
 ```{r}
-ggplot(sp_jul, aes(timestamp, oxygen)) +
+sp_jul |> 
+ggplot(aes(timestamp, oxygen)) +
   geom_line() +
   geom_line(data = lecs_jul, aes(timestamp, lecs_oxy), color = "blue") +
-  ylab("Oxygen [umol/l]")
+  ylab("Oxygen [umol/l]") 
+
 ```
 
 ### Oct calibration
@@ -90,10 +91,10 @@ sp_oct <- read_excel("data/SeapHOx Data/Seaphox_LECS_10052023.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 4 * 60 * 60,
+  mutate(#timestamp = timestamp - 4 * 60 * 60,
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
-sp_oct <- filter(sp_oct, timestamp > "2023-10-19 18:00:00",
+sp_oct <- filter(sp_oct, timestamp > "2023-10-19 22:00:00",
                  timestamp < "2023-11-02 04:00:00")
 ```
 
@@ -114,7 +115,8 @@ sp_oct_21 <- sp_oct |>
 
 ggplot(sp_oct_21, aes(timestamp, pH)) +
   geom_line() +
-  geom_line(data = lecs_oct_21, aes(timestamp, lecs_pH), color = "blue") 
+  geom_line(data = lecs_oct_21, aes(timestamp, lecs_pH), color = "blue")# +
+  #xlim(as.POSIXct(c("2023-10-19 15:00:00", "2023-10-19 20:00:00")))
 ```
 
 oxygen
@@ -138,7 +140,7 @@ sp_nov <- read_excel("data/SeapHOx Data/Seaphox_LECS_111523.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60,
+  mutate(timestamp = timestamp - 60 * 60, # LECS was on EDT, should be on EST
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_nov <- filter(sp_nov, timestamp > "2023-11-15 16:00:00",
@@ -171,7 +173,8 @@ oxygen
 ggplot(sp_nov, aes(timestamp, oxygen)) +
   geom_line() +
   geom_line(data = lecs_nov, aes(timestamp, lecs_oxy), color = "blue") +
-  ylab("Oxygen [umol/l]")
+  ylab("Oxygen [umol/l]") +
+  xlim(as.POSIXct(c("2023-11-20", "2023-11-21")))
 ```
 ## December calibration
 
@@ -186,7 +189,7 @@ sp_dec <- read_excel("data/SeapHOx Data/Seaphox_LECS_120723.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60,
+  mutate(timestamp = timestamp - 60 * 60, # LECS was on EDT, should be on EST
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_dec <- filter(sp_dec, timestamp > "2023-12-08 06:00:00",
@@ -219,7 +222,8 @@ oxygen
 ggplot(sp_dec, aes(timestamp, oxygen)) +
   geom_line() +
   geom_line(data = lecs_dec, aes(timestamp, lecs_oxy), color = "blue") +
-  ylab("Oxygen [umol/l]")
+  ylab("Oxygen [umol/l]") +
+  xlim(as.POSIXct(c("2023-12-13 12:00:00", "2023-12-13 16:00:00")))
 ```
 ## Jan calibration
 
@@ -227,7 +231,7 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_jan <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_122223.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60,
+  mutate(timestamp = timestamp - 60 * 60,
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_jan <- filter(sp_jan, timestamp > "2023-12-22 14:00:00",
@@ -271,7 +275,7 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_apr <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240401.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60,
+  mutate(timestamp = timestamp - 60 * 60,
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_apr %>% 
@@ -308,7 +312,7 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_may <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240514.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60,
+  mutate(#timestamp = timestamp - 60 * 60,
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_may %>% 
@@ -329,7 +333,8 @@ lecs_may <- get_lecs(ds, "2024-04-25 14:00:00","2024-05-01 11:00:00")
 
 ggplot(sp_may, aes(timestamp, pH)) +
   geom_line() +
-  geom_line(data = lecs_may, aes(timestamp, lecs_pH), color = "blue") 
+  geom_line(data = lecs_may, aes(timestamp, lecs_pH), color = "blue") +
+  xlim(as.POSIXct(c("2024-04-27 00:00:00", "2024-04-27 10:00:00")))
 ```
 
 ```{r}
@@ -346,7 +351,7 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_jun <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240621.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60,
+  mutate(#timestamp = timestamp - 5 * 60 * 60,
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_jun %>% 
@@ -400,7 +405,7 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_aug <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240815.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60,
+  mutate(#timestamp = timestamp - 5 * 60 * 60,
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_aug %>% 
@@ -440,7 +445,7 @@ This is mid sept deployment
 
 ```{r}
 sp_sep <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240917.csv") |> 
-  mutate(timestamp = timestamp - 5 * 60 * 60,
+  mutate(#timestamp = timestamp - 5 * 60 * 60,
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_sep %>% 
