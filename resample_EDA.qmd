@@ -10,6 +10,7 @@ library(arrow)
 library(dygraphs)
 library(tictoc)
 library(imputeTS)
+library(rtide)
 
 options(digits.secs = 6)
 
@@ -209,6 +210,25 @@ ds_hourly |>
   collect() %>% 
   dygraph()
 ```
+
+Compare pressure to predicted tide heights
+
+```{r}
+tp <- ds_hourly |> 
+  mutate(Station = "Woods Hole, Buzzards Bay, Massachusetts",
+         DateTime = timestamp) |> 
+  collect() 
+         
+tp <- tide_height_data(tp)
+```
+
+```{r}
+tp |> 
+  select(timestamp, pressure, TideHeight) |> 
+  dygraph() |> 
+  dyRangeSelector()
+```
+
 
 4hz data
 
