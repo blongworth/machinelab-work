@@ -91,8 +91,7 @@ sp_oct <- read_excel("data/SeapHOx Data/Seaphox_LECS_10052023.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(#timestamp = timestamp - 4 * 60 * 60,
-         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
+  mutate(oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_oct <- filter(sp_oct, timestamp > "2023-10-19 22:00:00",
                  timestamp < "2023-11-02 04:00:00")
@@ -275,7 +274,7 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_apr <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_20240401.csv") |> 
-  mutate(timestamp = timestamp - 60 * 60,
+  mutate(#timestamp = timestamp - 60 * 60,
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_apr %>% 
@@ -322,7 +321,7 @@ sp_may %>%
 
 
 ```{r}
-sp_may <- filter(sp_may, timestamp > "2024-04-25 14:00:00",
+sp_may <- filter(sp_may, timestamp > "2024-04-25 17:00:00",
                  timestamp < "2024-05-01 10:54:00")
 ```
 
