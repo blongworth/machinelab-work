@@ -18,7 +18,7 @@ How to divide up remaining points and group
 ```{r}
 library(tidyverse)
 library(arrow)
-library(tictoc)
+# library(tictoc)
 library(imputeTS)
 
 options(digits.secs = 6)
@@ -88,28 +88,35 @@ ds_4hz <- ds |>
   group_by(timestamp) |> 
   summarise(across(everything(), 
                    ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup()
+  ungroup() |> 
+  compute()
 ```
 
 create complete 4Hz timeseries and join to add NA's for missing data
 
 ```{r}
-df_4hz <- ds_4hz |> 
-  arrange(timestamp) |> 
+# df_4hz <- ds_4hz |> 
+#   arrange(timestamp) |> 
+#   collect()
+
+st_et <- ds_4hz |> 
+  select(timestamp) |> 
+  summarize(time_min = min(timestamp), 
+            time_max = max(timestamp) 
+  ) |> 
   collect()
 
-st <- min(df_4hz$timestamp, na.rm = TRUE) 
-et <- max(df_4hz$timestamp, na.rm = TRUE) 
-ts_4hz <- seq(from = st, to = et, by = 0.25) 
+ts_4hz <- seq(from = st_et$time_min, to = st_et$time_max, by = 0.25) 
 
-df_ts_4hz <- tibble(timestamp = ts_4hz)
+ds_ts_4hz <- tibble(timestamp = ts_4hz) |> 
+  arrow_table()
 
-df_4hz_all <- df_ts_4hz |> 
-  left_join(df_4hz)
+ds_4hz_all <- ds_ts_4hz |> 
+  left_join(ds_4hz)
 ```
 
 ```{r}
-df_4hz_all %>% 
+ds_4hz_all %>% 
   group_by(year = year(timestamp), month = month(timestamp)) %>% 
   write_dataset(file.path(data_dir, "lecs_adv_4hz.parquet"))
 ```
@@ -117,7 +124,8 @@ df_4hz_all %>%
 Impute by interpolation with a max gap of 1sec.
 
 ```{r}
-df_4hz_all_imp <- df_4hz_all %>% 
+df_4hz_all_imp <- ds_4hz_all %>% 
+  collect() |> 
   mutate(across(-timestamp, \(x) na_interpolation(x, maxgap = 4)))
 
 df_4hz_all_imp %>% 
@@ -128,20 +136,11 @@ df_4hz_all_imp %>%
 Add groups representing continuous data
 
 ```{r}
-ds_4hz_all_imp <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet"))
-
-imp_grps <- ds_4hz_all_imp |> 
+df_4hz_imp_grp <- df_4hz_all_imp |> 
   arrange(timestamp) |> 
-  select(pH_cal) |> 
-  collect() |> 
   mutate(is_gap = is.na(pH_cal) & !is.na(lag(pH_cal, default = NA))) |> 
   mutate(group = cumsum(is_gap) + 1) |> 
-  pull(group)
-
-df_4hz_imp_grp <- ds_4hz_imp |> 
-  arrange(timestamp) |> 
-  collect() |> 
-  mutate(group = imp_grps)
+  select(-is_gap)
 ```
 
 remove NA's and write to parquet
@@ -152,4 +151,6 @@ df_4hz_imp_grp |>
   group_by(year = year(timestamp), month = month(timestamp)) |> 
   write_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp.parquet"))
 ```
+
+TODO: divide up big groups
 

@@ -287,6 +287,8 @@ grp_size <- ds_4hz_imp_grp %>%
   summarize(timestamp = min(timestamp), N = n())
 ```
 
+Number of > 15min groups per day
+
 ```{r}
 grp_size |> 
   filter(N > (4*60*15)) |> 
