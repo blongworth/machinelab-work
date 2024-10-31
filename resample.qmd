@@ -20,6 +20,7 @@ library(tidyverse)
 library(arrow)
 # library(tictoc)
 library(imputeTS)
+library(polars)
 
 options(digits.secs = 6)
 
@@ -80,43 +81,32 @@ df_imp <- ds %>%
 ```
 
 resample to 4Hz
+create complete 4Hz timeseries and join to add NA's for missing data
 
 ```{r}
-ds_4hz <- ds |> 
+df_4hz <- ds |> 
   select(-c(year, month)) |> 
   mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
   group_by(timestamp) |> 
   summarise(across(everything(), 
                    ~ mean(.x, na.rm = TRUE))) |> 
   ungroup() |> 
-  compute()
-```
-
-create complete 4Hz timeseries and join to add NA's for missing data
-
-```{r}
-# df_4hz <- ds_4hz |> 
-#   arrange(timestamp) |> 
-#   collect()
-
-st_et <- ds_4hz |> 
-  select(timestamp) |> 
-  summarize(time_min = min(timestamp), 
-            time_max = max(timestamp) 
-  ) |> 
+  arrange(timestamp) |>
   collect()
 
-ts_4hz <- seq(from = st_et$time_min, to = st_et$time_max, by = 0.25) 
+st <- min(df_4hz$timestamp) 
+et <- max(df_4hz$timestamp) 
 
-ds_ts_4hz <- tibble(timestamp = ts_4hz) |> 
-  arrow_table()
+ts_4hz <- seq(from = st, to = et, by = 0.25) 
 
-ds_4hz_all <- ds_ts_4hz |> 
-  left_join(ds_4hz)
+df_ts_4hz <- tibble(timestamp = ts_4hz)
+
+df_4hz_all <- df_ts_4hz |> 
+  left_join(df_4hz)
 ```
 
 ```{r}
-ds_4hz_all %>% 
+df_4hz_all %>% 
   group_by(year = year(timestamp), month = month(timestamp)) %>% 
   write_dataset(file.path(data_dir, "lecs_adv_4hz.parquet"))
 ```
@@ -124,8 +114,7 @@ ds_4hz_all %>%
 Impute by interpolation with a max gap of 1sec.
 
 ```{r}
-df_4hz_all_imp <- ds_4hz_all %>% 
-  collect() |> 
+df_4hz_all_imp <- df_4hz_all %>% 
   mutate(across(-timestamp, \(x) na_interpolation(x, maxgap = 4)))
 
 df_4hz_all_imp %>% 
@@ -134,23 +123,81 @@ df_4hz_all_imp %>%
 ```
 
 Add groups representing continuous data
-
-```{r}
-df_4hz_imp_grp <- df_4hz_all_imp |> 
-  arrange(timestamp) |> 
-  mutate(is_gap = is.na(pH_cal) & !is.na(lag(pH_cal, default = NA))) |> 
-  mutate(group = cumsum(is_gap) + 1) |> 
-  select(-is_gap)
-```
-
 remove NA's and write to parquet
 
 ```{r}
+df_4hz_all_imp <-  open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet")) |> 
+  arrange(timestamp) |> 
+  collect()
+
+df_4hz_imp_grp <- df_4hz_all_imp |> 
+  mutate(is_gap = is.na(pH_cal) & !is.na(lag(pH_cal, default = NA))) |> 
+  mutate(group = cumsum(is_gap) + 1) |> 
+  select(-is_gap) |> 
+  drop_na(pressure)
+```
+
+```{r}
 df_4hz_imp_grp |> 
-  drop_na(pressure) |> 
   group_by(year = year(timestamp), month = month(timestamp)) |> 
   write_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp.parquet"))
 ```
 
-TODO: divide up big groups
+divide up big groups
+
+10 min blocks starting from beginning of group
+
+```{r}
+df_grp <- df_4hz_imp_grp  |> 
+  group_by(group) |> 
+  mutate(group_start = min(timestamp),
+         block_start = difftime(timestamp, group_start, units = "mins") == 10,
+         block_start = if_else(timestamp == group_start, TRUE, block_start)) |> 
+  ungroup() |> 
+  mutate(block = cumsum(block_start) + 1) |> 
+  select(-c(group_start, block_start))
+```
+
+10 min blocks within groups
+
+```{r}
+df_grp <- df_4hz_imp_grp  |> 
+  group_by(group) |> 
+  mutate(block_time = floor_date(timestamp, unit = "10min"),
+         block_start = block_time != lag(block_time),
+         block_start = if_else(is.na(block_start), TRUE, block_start)) |> 
+  ungroup() |> 
+  mutate(block = cumsum(block_start) + 1) |> 
+  select(-c(block_time, block_start))
+
+```
+
+```{r}
+df_grp |> 
+  group_by(year, month) |> 
+  write_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_10.parquet"))
+```
+
+```{r eval=FALSE}
+df <- pl$read_parquet(file.path(data_dir, "lecs_adv_4hz_imp_grp.parquet"))
+
+# Optionally sort by timestamp first
+df = df$sort("timestamp")
+
+# Group by an existing group column and create 10-minute intervals within each group
+result = df$with_columns(
+    # Create 10-minute groups within each existing group
+    minute_group = pl$col("timestamp")$over("group")$floor("10m")
+)
+
+# Optional: Aggregate within these groups
+grouped_result = result.group_by("group", "minute_group").agg([
+    pl.count().alias("count"),
+    pl.col("timestamp").min().alias("min_timestamp"),
+    pl.col("timestamp").max().alias("max_timestamp")
+])
+
+# Print or further process the results
+print(grouped_result)
+```
 

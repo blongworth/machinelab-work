@@ -79,3 +79,8 @@ ds_filt |>
   group_by(year = year(timestamp), month = month(timestamp)) |> 
   write_dataset(file.path(data_dir, "lecs_adv_filt.parquet"))
 ```
+
+```{r}
+dbDisconnect(con)
+```
+

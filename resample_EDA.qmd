@@ -282,16 +282,17 @@ ds_4hz_imp_grp <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp.parquet
 ```{r}
 nrow(ds_4hz_imp_grp)
 
-grp_size <- ds_4hz_imp_grp %>% 
+grp_size <- df_grp %>% 
   group_by(group) %>% 
-  summarize(timestamp = min(timestamp), N = n())
+  summarize(timestamp = min(timestamp), N = n(),
+            dur = max(timestamp) - min(timestamp))
 ```
 
 Number of > 15min groups per day
 
 ```{r}
 grp_size |> 
-  filter(N > (4*60*15)) |> 
+  filter(N >= (4*60*8)) |> 
   mutate(timestamp = floor_date(timestamp, "day")) |> 
   group_by(timestamp) |> 
   summarize(N = n()) |> 
@@ -320,6 +321,68 @@ ggplot(aes(timestamp, N/4/60, color = sumtype)) + geom_point() +
   labs(title = "Continuous group sizes by day",
        x = "",
        y = "Group length [min]")
+```
+
+Block sizes
+
+```{r}
+ds_4hz_imp_grp_10 <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_10.parquet"))
+```
+
+```{r}
+ds_4hz_imp_grp_10 |> 
+  select(timestamp, pH, pH_cal, group, block) |>
+  filter(timestamp > "2024-04-01 04:09:00") |> 
+  arrange(timestamp) |>
+  head(n = 1000) |>
+  collect() |> 
+  View()
+```
+
+```{r}
+grp_size <- ds_4hz_imp_grp_10 %>% 
+  group_by(block) %>% 
+  summarize(timestamp = min(timestamp), N = n())
+```
+
+Number of > 15min groups per day
+
+```{r}
+grp_size |> 
+  filter(N >= (4*60*10)) |> 
+  mutate(timestamp = floor_date(timestamp, "day")) |> 
+  group_by(timestamp) |> 
+  summarize(N = n()) |> 
+  collect() |> 
+  ggplot(aes(timestamp, N/(6*24))) + 
+  geom_point() +
+  ggtitle("ADV contiguous 10 min blocks") +
+  ylab("Fraction of possible blocks per day") +
+  ylim(0,1
+       )
+  
+```
+
+should not have groups longer than 10 min.
+
+```{r}
+grp_day <- grp_size %>% 
+  mutate(timestamp = floor_date(timestamp, "day")) |> 
+  group_by(timestamp) |> 
+  summarize(mean = mean(N),
+            median = median(N), 
+            min = min(N), 
+            max = max(N),
+  )
+  
+grp_day |> 
+  collect() |> 
+  pivot_longer(cols = c(min, median, max), values_to = "N", names_to = "sumtype") |> 
+ggplot(aes(timestamp, N/4/60, color = sumtype)) + geom_point() +
+  #scale_y_log10() +
+  labs(title = "Continuous group sizes by day",
+       x = "",
+       y = "Group length [min]") 
 ```
 
 check missingness with imputeTS
