@@ -292,7 +292,7 @@ Number of > 15min groups per day
 
 ```{r}
 grp_size |> 
-  filter(N >= (4*60*8)) |> 
+  filter(N >= (4*60*10)) |> 
   mutate(timestamp = floor_date(timestamp, "day")) |> 
   group_by(timestamp) |> 
   summarize(N = n()) |> 
@@ -345,7 +345,7 @@ grp_size <- ds_4hz_imp_grp_10 %>%
   summarize(timestamp = min(timestamp), N = n())
 ```
 
-Number of > 15min groups per day
+Number of > 10min groups per day
 
 ```{r}
 grp_size |> 
@@ -383,6 +383,17 @@ ggplot(aes(timestamp, N/4/60, color = sumtype)) + geom_point() +
   labs(title = "Continuous group sizes by day",
        x = "",
        y = "Group length [min]") 
+```
+
+Daily distribution of groups
+
+```{r}
+grp_size <- collect(grp_size)
+
+grp_size |> 
+  filter(N >= 4 * 60 * 10) |> 
+  ggplot(aes(hour(timestamp))) +
+  geom_histogram(binwidth = 1, color = "lightblue")
 ```
 
 check missingness with imputeTS
