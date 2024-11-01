@@ -71,16 +71,6 @@ write_dataset(ds_minute,
 
 Resample to 4Hz and impute missing data
 
-Impute full timeseries for up to 4 missing samples at 16Hz. Need to populate NA's first!
-Also takes a loooooong time. Not doing this way for now.
-
-```{r, eval=FALSE}
-df_imp <- ds %>% 
-  collect() %>% 
-  mutate(across(-timestamp, \(x) na_locf(x, maxgap = 4)))
-```
-
-resample to 4Hz
 create complete 4Hz timeseries and join to add NA's for missing data
 
 ```{r}
@@ -126,9 +116,9 @@ Add groups representing continuous data
 remove NA's and write to parquet
 
 ```{r}
-df_4hz_all_imp <-  open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet")) |> 
-  arrange(timestamp) |> 
-  collect()
+# df_4hz_all_imp <-  open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet")) |> 
+#   arrange(timestamp) |> 
+#   collect()
 
 df_4hz_imp_grp <- df_4hz_all_imp |> 
   mutate(is_gap = is.na(pH_cal) & !is.na(lag(pH_cal, default = NA))) |> 
@@ -144,19 +134,6 @@ df_4hz_imp_grp |>
 ```
 
 divide up big groups
-
-10 min blocks starting from beginning of group
-
-```{r}
-df_grp <- df_4hz_imp_grp  |> 
-  group_by(group) |> 
-  mutate(group_start = min(timestamp),
-         block_start = difftime(timestamp, group_start, units = "mins") == 10,
-         block_start = if_else(timestamp == group_start, TRUE, block_start)) |> 
-  ungroup() |> 
-  mutate(block = cumsum(block_start) + 1) |> 
-  select(-c(group_start, block_start))
-```
 
 10 min blocks within groups
 
@@ -177,27 +154,3 @@ df_grp |>
   group_by(year, month) |> 
   write_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_10.parquet"))
 ```
-
-```{r eval=FALSE}
-df <- pl$read_parquet(file.path(data_dir, "lecs_adv_4hz_imp_grp.parquet"))
-
-# Optionally sort by timestamp first
-df = df$sort("timestamp")
-
-# Group by an existing group column and create 10-minute intervals within each group
-result = df$with_columns(
-    # Create 10-minute groups within each existing group
-    minute_group = pl$col("timestamp")$over("group")$floor("10m")
-)
-
-# Optional: Aggregate within these groups
-grouped_result = result.group_by("group", "minute_group").agg([
-    pl.count().alias("count"),
-    pl.col("timestamp").min().alias("min_timestamp"),
-    pl.col("timestamp").max().alias("max_timestamp")
-])
-
-# Print or further process the results
-print(grouped_result)
-```
-

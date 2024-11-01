@@ -34,6 +34,8 @@ Open dataset
 ds <- open_dataset(file.path(data_dir, "lecs_adv_filt.parquet"))
 ```
 
+
+
 # Calibration
 
 Calibrate full data set
@@ -43,7 +45,7 @@ add col for calibration periods
 ```{r}
 ds <- ds |> 
   mutate(ph_group = 0L,
-         ph_group = ifelse(timestamp > "2023-12-22 11:00:00", 1, ph_group),
+         ph_group = ifelse(timestamp > "2023-12-22 12:00:00", 1, ph_group),
          ph_group = ifelse(timestamp > "2024-06-05 15:25:00", 2, ph_group))
 ```
 
@@ -93,11 +95,10 @@ sp_nov <- read_excel("data/SeapHOx Data/Seaphox_LECS_111523.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 60 * 60, # LECS was on EDT, should be on EST
-         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
+  mutate(oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_nov <- filter(sp_nov, timestamp > "2023-11-15 16:00:00",
-                 timestamp < "2023-11-21 04:00:00")
+                 timestamp < "2023-11-21 05:00:00")
 ```
 
 ## December calibration
@@ -113,11 +114,10 @@ sp_dec <- read_excel("data/SeapHOx Data/Seaphox_LECS_120723.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-   mutate(timestamp = timestamp - 60 * 60, # LECS was on EDT, should be on EST
-         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
+   mutate(oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
-sp_dec <- filter(sp_dec, timestamp > "2023-12-08 06:00:00",
-                 timestamp < "2023-12-14 09:00:00")
+sp_dec <- filter(sp_dec, timestamp > "2023-12-08 07:00:00",
+                 timestamp < "2023-12-14 10:00:00")
 ```
 
 ## Jan calibration
@@ -126,11 +126,10 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_jan <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_122223.csv") |> 
-  mutate(timestamp = timestamp - 60 * 60, # LECS was on EDT, should be on EST
-         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
+  mutate(oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
-sp_jan <- filter(sp_jan, timestamp > "2023-12-22 14:00:00",
-                 timestamp < "2024-01-03 05:00:00")
+sp_jan <- filter(sp_jan, timestamp > "2023-12-22 15:00:00",
+                 timestamp < "2024-01-03 06:00:00")
 ```
 
 ## Apr 2024 calibration
@@ -362,44 +361,6 @@ i_fit_0 <- i_ap_fun(df$timestamp)
 o_fit_0 <- o_ap_fun(df$timestamp)
 ```
 
-### Jan-Jun fit
-
-make df with timestamp and cal factors
-
-```{r, eval=FALSE}
-cals <- list(sp_jan, sp_may)
-coefs <- bind_rows(jan_coef, may_coef)
-cal_time <- map(cals, ~mean(.x$timestamp))
-cal_time <- do.call(c, cal_time)
-cal_df <- bind_cols(as.data.frame(cal_time), coefs)
-```
-
-```{r, eval = FALSE}
-i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
-o_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_oxy, rule = 2)
-i_fit_1 <- i_ap_fun(df$timestamp)
-o_fit_1 <- t_ap_fun(df$timestamp)
-```
-
-### Jun-Sep fit
-
-make df with timestamp and cal factors
-
-```{r, eval = FALSE}
-cals <- list(sp_aug, sp_sep)
-coefs <- bind_rows(aug_coef, sep_coef)
-cal_time <- map(cals, ~mean(.x$timestamp))
-cal_time <- do.call(c, cal_time)
-cal_df <- bind_cols(as.data.frame(cal_time), coefs)
-```
-
-```{r, eval = FALSE}
-i_ap_fun <- approxfun(cal_df$cal_time, cal_df$`(Intercept)`, rule = 2)
-o_ap_fun <- approxfun(cal_df$cal_time, cal_df$lecs_oxy, rule = 2)
-i_fit_2 <- i_ap_fun(df$timestamp)
-o_fit_2 <- t_ap_fun(df$timestamp)
-```
-
 Apply linear fit between calibrations
 
 ```{r}
@@ -407,10 +368,6 @@ df <- df %>%
   mutate(
     ox_i = i_fit_0,
     ox_o = o_fit_0,
-    # ox_i = ifelse(ph_group == 1, i_fit_1, ox_i),
-    # ox_o = ifelse(ph_group == 1, o_fit_1, ox_o),
-    # ox_i = ifelse(ph_group == 2, i_fit_2, ox_i),
-    # ox_o = ifelse(ph_group == 2, o_fit_2, ox_o),
   )
 ```
 

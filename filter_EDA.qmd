@@ -53,6 +53,49 @@ ds |>
   filter(n > 1) |> 
   collect()
 ```
+
+```{r}
+dsf1 <- ds |> 
+  filter(timestamp > "2023-01-01 00:00:00",
+         timestamp < "2023-12-01 00:00:00") 
+
+dss1 <- dsf1 |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+
+dsf2 <- ds |> 
+  filter(timestamp > "2023-12-01 00:00:00",
+         timestamp < "2024-06-01 00:00:00") 
+
+dss2 <- dsf2 |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+
+dsf3 <- ds |> 
+  filter(timestamp > "2024-06-01 00:00:00",
+         timestamp < "2024-10-01 00:00:00") 
+
+dss3 <- dsf3 |> 
+  group_by(timestamp) |> 
+  summarize(n = n()) |> 
+  filter(n > 1) |> 
+  collect()
+
+dss <- bind_rows(dss1, dss2, dss3)
+
+ggplot(dss, aes(timestamp)) +
+  geom_histogram(binwidth = 3600 * 24)
+```
+
+Are these cross-file duplicates due to timestamps out of whack?
+If so, why so few?
+
+# Minute averages
+
 Open minute averages to get proper ranges. Need to create hour or minute average dataset to do this
 
 ```{r}
@@ -103,7 +146,9 @@ ds |>
 ```{r}
 df_min |> 
   select(timestamp, pressure) |> 
-  dygraph()
+  dygraph() |> 
+  dyRangeSelector(
+  )
 ```
 
 # Check filtered data
