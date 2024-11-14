@@ -75,20 +75,22 @@ pred_par <- function(crds, timestamp) {
   par
 }    
 
-par_5m <- ds |> 
+par_10m <- ds |> 
   rename(par = PAR) |> 
-  mutate(timestamp = floor_date(timestamp, "5min")) |>
+  mutate(timestamp = floor_date(timestamp, "10min")) |>
   group_by(timestamp) |>
   summarize(par = mean(par),
             wind_speed = mean(wind_speed),
             wind_dir = mean(wind_dir)) |>
   ungroup() |>
   collect() |> 
-  mutate(#timestamp = timestamp + 3600 * 4, # time offset
-         par = par/117 - 25, # approximate par calibration umol/m2/s
+  mutate(par = par/117 - 25, # approximate par calibration umol/m2/s
          pred_par = pred_par(crds, timestamp))
+```
 
-par_5m |> 
+
+```{r}
+par_10m |> 
   select(timestamp, par, pred_par) |> 
   collect() |> 
   dygraph(main = "LECS Surface PAR vs predicted PAR",
@@ -98,7 +100,7 @@ par_5m |>
 ```
 
 ```{r}
-par_15m |> 
+par_10m |> 
   select(timestamp, par, pred_par) |> 
   filter(timestamp > "2024-08-18",
          timestamp < "2024-08-25") |> 
@@ -107,6 +109,53 @@ par_15m |>
   ggplot(aes(timestamp, par, color = type)) + 
     geom_line()
 ```
+
+### Underwater PAR
+
+```{r}
+
+od_file <- function(file) {
+  lecs_read_par_odyssey(file) |> 
+    mutate(file = basename(file))
+}
+
+par_files <- list.files("data/PAR", full.names = TRUE)
+
+uw_par <- map(par_files, od_file) |> 
+  list_rbind() |> 
+  mutate(
+    timestamp = case_when(
+      file == "lecs_par_odyssey_2023-10-05.csv" ~ timestamp + 4 * 3600,
+      file == "lecs_par_odyssey_2024-02-28.csv" &
+        timestamp < "2023-11-07 00:00:00"       ~ timestamp - 2 * 3600,
+      file == "lecs_par_odyssey_2024-02-28.csv" ~ timestamp + 4 * 3600,
+      file == "lecs_par_odyssey_2024-09-27.csv" & 
+        timestamp < "2024-03-24 00:00:00"       ~ timestamp - 1 * 3600,
+      file == "lecs_par_odyssey_2024-09-27.csv" ~ timestamp + 5 * 3600,
+    ),
+    cal_par = case_when(
+      file == "lecs_par_odyssey_2023-10-05.csv" ~ raw_par * 0.15,
+      file == "lecs_par_odyssey_2024-02-28.csv" ~ raw_par * 0.2,
+      file == "lecs_par_odyssey_2024-09-27.csv" ~ raw_par * 0.11,
+    ))
+
+uw_par_10 <- uw_par |> 
+  select(timestamp, cal_par) |> 
+  mutate(timestamp = floor_date(timestamp, "10min")) |> 
+  group_by(timestamp) |> 
+  summarize(uw_par = mean(cal_par)) |> 
+  mutate(pred_par = pred_par(crds, timestamp))
+
+# par_all <- par_10m |> 
+#   full_join(uw_par_10)
+```
+
+```{r}
+uw_par_10 |> 
+  select(timestamp, pred_par, uw_par) |> 
+  dygraph() |> 
+  dyRangeSelector()
+    ```
 
 ## Wind
 
@@ -264,38 +313,6 @@ status |>
   dyRangeSelector()
 ```
 
-Tag points where lander is reoriented
-
-```{r}
-library(dplyr)
-library(slider)
-
-detect_mean_changes <- function(df, ts_col, window_size = 10, threshold = 2) {
-  df %>%
-    mutate(
-      running_mean = slide_dbl({{ts_col}}, 
-                              mean,
-                              .before = floor(window_size/2),
-                              .after = floor(window_size/2),
-                              .complete = FALSE),
-      mean_change = running_mean - lag(running_mean),
-      is_change_point = abs(mean_change) > threshold
-    )
-}
-
-lander_change <- st_min |> 
-  select(timestamp, roll) |> 
-  collect() |> 
-  detect_mean_changes(roll)
-```
-
-```{r}
-lander_change |> 
-  select(timestamp, roll, is_change_point) |> 
-  mutate(is_change_point = is_change_point * 200) |> 
-  dygraph()
-```
-
 soundspeed
 
 ```{r}
@@ -305,4 +322,13 @@ st_min |>
   dygraph() |> 
   dyRangeSelector()
 ```
+
+## External sensor data
+
+
+```{r}
+dygraph(select(uw_par, timestamp, cal_par))
+max(uw_par$timestamp)
+```
+
 
