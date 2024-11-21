@@ -1,0 +1,136 @@
+---
+title: "matlab_fluxes"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(mlabtools)
+library(purrr)
+library(arrow)
+library(tictoc)
+library(patchwork)
+library(imputeTS)
+library(dygraphs)
+
+options(digits.secs = 6)
+
+theme_set(theme_classic())
+data_dir <- "data/processed/surface"
+```
+
+```{r}
+ds <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_10_mv.parquet/"))
+```
+
+## Extract data for flux analysis in matlab
+
+function to save as text file in matlab eddyfluxpHO2v_41 format
+
+```{r}
+#' Export LECS data in MATLAB eddyfluxpHO2v_41 format
+#'
+#' @param data A resampled, imputed LECS data_frame, grouped by gap-free runs
+#' @param min_time Remove chunks shorter than `min_time` hours
+#' @param data_file Output data filename
+#' @param timestamp_file Output gap-free timestamp file
+#'
+#' @return A list containing the output and timestamp data frames
+#' @export
+lecs_to_ml <- function(data,
+                       min_time = .25, 
+                       data_file = NULL, 
+                       timestamp_file = NULL) {
+  df <- data |>
+    mutate(time = as.numeric(difftime(timestamp, min(timestamp),
+                                      units = "hours")))
+  df_ml <- df |>
+    select(time, vx = u, vy = v, vz = w,
+           o2 = ox_umol_l_cal, ph = pH_cal, pres = pressure,
+           SNR = amp3, corr = corr3)
+  df_ml_ts <- df %>%
+    group_by(group) %>%
+    summarise(start = min(time),
+              end = max(time)) %>%
+    ungroup()
+  if (min_time > 0) {
+    df_ml_ts <- df_ml_ts |>
+      filter(end - start >= min_time)
+  }
+  if (!is.null(data_file)) {
+    write_delim(df_ml, data_file)
+  }
+  if (!is.null(timestamp_file)) {
+    df_ml_ts %>%
+      select(start, end) %>%
+      write_delim(timestamp_file,
+                  col_names = FALSE)
+  }
+  list(df_ml, df_ml_ts)
+}
+```
+
+test with one lander position
+
+```{r}
+df <- ds %>% 
+  filter(lander_position == 9) |>
+  arrange(timestamp) |> 
+  collect() |> 
+  lecs_to_ml(0.25, "../aec-tests/mltest/outfile1_lecstest.dat", "../aec-tests/mltest/lecstest_timestamps.dat")
+```
+
+generate files for all lander positions
+
+```{r}
+group_ml <- function(pos, ...) {
+  data_path = "data/processed/matlab_input"
+  data_file <- file.path(data_path, paste0("lecs_ml_data_", pos, ".dat"))
+  timestamp_file <- file.path(data_path, paste0("lecs_ml_timestamps_", pos, ".dat"))
+  
+  ds |> 
+    filter(lander_position == pos) |> 
+    arrange(timestamp) |> 
+    collect() |> 
+    lecs_to_ml(min_time = 0.25, data_file = data_file, timestamp_file = timestamp_file)
+}
+```
+
+```{r}
+pos <- ds |> 
+  group_by(lander_position) |> 
+  summarize(t0 = min(timestamp),
+            n = n()) |> 
+  arrange(lander_position) |> 
+  collect()
+```
+
+
+```{r, eval=FALSE}
+map(1:15, group_ml)
+```
+
+Run all fluxes using matlab/eddyflux_batch.m scripted using run_eddyflux.sh
+
+```{r, eval = FALSE}
+system("matlab/run_eddyflux.sh")
+```
+
+get t0 for all files and convert from decimal hours to UTC timestamps
+
+combine flux data
+
+```{r}
+flux_files <- list.files("matlab", pattern = "outfile2Rot_lecs_ml*", full.names = TRUE)
+flux <- read_delim(flux_files, id = "file") |> 
+  mutate(lander_position = as.integer(str_extract(file, "(\\d{1,2})(?=\\.dat$)"))) |> 
+  left_join(select(pos, lander_position, t0)) |> 
+  group_by(lander_position) |> 
+  mutate(timestamp = as.POSIXct(timemean * 3600, origin = t0)) |> 
+  arrange(timestamp)
+```
+
+```{r}
+dygraph(select(flux, timestamp, flux2o2))
+```
+
