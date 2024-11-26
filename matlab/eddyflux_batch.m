@@ -28,7 +28,7 @@ function eddyflux_batch(varargin)
     outfile3 = ['outfile3_', infile]; %output file with cumulative fluxes
     outfile4 = ['outfile2Rot_', infile]; %output file with fluxes for rotated data
     outfile5 = ['outfile3Rot_', infile]; %output file with cumulative fluxes for rotated data
-    flagwrite = 1; %write cumulative fluxes? 0=no, yes =1 (slow)
+    flagwrite = 0; %write cumulative fluxes? 0=no, yes =1 (slow)
     flagrotate = 1; %rotate around mean? yes = 1, no = 0, 2 = planar rotation
     planarzrot = -5.5725; % planar rotation angle for 2nd rotation; planar z rotation
     mheight = 0.6; %measuring height for storage calc (m)
@@ -41,7 +41,7 @@ function eddyflux_batch(varargin)
     dist = 0.025; %distance between sensors (m)
     flowlag = 0.1; % (sec) time it takes water to get from tip of sensor to the sensing surface based on pump flow rate (mL/sec) and flow path volume (mL)
     %flagshift routine causes index error with test data
-    flagshift = 0; %flag to timeshift data based on mean velocity
+    flagshift = 1; %flag to timeshift data based on mean velocity
     flagwv = 0.045; %minimum velocity for estimating Cd and phi2 (for determining planarzrot)
 
     %input timestamps for flux calculation;
