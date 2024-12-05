@@ -4,9 +4,11 @@
 .Ruserdata
 .DS_Store
 *.html
-
+*.pdf
 *files/
 /.quarto/
 data
 archive
 *.dat
+*.duckdb*
+*.csv
