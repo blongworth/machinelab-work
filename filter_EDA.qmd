@@ -94,6 +94,39 @@ ggplot(dss, aes(timestamp)) +
 Are these cross-file duplicates due to timestamps out of whack?
 If so, why so few?
 
+```{r}
+vs <- ds |>
+  select(u, v, w) |> 
+  slice_sample(n = 10000000) |>
+  filter(!is.na(u), !is.na(v), !is.na(w)) |> 
+  collect()
+```
+
+
+```{r}
+vs |>
+pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity") |>
+ggplot(aes(velocity)) +
+geom_density() +
+facet_grid(rows = "axis", scales = "free_y")
+```
+
+
+```{r}
+vs |>
+pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity") |>
+ggplot(aes(velocity)) +
+geom_density() +
+scale_y_log10() +
+  xlim(-1,1) +
+facet_grid(rows = "axis", scales = "free_y")
+
+```
+
+```{r}
+summarize(vs, across(everything(), list(mean = mean, sd = sd)))
+```
+
 # Minute averages
 
 Open minute averages to get proper ranges. Need to create hour or minute average dataset to do this
