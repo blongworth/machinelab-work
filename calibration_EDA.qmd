@@ -41,6 +41,127 @@ Open dataset
 ds <- open_dataset(file.path(data_dir, "lecs_adv_filt.parquet"))
 ```
 
+```{r}
+vs <- ds |>
+  select(u, v, w) |> 
+  slice_sample(n = 100000) |>
+  collect()
+```
+
+
+```{r}
+vs |>
+pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity") |>
+ggplot(aes(velocity)) +
+geom_density() +
+facet_grid(rows = "axis")
+```
+
+
+```{r}
+vs |>
+pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity") |>
+ggplot(aes(velocity)) +
+geom_density() +
+scale_y_log10() +
+facet_grid(rows = "axis")
+
+```
+
+fall spike data
+
+```{r}
+df <- ds |> 
+  filter(timestamp > "2023-11-28 18:20:00",
+         timestamp < "2023-11-28 18:21:00") |> 
+  collect()
+
+# dfsnip <- ds |> 
+#   filter(timestamp > "2023-11-28 20:00:00",
+#          timestamp < "2023-11-28 20:01:00") |> 
+#   collect()
+
+#write_csv(dfsnip, "bad_data_16Hz.csv")
+
+df <- df |> pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity")
+
+df |> 
+  ggplot(aes(timestamp, velocity)) +
+  geom_line() +
+  facet_grid(rows = "axis", scales = "free")
+```
+
+winter spike data
+
+```{r}
+df <- ds |> 
+  filter(timestamp > "2024-01-02 18:00:00",
+         timestamp < "2024-01-02 22:00:00") |> 
+  collect()
+
+dfsnip <- ds |> 
+  filter(timestamp > "2023-11-28 20:00:00",
+         timestamp < "2023-11-28 20:01:00") |> 
+  collect()
+
+#write_csv(dfsnip, "bad_data_16Hz.csv")
+
+df <- df |> pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity")
+
+df |> 
+  ggplot(aes(timestamp, velocity)) +
+  geom_line() +
+  facet_grid(rows = "axis", scales = "free")
+```
+
+Find velocity distribution
+
+```{r}
+vs <- ds |> 
+  slice_sample(n = 100000) |> 
+  collect()
+```
+
+```{r}
+vs |> 
+  pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity") |> 
+  ggplot(aes(velocity)) +
+  geom_density() +
+  #scale_y_log10() +
+  facet_grid(rows = "axis") 
+```
+
+```{r}
+vs |> 
+  select(u, v, w) |> 
+  mutate(uv = u - v,
+         uw = u - w,
+         vw = v - w) |> 
+  pivot_longer(cols = c(uv, uw, vw), names_to = "axis", values_to = "velocity") |> 
+  ggplot(aes(velocity)) +
+  geom_density() +
+  scale_y_log10() +
+  facet_grid(rows = "axis") 
+```
+
+1.5 * IQR range
+
+```{r}
+qrange <- function(x, factor = 1.5) {
+  x <- na.exclude(x)
+  q1 <- quantile(x, .25)
+  q3 <- quantile(x, .75)
+  qr <- q3 - q1
+  list(min = q1 - (qr * factor), 
+       max = q3 + (qr * factor))
+}
+
+qr <- vs |> 
+  select(u, v, w) |> 
+  map(qrange, factor = 3)
+```
+
+
 ## Seaphox calibration data
 
 ### Jul calibration
@@ -139,17 +260,17 @@ sp_nov <- read_excel("data/SeapHOx Data/Seaphox_LECS_111523.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 60 * 60, # LECS was on EDT, should be on EST
+  mutate(#timestamp = timestamp - 60 * 60, # LECS was on EDT, should be on EST
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
 sp_nov <- filter(sp_nov, timestamp > "2023-11-15 16:00:00",
-                 timestamp < "2023-11-21 04:00:00")
+                 timestamp < "2023-11-21 08:00:00")
 ```
 
 check alignment with LECS data
 
 ```{r}
-lecs_nov <- get_lecs(ds, "2023-11-15 16:00:00", "2023-11-21 04:00:00")
+lecs_nov <- get_lecs(ds, "2023-11-15 16:00:00", "2023-11-21 08:00:00")
 
 ggplot(sp_nov, aes(timestamp, pH)) +
   geom_line() +
@@ -188,17 +309,16 @@ sp_dec <- read_excel("data/SeapHOx Data/Seaphox_LECS_120723.xlsx") |>
          pressure = pressure_decibar,
          sal = salinity_psu,
          oxygen = oxygen_ml_l) |> 
-  mutate(timestamp = timestamp - 60 * 60, # LECS was on EDT, should be on EST
-         oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
+  mutate(oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
-sp_dec <- filter(sp_dec, timestamp > "2023-12-08 06:00:00",
-                 timestamp < "2023-12-14 09:00:00")
+sp_dec <- filter(sp_dec, timestamp > "2023-12-08 07:00:00",
+                 timestamp < "2023-12-14 10:00:00")
 ```
 
 check alignment with LECS data
 
 ```{r}
-lecs_dec <- get_lecs(ds,"2023-12-08 06:00:00", "2023-12-14 14:00:00")
+lecs_dec <- get_lecs(ds,"2023-12-08 05:00:00", "2023-12-14 15:00:00")
 
 ggplot(sp_dec, aes(timestamp, pH)) +
   geom_line() +
@@ -230,11 +350,11 @@ Note that seapHOx data have UTC timestamps
 
 ```{r}
 sp_jan <- read_seaphox("data/SeapHOx Data/Seaphox_LECS_122223.csv") |> 
-  mutate(timestamp = timestamp - 60 * 60,
+  mutate(
          oxygen = o2_ml_l_to_umol_kg(oxygen, sal, temp, pressure))
 
-sp_jan <- filter(sp_jan, timestamp > "2023-12-22 14:00:00",
-                 timestamp < "2024-01-03 05:00:00")
+sp_jan <- filter(sp_jan, timestamp > "2023-12-22 15:00:00",
+                 timestamp < "2024-01-03 06:00:00")
 ```
 
 check alignment with LECS data
