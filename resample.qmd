@@ -18,9 +18,8 @@ How to divide up remaining points and group
 ```{r}
 library(tidyverse)
 library(arrow)
-# library(tictoc)
+library(tictoc)
 library(imputeTS)
-library(polars)
 
 options(digits.secs = 6)
 
@@ -33,17 +32,19 @@ ds <- open_dataset(file.path(data_dir, "lecs_adv_cal.parquet"))
 
 resample to hourly
 
+arrow
+
 ```{r}
-ds_hourly <- ds |> 
+ds_hourly <- ds |>
   select(-c(year, month)) |> 
   mutate(timestamp = floor_date(timestamp, "hour")) |> 
   group_by(timestamp) |> 
   summarise(across(everything(), 
                    ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup()
+  ungroup() |> 
+  collect()
 
 ds_hourly |> 
-  collect() |> 
   data.table::fwrite(file.path(data_dir, "lecs_adv_hourly.csv"))
 
 write_dataset(ds_hourly, 
@@ -59,10 +60,10 @@ ds_minute <- ds |>
   group_by(timestamp) |> 
   summarise(across(everything(), 
                    ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup()
+  ungroup() |> 
+  collect()
 
 ds_minute |> 
-  collect() |> 
   data.table::fwrite(file.path(data_dir, "lecs_adv_minute.csv"))
 
 write_dataset(ds_minute, 
@@ -73,17 +74,27 @@ Resample to 4Hz and impute missing data
 
 create complete 4Hz timeseries and join to add NA's for missing data
 
-```{r}
-df_4hz <- ds |> 
-  select(-c(year, month)) |> 
-  mutate(timestamp = floor_date(timestamp, ".25 sec")) |> 
-  group_by(timestamp) |> 
-  summarise(across(everything(), 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup() |> 
-  arrange(timestamp) |>
-  collect()
+break up by year to process without crashing
 
+```{r}
+rs <- function(y) {
+  ds |> 
+    filter(year == y) |> 
+    select(-month) |> 
+    mutate(timestamp = floor_date(timestamp, ".250 sec")) |> 
+    group_by(timestamp) |> 
+    summarise(across(everything(), 
+                     ~ mean(.x, na.rm = TRUE))) |> 
+    ungroup() |> 
+    collect()
+}
+
+df_4hz <- map(c(2023,2024) , rs) |> 
+  list_rbind()
+```
+
+
+```{r}
 st <- min(df_4hz$timestamp) 
 et <- max(df_4hz$timestamp) 
 
@@ -101,6 +112,43 @@ df_4hz_all %>%
   write_dataset(file.path(data_dir, "lecs_adv_4hz.parquet"))
 ```
 
+Resample to 8Hz and impute missing data
+
+create complete 8Hz timeseries and join to add NA's for missing data
+
+does not work for full dataset
+
+```{r eval=FALSE}
+tic()
+df_8hz <- ds |> 
+  filter(year == 2024, month == 7) |> 
+  select(-c(year, month)) |> 
+  mutate(timestamp = floor_date(timestamp, "0.125 seconds")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup() |> 
+  arrange(timestamp) |>
+  collect()
+
+st <- min(df_8hz$timestamp) 
+et <- max(df_8hz$timestamp) 
+
+ts_8hz <- seq(from = st, to = et, by = 0.125) 
+
+df_ts_8hz <- tibble(timestamp = ts_8hz)
+
+df_8hz_all <- df_ts_8hz |> 
+  left_join(df_8hz)
+toc()
+```
+
+```{r, eval = FALSE}
+df_8hz_all %>% 
+  group_by(year = year(timestamp), month = month(timestamp)) %>% 
+  write_dataset(file.path(data_dir, "lecs_adv_8hz.parquet"))
+```
+
 Impute by interpolation with a max gap of 1sec.
 
 ```{r}
@@ -116,9 +164,9 @@ Add groups representing continuous data
 remove NA's and write to parquet
 
 ```{r}
-# df_4hz_all_imp <-  open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet")) |> 
-#   arrange(timestamp) |> 
-#   collect()
+df_4hz_all_imp <-  open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet")) |>
+  arrange(timestamp) |>
+  collect()
 
 df_4hz_imp_grp <- df_4hz_all_imp |> 
   mutate(is_gap = is.na(pH_cal) & !is.na(lag(pH_cal, default = NA))) |> 
@@ -135,22 +183,45 @@ df_4hz_imp_grp |>
 
 divide up big groups
 
-10 min blocks within groups
+```{r, eval=FALSE}
+df_4hz_imp_grp <-  open_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp.parquet")) |> 
+  collect()
+```
+
+15 min blocks within groups
 
 ```{r}
 df_grp <- df_4hz_imp_grp  |> 
   group_by(group) |> 
-  mutate(block_time = floor_date(timestamp, unit = "10min"),
+  mutate(block_time = floor_date(timestamp, unit = "15min"),
          block_start = block_time != lag(block_time),
          block_start = if_else(is.na(block_start), TRUE, block_start)) |> 
   ungroup() |> 
   mutate(block = cumsum(block_start) + 1) |> 
   select(-c(block_time, block_start))
+```
 
+Flag lander moves
+
+```{r}
+#df_grp <-  open_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_10.parquet"))
+
+lander_moves <- read_csv("data/lander_moves.csv") |> 
+  rename(change_timestamp = timestamp) |> 
+  mutate(lander_position = row_number())
+
+df_grp_mv <- df_grp |> 
+  arrange(timestamp) |> 
+  collect() |> 
+  left_join(lander_moves,
+            by = join_by(closest(timestamp >= change_timestamp))) |> 
+  fill(lander_position, .direction = "down") |> 
+  mutate(lander_position = replace_na(lander_position, 1)) |> 
+  select(-change_timestamp)
 ```
 
 ```{r}
-df_grp |> 
-  group_by(year, month) |> 
-  write_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_10.parquet"))
+df_grp_mv |> 
+  group_by(year, month = month(timestamp)) |> 
+  write_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_15_mv.parquet"))
 ```
