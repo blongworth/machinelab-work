@@ -125,7 +125,9 @@ future_map(1:15, group_ml)
 Run all fluxes using matlab/eddyflux_batch.m scripted using run_eddyflux.sh
 
 ```{r, eval = FALSE}
-system("matlab/run_eddyflux.sh")
+system("cd matlab;
+        cp ../data/processed/matlab_input/* .; 
+        matlab/run_eddyflux.sh")
 ```
 
 get t0 for all files and convert from decimal hours to UTC timestamps
@@ -138,185 +140,14 @@ flux <- read_delim(flux_files, id = "file") |>
   mutate(lander_position = as.integer(str_extract(file, "(\\d{1,2})(?=\\.dat$)"))) |> 
   left_join(select(pos, lander_position, t0)) |> 
   group_by(lander_position) |> 
-  mutate(timestamp = as.POSIXct(timemean * 3600, origin = t0, tz = "GMT")) |> 
+  mutate(timestamp = as.POSIXct(timemean * 3600, origin = t0, tz = "GMT"),
+         phi2 = na_if(phi2, NaN),
+         Cd = na_if(Cd, NaN)) |> 
+  select(-c(file, timemean, ...38, t0)) |> 
   arrange(timestamp) |> 
   ungroup()
 ```
 
 ```{r}
 write_dataset(flux, file.path(data_dir, "lecs_flux_4hz_rot_fl5.parquet"))
-```
-
-
-```{r}
-dygraph(select(flux, timestamp, flux3o2), group = "flux")
-```
-```{r}
-flux |> 
-  ggplot(aes(timestamp, flux3o2)) +
-  geom_line() +
-  geom_hline(yintercept = 0) +
-  ylab("O2 Flux [mmol/m2/h]")
-  
-```
-
-
-```{r}
-dygraph(select(flux, timestamp, vxmean, vymean, vzmean), group = "flux")
-```
-
-```{r}
-flux |>
-  select(timestamp, vxmean, vymean, vzmean) |> 
-  # filter(timestamp > "2023-11-28 18:00:00",
-  #        timestamp < "2023-11-28 22:00:00") |> 
-  pivot_longer(cols = c(vxmean, vymean, vzmean),
-               names_to = "axis", values_to = "velocity") |> 
-  ggplot(aes(timestamp, velocity)) +
-  geom_line() +
-  facet_grid(rows = "axis")
-```
-```{r}
-flux |>
-  select(timestamp, vxrot, vyrot, vzrot) |> 
-  # filter(timestamp > "2023-11-28 18:00:00",
-  #        timestamp < "2023-11-28 22:00:00") |> 
-  pivot_longer(cols = c(vxrot, vyrot, vzrot),
-               names_to = "axis", values_to = "velocity") |> 
-  ggplot(aes(timestamp, velocity)) +
-  geom_line() +
-  facet_grid(rows = "axis")
-```
-
-```{r}
-dygraph(select(flux, timestamp, vxrot, vyrot, vzrot), group = "flux")
-```
-```{r}
-dygraph(select(flux, timestamp, o2mean), group = "flux")
-```
-
-
-```{r}
-dygraph(select(flux, timestamp, SNRmean, correlationmean), group = "flux")
-```
-
-```{r}
-flux |> 
-  select(vxmean, vymean) |> 
-  mutate(across(everything(), abs)) |> 
-  plot()
-```
-
-Diurnal cycle
-
-```{r}
-crds <- matrix(c(-70.7003, 41.51875), nrow = 1)
-
-# calculate predicted par from solar azimuth
-pred_par <- function(crds, timestamp) {
-  altitude <- solarpos(crds, timestamp)[,2]
-  altitude <- replace(altitude, altitude <= 0, 0)
-  insolation = sin(altitude * pi / 180)
-  par = 0.45 * insolation * 4.6 * 1000
-  par
-}
-```
-
-```{r}
-flux_h <- flux |> 
-  mutate(par = pred_par(crds, timestamp),
-         hour = hour(timestamp)) |> 
-  group_by(hour) |> 
-  summarise(across(everything(), c(mean = mean, sd = sd)))
-```
-
-
-```{r}
-o2 <- ggplot(flux_h, aes(hour, flux3o2_mean)) + 
-  geom_line() +
-  #geom_pointrange(aes(ymin = flux3o2_mean - flux3o2_sd,
-  #                    ymax = flux3o2_mean + flux3o2_sd)) +
-  geom_hline(yintercept = 0) +
-  ylab("O2 Flux [mmol/m2/h]")
-
-par <- ggplot(flux_h, aes(hour, par_mean)) +
-  geom_line()
-
-par / o2
-```
-
-```{r}
-o2 <- ggplot(flux_h, aes(hour, flux3o2stor_mean)) + 
-  geom_line() +
-  #geom_pointrange(aes(ymin = flux3o2_mean - flux3o2_sd,
-  #                    ymax = flux3o2_mean + flux3o2_sd)) +
-  geom_hline(yintercept = 0) +
-  ylab("O2 Flux [mmol/m2/h]")
-
-par <- ggplot(flux_h, aes(hour, par_mean)) +
-  geom_line()
-
-par / o2
-```
-
-```{r}
-flux_s <- flux |> 
-  mutate(par = pred_par(crds, timestamp),
-         hour = hour(timestamp),
-         month = month(timestamp),
-         season = case_when(
-           month %in% 10:12 ~ "Fall",
-           month %in%  1:3  ~ "Winter",
-           month %in%  4:6  ~ "Spring",
-           TRUE ~ "Summer")) |> 
-  group_by(hour, season) |> 
-  summarise(across(everything(), c(mean = mean, sd = sd)))
-```
-
-```{r}
-o2 <- ggplot(flux_s, aes(hour, flux3o2_mean, color = season)) + 
-  geom_line() +
-  geom_pointrange(aes(ymin = flux3o2_mean - flux3o2_sd,
-                      ymax = flux3o2_mean + flux3o2_sd),
-                  size = 0.1,
-                  position = position_dodge(width = 0.5)) +
-  geom_hline(yintercept = 0) +
-  ylab("O2 Flux [mmol/m2/h]")
-
-par <- ggplot(flux_s, aes(hour, par_mean, color = season)) +
-  geom_line()
-
-par / o2
-```
-
-
-```{r}
-h <- ggplot(flux_h, aes(hour, flux3ph_mean)) + 
-  geom_line() +
-  #geom_pointrange(aes(ymin = flux3o2_mean - flux3o2_sd,
-  #                    ymax = flux3o2_mean + flux3o2_sd)) +
-  geom_hline(yintercept = 0) +
-  ylab("H+ Flux [mmol/m2/h]")
-
-par <- ggplot(flux_h, aes(hour, par_mean)) +
-  geom_line()
-
-par / h
-```
-
-
-```{r}
-o2 <- ggplot(flux_s, aes(hour, flux3ph_mean, color = season)) + 
-  geom_line() +
-  geom_pointrange(aes(ymin = flux3ph_mean - flux3ph_sd,
-                      ymax = flux3ph_mean + flux3ph_sd),
-                  size = 0.1,
-                  position = position_dodge(width = 0.5)) +
-  geom_hline(yintercept = 0) +
-  ylab("H+ Flux [mmol/m2/h]")
-
-par <- ggplot(flux_s, aes(hour, par_mean, color = season)) +
-  geom_line()
-
-par / o2
 ```
