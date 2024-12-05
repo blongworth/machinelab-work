@@ -23,23 +23,9 @@ names(ds)
 nrow(ds)
 ```
 
-Duplicates? Big time. I think these are caused
-by multi-second gaps in the status timeseries.
-Should be flagging data that causes this NA.
-
-```{r}
-ds |> 
-  filter(timestamp > "2023-08-05 00:00:00",
-         timestamp < "2023-08-06 00:00:00") |> 
-  group_by(timestamp) |> 
-  summarize(n = n()) |> 
-  filter(n > 1) |> 
-  collect()
-```
-
-Not sure what causes these more recent duplicates.
 Calculate duplicate fraction over a time period
 
+No duplicates!
 
 ```{r}
 dsf1 <- ds |> 
@@ -76,15 +62,6 @@ dss <- bind_rows(dss1, dss2, dss3)
 
 ggplot(dss, aes(timestamp)) +
   geom_histogram(binwidth = 3600 * 24)
-```
-
-```{r}
-ds |> 
-  filter(timestamp > "2024-08-05 05:18:50",
-         timestamp < "2024-08-05 05:19:00") |>
-  arrange(timestamp) |> 
-  collect() |> 
-  view()
 ```
 
 Early subset
@@ -193,6 +170,12 @@ df_min |>
   dyRangeSelector()
 ```
 
+```{r}
+df_min |> 
+  select(timestamp, u) %>% 
+  dygraph(group = "minute") |> 
+  dyRangeSelector()
+```
 
 ```{r}
 df_min |> 
@@ -208,6 +191,18 @@ ds_hourly <- open_dataset(file.path(data_dir, "lecs_adv_hourly.parquet"))
 ds_hourly |> 
   select(timestamp, pH_cal) %>% 
   collect() %>% 
+  dygraph()
+```
+
+mean hourly correlation
+
+```{r}
+ds_hourly |> 
+  select(timestamp, corr1, corr2, corr3) |> 
+  collect() |> 
+  rowwise() |> 
+  mutate(mcorr = mean(c(corr1, corr2, corr3))) |> 
+  select(timestamp, mcorr) |> 
   dygraph()
 ```
 
@@ -262,16 +257,41 @@ ds_4hz_all |>
 Check imputed data. Should also have NA's for sends.
 
 ```{r}
-ds_4hz_imp <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet"))
+ds_4hz_imp <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_10.parquet"))
 
-ds_4hz_imp |> 
-  select(timestamp, pH_cal) |>
-  filter(timestamp > "2024-04-01 04:09:00") |> 
+test_imp <- ds_4hz_imp |> 
+  select(timestamp, pH_cal, group, block) |>
+  filter(timestamp > "2024-04-01 00:09:00") |> 
   arrange(timestamp) |>
   head(n = 1000) |>
-  collect() |> 
-  View()
+  view()
 ```
+
+```{r}
+test_imp <- ds_4hz_imp |> 
+  #select(timestamp, pH_cal, group, block) |>
+  filter(floor_date(timestamp, "day") == as.Date("2024-04-01")) |> 
+  arrange(timestamp) |> 
+  collect()
+
+ggplot(test_imp, aes(timestamp, pH_cal, color = block)) +
+  geom_line()
+```
+```{r}
+tic()
+test_imp |> 
+  select(timestamp, pH_cal) |> 
+  dygraph()
+toc()
+```
+
+```{r}
+tic()
+plotly::plot_ly(test_imp, x = ~timestamp, y = ~pH_cal, type = 'scatter', mode = 'lines')
+toc()
+```
+
+
 
 Group sizes
 
@@ -396,96 +416,9 @@ grp_size |>
   geom_histogram(binwidth = 1, color = "lightblue")
 ```
 
-check missingness with imputeTS
+Distribution of vertical velocity
 
 ```{r}
-library(imputeTS)
-```
 
-
-```{r}
-# pick a small "good" subset
-pts <- df_4hz_all |> 
-  filter(timestamp > "2024-01-01 00:00:00",
-         timestamp < "2024-01-02 00:00:00") |> 
-  collect() |> 
-  pull(pH) |> 
-  ts(frequency = 4)
-
-ggplot_na_distribution(pts)
-```
-
-Impute gaps up to 1s using linear interpolation
-
-```{r}
-pts_imp <- pts %>% 
-  na_interpolation(maxgap = 4)
-
-ggplot_na_distribution(pts_imp)
-```
-same for full frequency dataset
-
-```{r}
-# pick a small "good" subset
-df <- ds |> 
-  filter(timestamp > "2024-01-01 00:00:00",
-         timestamp < "2024-01-01 01:00:00") |> 
-  collect()
-
-length(unique(df$timestamp))
-```
-
-Uh oh, we have duplicates
-
-```{r}
-ggplot(df, aes(1:nrow(df), timestamp)) +
-  geom_point()
-```
-
-wth? time goes back 30 min for a bit?
-
-how much does this happen over the course of a day?
-
-```{r}
-df <- ds |> 
-  filter(timestamp > "2024-01-01 00:00:00",
-         timestamp < "2024-01-02 00:00:00") |> 
-  collect()
-
-length(unique(df$timestamp))
-```
-
-Uh oh, we have duplicates again
-
-```{r}
-df |> 
-  arrange(timestamp) |> 
-ggplot(aes(1:nrow(df), timestamp)) +
-  geom_point()
-
-```
-
-```{r}
-df |> 
-  select(timestamp) |> 
-  arrange(timestamp) |> 
-  mutate(dup = duplicated(timestamp)) |> 
-  head(150)
-```
-
-
-```{r}
-st <- min(df$timestamp) 
-et <- max(df$timestamp) 
-df_ts <- tibble(timestamp = seq(from = st, to = et, by = 0.0625))
-  
-df_ts <- df_ts |> 
-  left_join(df)
-
-pts <- df_ts |> 
-  pull(pH) |> 
-  ts(frequency = 16)
-
-ggplot_na_distribution2(pts)
 ```
 
