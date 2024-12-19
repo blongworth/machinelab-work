@@ -29,11 +29,15 @@ ggplot(aes(ts, co2)) +
   geom_line()
 ```
 ```{r}
-df %>% 
+df_filt %>% 
   select(timestamp = ts, co2) %>% 
   na.omit() %>% 
-  as.xts() %>% 
-  dygraph()
+  dygraph() %>% 
+  dyOptions(useDataTimezone = TRUE)
+```
+```{r}
+df_filt <- df %>% 
+  filter(!(hour(ts) == 15 & minute(ts) > 48))
 ```
 
 ```{r}
