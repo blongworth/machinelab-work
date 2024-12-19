@@ -41,6 +41,8 @@ Open dataset
 ds <- open_dataset(file.path(data_dir, "lecs_adv_filt.parquet"))
 ```
 
+NOTE: slice sample is broken (non-random) in Arrow 17
+
 ```{r}
 vs <- ds |>
   select(u, v, w) |> 
@@ -72,8 +74,8 @@ fall spike data
 
 ```{r}
 df <- ds |> 
-  filter(timestamp > "2023-11-28 18:20:00",
-         timestamp < "2023-11-28 18:21:00") |> 
+  filter(timestamp > "2023-12-02 20:15:00",
+         timestamp < "2023-12-03 06:00:00") |> 
   collect()
 
 # dfsnip <- ds |> 
@@ -83,13 +85,21 @@ df <- ds |>
 
 #write_csv(dfsnip, "bad_data_16Hz.csv")
 
-df <- df |> pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity")
+df_long <- df |> pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity")
 
-df |> 
+df_long |> 
   ggplot(aes(timestamp, velocity)) +
   geom_line() +
+  #xlim()
   facet_grid(rows = "axis", scales = "free")
 ```
+
+
+```{r}
+ggplot(df, aes(abs(u), corr1)) +
+  geom_point()
+```
+
 
 winter spike data
 

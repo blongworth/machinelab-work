@@ -70,6 +70,12 @@ write_dataset(ds_minute,
               file.path(data_dir, "lecs_adv_minute.parquet"))
 ```
 
+clear previous data
+
+```{r}
+rm("ds_hourly", "ds_minute")
+```
+
 Resample to 4Hz and impute missing data
 
 create complete 4Hz timeseries and join to add NA's for missing data
@@ -106,47 +112,16 @@ df_4hz_all <- df_ts_4hz |>
   left_join(df_4hz)
 ```
 
+clear previous data
+
+```{r}
+rm("df_ts_4hz", "df_4hz")
+```
+
 ```{r}
 df_4hz_all %>% 
   group_by(year = year(timestamp), month = month(timestamp)) %>% 
   write_dataset(file.path(data_dir, "lecs_adv_4hz.parquet"))
-```
-
-Resample to 8Hz and impute missing data
-
-create complete 8Hz timeseries and join to add NA's for missing data
-
-does not work for full dataset
-
-```{r eval=FALSE}
-tic()
-df_8hz <- ds |> 
-  filter(year == 2024, month == 7) |> 
-  select(-c(year, month)) |> 
-  mutate(timestamp = floor_date(timestamp, "0.125 seconds")) |> 
-  group_by(timestamp) |> 
-  summarise(across(everything(), 
-                   ~ mean(.x, na.rm = TRUE))) |> 
-  ungroup() |> 
-  arrange(timestamp) |>
-  collect()
-
-st <- min(df_8hz$timestamp) 
-et <- max(df_8hz$timestamp) 
-
-ts_8hz <- seq(from = st, to = et, by = 0.125) 
-
-df_ts_8hz <- tibble(timestamp = ts_8hz)
-
-df_8hz_all <- df_ts_8hz |> 
-  left_join(df_8hz)
-toc()
-```
-
-```{r, eval = FALSE}
-df_8hz_all %>% 
-  group_by(year = year(timestamp), month = month(timestamp)) %>% 
-  write_dataset(file.path(data_dir, "lecs_adv_8hz.parquet"))
 ```
 
 Impute by interpolation with a max gap of 1sec.
@@ -154,7 +129,15 @@ Impute by interpolation with a max gap of 1sec.
 ```{r}
 df_4hz_all_imp <- df_4hz_all %>% 
   mutate(across(-timestamp, \(x) na_interpolation(x, maxgap = 4)))
+```
 
+clear previous data
+
+```{r}
+rm("df_4hz_all")
+```
+
+```{r}
 df_4hz_all_imp %>% 
   group_by(year = year(timestamp), month = month(timestamp)) %>% 
   write_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet"))
@@ -163,11 +146,13 @@ df_4hz_all_imp %>%
 Add groups representing continuous data
 remove NA's and write to parquet
 
-```{r}
+```{r, eval=FALSE}
 df_4hz_all_imp <-  open_dataset(file.path(data_dir, "lecs_adv_4hz_imp.parquet")) |>
   arrange(timestamp) |>
   collect()
+```
 
+```{r}
 df_4hz_imp_grp <- df_4hz_all_imp |> 
   mutate(is_gap = is.na(pH_cal) & !is.na(lag(pH_cal, default = NA))) |> 
   mutate(group = cumsum(is_gap) + 1) |> 
@@ -224,4 +209,41 @@ df_grp_mv <- df_grp |>
 df_grp_mv |> 
   group_by(year, month = month(timestamp)) |> 
   write_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_15_mv.parquet"))
+```
+
+Resample to 8Hz and impute missing data
+
+create complete 8Hz timeseries and join to add NA's for missing data
+
+does not work for full dataset
+
+```{r eval=FALSE}
+tic()
+df_8hz <- ds |> 
+  filter(year == 2024, month == 7) |> 
+  select(-c(year, month)) |> 
+  mutate(timestamp = floor_date(timestamp, "0.125 seconds")) |> 
+  group_by(timestamp) |> 
+  summarise(across(everything(), 
+                   ~ mean(.x, na.rm = TRUE))) |> 
+  ungroup() |> 
+  arrange(timestamp) |>
+  collect()
+
+st <- min(df_8hz$timestamp) 
+et <- max(df_8hz$timestamp) 
+
+ts_8hz <- seq(from = st, to = et, by = 0.125) 
+
+df_ts_8hz <- tibble(timestamp = ts_8hz)
+
+df_8hz_all <- df_ts_8hz |> 
+  left_join(df_8hz)
+toc()
+```
+
+```{r, eval = FALSE}
+df_8hz_all %>% 
+  group_by(year = year(timestamp), month = month(timestamp)) %>% 
+  write_dataset(file.path(data_dir, "lecs_adv_8hz.parquet"))
 ```

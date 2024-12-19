@@ -79,18 +79,6 @@ lecs_to_ml <- function(data,
 }
 ```
 
-test with one lander position
-
-```{r}
-df <- ds %>% 
-  filter(lander_position == 9) |>
-  arrange(timestamp) |> 
-  #head(n = 300000) |> 
-  collect() |> 
-  
-  lecs_to_ml(0.25, "../aec-tests/mltest/outfile1_lecstest.dat", "../aec-tests/mltest/lecstest_timestamps.dat")
-```
-
 generate files for all lander positions
 
 ```{r}
@@ -127,7 +115,7 @@ Run all fluxes using matlab/eddyflux_batch.m scripted using run_eddyflux.sh
 ```{r, eval = FALSE}
 system("cd matlab;
         cp ../data/processed/matlab_input/* .; 
-        matlab/run_eddyflux.sh")
+        ./run_eddyflux.sh")
 ```
 
 get t0 for all files and convert from decimal hours to UTC timestamps

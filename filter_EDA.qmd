@@ -10,10 +10,12 @@ Find bad sections in data and limits for value-based filtering.
 library(arrow)
 library(tidyverse)
 library(dygraphs)
+library(duckdb)
 
 options(digits.secs = 6)
 
 data_dir <- "data/processed/surface"
+con <- dbConnect(duckdb(), dbdir = "my-db.duckdb", read_only = FALSE)
 ```
 
 Open dataset
@@ -96,12 +98,56 @@ If so, why so few?
 
 ```{r}
 vs <- ds |>
-  select(u, v, w) |> 
-  slice_sample(n = 10000000) |>
-  filter(!is.na(u), !is.na(v), !is.na(w)) |> 
+  to_duckdb(con = con) |> 
+  slice_sample(n = 100000) |>
+  #filter(!is.na(u), !is.na(v), !is.na(w)) |> 
   collect()
 ```
 
+```{r}
+summarize(vs, start = min(timestamp), end = max(timestamp)) %>% collect()
+```
+
+Arrow does not slice datasets randomly
+
+```{r}
+sample_test <- function(i) {
+  ds |>
+    select(timestamp) |> 
+    slice_sample(n = 10000) |>
+    summarize(start = min(timestamp), end = max(timestamp)) |> 
+    collect() |> 
+    mutate(i = i)
+}
+
+map(1:5, sample_test) |> 
+  list_rbind()
+```
+
+duckdb does!
+
+```{r}
+dsd <- to_duckdb(ds, con = con)
+sample_test <- function(i) {
+  dsd |>
+    select(timestamp) |> 
+    slice_sample(n = 10000) |>
+    summarize(start = min(timestamp), end = max(timestamp)) |> 
+    collect() |> 
+    mutate(i = i)
+}
+
+map(1:5, sample_test) |> 
+  list_rbind()
+```
+
+```{r}
+vs |> 
+  select(timestamp, u, v, w) |> 
+  dygraph() |> 
+  dyRangeSelector(
+  )
+```
 
 ```{r}
 vs |>
@@ -118,15 +164,72 @@ pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity") |>
 ggplot(aes(velocity)) +
 geom_density() +
 scale_y_log10() +
-  xlim(-1,1) +
+  #xlim(-1,1) +
 facet_grid(rows = "axis", scales = "free_y")
 
 ```
 
 ```{r}
-summarize(vs, across(everything(), list(mean = mean, sd = sd)))
+summarize(vs, across(everything(), list(mean = \(x) mean(x, na.rm = TRUE), sd = \(x) sd(x, na.rm=TRUE))))
 ```
 
+1.5 * IQR range
+
+```{r}
+qrange <- function(x, factor = 1.5) {
+  x <- na.exclude(x)
+  q1 <- quantile(x, .25)
+  q3 <- quantile(x, .75)
+  qr <- q3 - q1
+  list(min = q1 - (qr * factor), 
+       max = q3 + (qr * factor))
+}
+
+qr <- vs |> 
+  select(u, v, w) |> 
+  map(qrange, factor = 3)
+```
+
+
+fall spike data
+
+```{r}
+df <- ds |> 
+  filter(timestamp > "2023-12-02 20:15:00",
+         timestamp < "2023-12-03 06:00:00") |> 
+  collect()
+
+# dfsnip <- ds |> 
+#   filter(timestamp > "2023-11-28 20:00:00",
+#          timestamp < "2023-11-28 20:01:00") |> 
+#   collect()
+
+#write_csv(dfsnip, "bad_data_16Hz.csv")
+
+df_long <- df |> pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity")
+
+df_long |> 
+  ggplot(aes(timestamp, velocity)) +
+  geom_line() +
+  #xlim()
+  facet_grid(rows = "axis", scales = "free")
+```
+
+```{r}
+df |> 
+  select(timestamp, corr1, corr2, corr3) |> 
+  dygraph() |> 
+  dyRangeSelector(
+  )
+```
+
+```{r}
+df |> 
+  select(timestamp, u, v, w) |> 
+  dygraph() |> 
+  dyRangeSelector(
+  )
+```
 # Minute averages
 
 Open minute averages to get proper ranges. Need to create hour or minute average dataset to do this
@@ -143,7 +246,7 @@ df_min <- ds |>
 
 ```{r}
 df_min |> 
-  ggplot(aes(timestamp, temp)) +
+  ggplot(aes(timestamp, u)) +
   geom_line()
 ```
 
@@ -178,11 +281,13 @@ ds |>
 
 ```{r}
 df_min |> 
-  select(timestamp, pressure) |> 
+  select(timestamp, u) |> 
   dygraph() |> 
   dyRangeSelector(
   )
 ```
+
+
 
 # Check filtered data
 

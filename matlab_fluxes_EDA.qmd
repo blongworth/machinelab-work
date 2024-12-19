@@ -55,9 +55,38 @@ flux |>
   geom_hline(yintercept = 0) +
   ylab("O2 Flux [mmol/m2/h]")
 ```
+Velocity histogram
 
 ```{r}
-dygraph(select(flux, timestamp, vxmean, vymean, vzmean), group = "flux")
+flux |>
+  select(timestamp, vxmean, vymean, vzmean) |> 
+  # filter(timestamp > "2023-11-28 18:00:00",
+  #        timestamp < "2023-11-28 22:00:00") |> 
+  pivot_longer(cols = c(vxmean, vymean, vzmean),
+               names_to = "axis", values_to = "velocity") |> 
+  ggplot(aes(velocity)) +
+  geom_density() +
+  facet_grid(rows = "axis", scales = "free_y")
+```
+```{r}
+flux_filt <- flux |> 
+  filter(correlationmean > 50) |> 
+  mutate(FluxcpsdLowStor = if_else(abs(vmean) < 0.01,
+                                   Flux3cpsdLowStor - Flux3cpsdLow,
+                                   Flux3cpsdLowStor))
+```
+
+
+```{r}
+flux_filt |> 
+  ggplot(aes(timestamp, Flux3cpsdLowStor)) +
+  geom_line() +
+  geom_hline(yintercept = 0) +
+  ylab("O2 Flux [mmol/m2/h]")
+```
+
+```{r}
+dygraph(select(flux_filt, timestamp, vxmean, vymean, vzmean), group = "flux")
 ```
 
 ```{r}
@@ -147,6 +176,30 @@ par <- ggplot(flux_h, aes(hour, par_mean)) +
 
 par / o2
 ```
+```{r}
+flux_hf <- flux_filt |> 
+  mutate(par = pred_par(crds, timestamp),
+         hour = hour(timestamp)) |> 
+  group_by(hour) |> 
+  summarise(across(-Flux_cpsd_xy_low, 
+                   c(mean = \(x) mean(x, na.rm = TRUE), 
+                     sd = \(x) sd(x, na.rm = TRUE))))
+```
+
+
+```{r}
+o2 <- ggplot(flux_hf, aes(hour, Flux3cpsdLowStor_mean)) + 
+  geom_line() +
+  #geom_pointrange(aes(ymin = flux3o2_mean - flux3o2_sd,
+  #                    ymax = flux3o2_mean + flux3o2_sd)) +
+  geom_hline(yintercept = 0) +
+  ylab("O2 Flux [mmol/m2/h]")
+
+par <- ggplot(flux_hf, aes(hour, par_mean)) +
+  geom_line()
+
+par / o2
+```
 
 ```{r}
 ph <- ggplot(flux_h, aes(hour, Flux3cpsdphLowStor_mean)) + 
@@ -208,3 +261,51 @@ par <- ggplot(flux_s, aes(hour, par_mean, color = season)) +
 
 par / o2
 ```
+
+
+# fall vs spring/summer
+
+```{r}
+flux_fall <- flux |> 
+  filter(timestamp > "2023-10-01",
+         timestamp < "2024-02-01") |> 
+  mutate(per = "fall")
+
+flux_spring <- flux |> 
+  filter(timestamp > "2024-03-01",
+         timestamp < "2024-09-01") |> 
+  mutate(per = "spring")
+
+flux_comp <- bind_rows(flux_fall, flux_spring)
+```
+
+```{r}
+flux_comp_h <- flux_comp |> 
+  mutate(par = pred_par(crds, timestamp),
+         hour = hour(timestamp)) |> 
+  group_by(per, hour) |> 
+  summarise(across(-Flux_cpsd_xy_low, 
+                   c(mean = \(x) mean(x, na.rm = TRUE), 
+                     sd = \(x) sd(x, na.rm = TRUE))))
+```
+
+```{r}
+o2 <- ggplot(flux_comp_h, aes(hour, Flux3cpsdLowStor_mean)) + 
+  geom_line() +
+  geom_pointrange(aes(ymin = Flux3cpsdLowStor_mean - Flux3cpsdLowStor_sd ,
+                      ymax = Flux3cpsdLowStor_mean  + Flux3cpsdLowStor_sd ),
+                  size = 0.1,
+                  position = position_dodge(width = 0.5)) +
+  geom_hline(yintercept = 0) +
+  ylab("H+ Flux [mmol/m2/h]") +
+  facet_grid(rows = "per",
+             scales = "free_y")
+
+par <- ggplot(flux_h, aes(hour, par_mean, color = per)) +
+  geom_line()
+
+par / o2
+```
+  
+```
+

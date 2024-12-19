@@ -39,7 +39,7 @@ function eddyflux_batch(varargin)
     Td = 5; % wave frequency for accumulativing at frequencies below the wave band using CPSD
     B = 4; % number of burst per hour (e.g. 15 minute bursts = 4)
     dist = 0.025; %distance between sensors (m)
-    flowlag = 0.1; % (sec) time it takes water to get from tip of sensor to the sensing surface based on pump flow rate (mL/sec) and flow path volume (mL)
+    flowlag = 0.5; % (sec) time it takes water to get from tip of sensor to the sensing surface based on pump flow rate (mL/sec) and flow path volume (mL)
     %flagshift routine causes index error with test data
     flagshift = 1; %flag to timeshift data based on mean velocity
     flagwv = 0.045; %minimum velocity for estimating Cd and phi2 (for determining planarzrot)
