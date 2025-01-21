@@ -1,0 +1,278 @@
+---
+title: "LECS Flux Comparison"
+format: pdf
+---
+
+Compare data from three filtering schemes:
+
+* Minimal running mean outlier filtering folowed by wide gross range filter
+* Wide gross range filter followed by running mean outlier filter
+* Velocities filtered to 2024 gross range followed by running mean outlier filter
+
+Plots are in the above order.
+
+# Processing
+
+Load libraries
+
+```{r}
+#| warning: false
+#| message: false
+library(tidyverse)
+library(purrr)
+library(arrow)
+library(patchwork)
+library(suntools)
+
+theme_set(theme_classic())
+```
+
+Read flux data
+
+```{r}
+data_dir <- "data/processed/surface"
+
+fluxfiles <- c("lecs_flux_4hz_rot_fl5_low_filt.parquet",
+               "lecs_flux_4hz_rot_fl5_newfilt.parquet",
+               "lecs_flux_4hz_rot_fl5_tightfilt.parquet")
+flux <- map(fluxfiles, \(x) read_parquet(file.path(data_dir, x, "part-0.parquet")))
+```
+
+Remove low mean correlation
+No flux for low velocity
+
+```{r}
+group_flux_cor <- function(df) {
+  df|> 
+    filter(correlationmean > 50) |> 
+    mutate(FluxcpsdLowStor = if_else(abs(vmean) < 0.01,
+                                     Flux3cpsdLowStor - Flux3cpsdLow,
+                                     Flux3cpsdLowStor))
+}
+
+flux_filt <- map(flux, group_flux_cor)
+
+```
+
+# Comparison plots
+
+## Timeseries
+
+Oxygen flux
+
+```{r}
+#| eval: false
+map(flux_filt, 
+    \(x) select(x, timestamp, Flux3cpsdLowStor) |> 
+      dygraph() |> 
+      dyAxis("y", valueRange = c(-400, 400)))
+```
+
+```{r}
+map(flux_filt, 
+    \(x) x |> 
+      ggplot(aes(timestamp, Flux3cpsdLowStor)) +
+      geom_hline(yintercept = 0) +
+      geom_line() +
+      ylab("O2 Flux [mmol/m2/h]") +
+      ylim(-400, 400)
+    ) |> 
+  wrap_plots() + 
+    plot_layout(ncol = 1, 
+                axis_titles = "collect", 
+                axes = "collect")
+```
+
+Mean Vertical velocity
+
+```{r}
+map(flux_filt, 
+    \(x) x |> 
+      ggplot(aes(timestamp, vzmean)) +
+      geom_hline(yintercept = 0, color = "grey") +
+      geom_line() +
+      ylab("Vertical velocity [cm/s]") +
+      ylim(-0.5, 0.5)
+    ) |> 
+  wrap_plots() + 
+  plot_layout(ncol = 1,
+              axis_titles = "collect", 
+              axes = "collect")
+```
+
+Oxygen concentration
+
+```{r}
+map(flux_filt, 
+    \(x) x |> 
+      ggplot(aes(timestamp, o2mean)) +
+      geom_hline(yintercept = 0, color = "grey") +
+      geom_line() +
+      ylab("Oxygen [umol/l]") +
+      ylim(0, 400)
+    ) |> 
+  wrap_plots() + 
+  plot_layout(ncol = 1,
+              axis_titles = "collect", 
+              axes = "collect")
+```
+
+Velocity distribution
+
+```{r}
+#| fig-height: 8
+map(flux_filt, \(flux) flux |>
+  select(timestamp, vxmean, vymean, vzmean) |> 
+  # filter(timestamp > "2023-11-28 18:00:00",
+  #        timestamp < "2023-11-28 22:00:00") |> 
+  pivot_longer(cols = c(vxmean, vymean, vzmean),
+               names_to = "axis", values_to = "velocity") |> 
+  ggplot(aes(velocity)) +
+    geom_density() +
+    xlim(-3,3)+
+    scale_y_log10() + 
+    facet_grid(rows = "axis", scales = "free_y")) |> 
+  wrap_plots() + 
+  plot_layout(ncol = 1,
+              axis_titles = "collect", 
+              axes = "collect") &
+  theme(plot.margin = margin(30))
+```
+
+# Aggregate fluxes
+
+Calculate predicted PAR using solar angle
+
+```{r}
+crds <- matrix(c(-70.7003, 41.51875), nrow = 1)
+
+# calculate predicted par from solar azimuth
+pred_par <- function(crds, timestamp) {
+  altitude <- solarpos(crds, timestamp)[,2]
+  altitude <- replace(altitude, altitude <= 0, 0)
+  insolation = sin(altitude * pi / 180)
+  par = 0.45 * insolation * 4.6 * 1000
+  par
+}
+```
+
+## Hourly aggregate flux
+
+Calculate hourly fluxes
+
+```{r}
+flux_h <- map(flux_filt, \(flux_filt) flux_filt |> 
+  mutate(par = pred_par(crds, timestamp),
+         hour = hour(timestamp)) |> 
+  group_by(hour) |> 
+  summarise(across(-Flux_cpsd_xy_low, 
+                   c(mean = \(x) mean(x, na.rm = TRUE), 
+                     sd = \(x) sd(x, na.rm = TRUE)))))
+```
+
+### Mean Oxygen flux
+
+```{r}
+o2 <- map(flux_h, \(flux_h) ggplot(flux_h, aes(hour, Flux3cpsdLowStor_mean)) + 
+  geom_line() +
+  #geom_pointrange(aes(ymin = flux3o2_mean - flux3o2_sd,
+  #                    ymax = flux3o2_mean + flux3o2_sd)) +
+  geom_hline(yintercept = 0) +
+  ylab("O2 Flux [mmol/m2/h]")) |> 
+  wrap_plots() + 
+  plot_layout(ncol = 1,
+              axis_titles = "collect", 
+              axes = "collect")
+
+par <- ggplot(flux_h[[1]], aes(hour, par_mean)) +
+  geom_line()
+
+
+o2 / par 
+
+```
+
+### Mean H+ flux
+
+```{r}
+ph <- map(flux_h, \(flux_h) ggplot(flux_h, aes(hour, Flux3cpsdphLowStor_mean)) + 
+  geom_line() +
+  geom_hline(yintercept = 0) +
+  ylab("H+ Flux [umol/m2/h]")) |> 
+  wrap_plots() + 
+  plot_layout(ncol = 1,
+              axis_titles = "collect", 
+              axes = "collect")
+  
+par <- ggplot(flux_h[[1]], aes(hour, par_mean)) +
+  geom_line()
+
+ph / par
+```
+
+## Seasonal fluxes
+
+```{r}
+flux_s <- map(flux_filt, \(x) x |> 
+  mutate(par = pred_par(crds, timestamp),
+         hour = hour(timestamp),
+         month = month(timestamp),
+         season = case_when(
+           month %in% 10:12 ~ "Fall",
+           month %in%  1:3  ~ "Winter",
+           month %in%  4:6  ~ "Spring",
+           TRUE ~ "Summer")) |> 
+  group_by(hour, season) |> 
+  summarise(across(-Flux_cpsd_xy_low, 
+                   c(mean = \(x) mean(x, na.rm = TRUE), 
+                     sd = \(x) sd(x, na.rm = TRUE)))))
+```
+
+### Seasonal Oxygen flux
+
+```{r}
+#| fig-height: 8
+o2 <- map(flux_s, \(flux_s) ggplot(flux_s, aes(hour, flux3o2_mean, color = season)) + 
+  geom_line() +
+  geom_pointrange(aes(ymin = flux3o2_mean - flux3o2_sd,
+                      ymax = flux3o2_mean + flux3o2_sd),
+                  size = 0.1,
+                  position = position_dodge(width = 0.5)) +
+  geom_hline(yintercept = 0) +
+  ylab("O2 Flux [mmol/m2/h]")) |> 
+  wrap_plots() + 
+  plot_layout(ncol = 1,
+              axis_titles = "collect", 
+              axes = "collect",
+              guides = "collect")
+
+par <- ggplot(flux_s[[1]], aes(hour, par_mean, color = season)) +
+  geom_line()
+
+o2 / par
+```
+
+### Seasonal H+ flux
+
+```{r}
+#| fig-height: 8
+ph <- map(flux_s, \(flux_s) ggplot(flux_s, aes(hour, Flux3cpsdphLowStor_mean, color = season)) + 
+  geom_line() +
+  geom_pointrange(aes(ymin = flux3ph_mean - flux3ph_sd,
+                      ymax = flux3ph_mean + flux3ph_sd),
+                  size = 0.1,
+                  position = position_dodge(width = 0.5)) +
+  geom_hline(yintercept = 0) +
+  ylab("H+ Flux [mmol/m2/h]")) |> 
+  wrap_plots() + 
+  plot_layout(ncol = 1,
+              axis_titles = "collect", 
+              axes = "collect",
+              guides = "collect")
+
+par <- ggplot(flux_s[[1]], aes(hour, par_mean, color = season)) +
+  geom_line()
+
+ph / par
+```
+
