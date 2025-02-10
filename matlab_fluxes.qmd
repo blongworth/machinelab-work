@@ -137,5 +137,5 @@ flux <- read_delim(flux_files, id = "file") |>
 ```
 
 ```{r}
-write_dataset(flux, file.path(data_dir, "lecs_flux_4hz_rot_fl5.parquet"))
+write_dataset(flux, file.path(data_dir, "lecs_flux_4hz_rot_fl5_tightfilt.parquet"))
 ```

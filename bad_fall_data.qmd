@@ -1,0 +1,186 @@
+---
+title: "LECS EDA for filtering data"
+format: html
+editor: source
+---
+
+Find bad sections in data and limits for value-based filtering.
+
+```{r}
+library(arrow)
+library(tidyverse)
+library(dygraphs)
+library(duckdb)
+
+options(digits.secs = 6)
+
+data_dir <- "data/processed/surface"
+con <- dbConnect(duckdb(), dbdir = "my-db.duckdb", read_only = FALSE)
+```
+
+Open dataset
+
+```{r}
+ds <- open_dataset(file.path(data_dir, "lecs_adv_data.parquet"))
+```
+
+sample data
+
+```{r}
+sample_arrow <- function(dataset, n) {
+  total_rows <- dataset$num_rows
+  
+  if (!is.numeric(n) || n <= 0) stop("n must be a positive number")
+  if (n > total_rows) stop("Sample size cannot exceed dataset size")
+  
+  indices <- sample.int(total_rows, n)
+  
+  # Ensure indices are within bounds
+  if (any(indices > total_rows) || any(indices <= 0)) {
+    stop("Invalid indices generated")
+  }
+  
+  dataset[indices, ]
+}
+```
+
+```{r}
+vs <-  ds |>
+    sample_arrow(n = 100000) |>
+    collect()
+```
+
+
+```{r}
+vs |> 
+  select(timestamp, u, v, w) |> 
+  dygraph() |> 
+  dyRangeSelector(
+  )
+```
+
+```{r}
+vs |> 
+  filter(timestamp > "2024-03-01 00:00:00") |> 
+  na.omit() |> 
+  summarize(across(c(u, v, w), list(min = min, max = max)))
+```
+
+```{r}
+vs |>
+pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity") |>
+ggplot(aes(velocity)) +
+geom_density() +
+facet_grid(rows = "axis", scales = "free_y")
+```
+
+
+```{r}
+vs |>
+pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity") |>
+ggplot(aes(velocity)) +
+geom_density() +
+scale_y_log10() +
+  #xlim(-1,1) +
+facet_grid(rows = "axis", scales = "free_y")
+```
+
+```{r}
+summarize(vs, across(everything(), list(mean = \(x) mean(x, na.rm = TRUE), sd = \(x) sd(x, na.rm=TRUE))))
+```
+
+1.5 * IQR range
+
+```{r}
+qrange <- function(x, factor = 1.5) {
+  x <- na.exclude(x)
+  q1 <- quantile(x, .25)
+  q3 <- quantile(x, .75)
+  qr <- q3 - q1
+  list(min = q1 - (qr * factor), 
+       max = q3 + (qr * factor))
+}
+
+qr <- vs |> 
+  select(u, v, w) |> 
+  map(qrange, factor = 3)
+```
+
+
+fall spike data
+
+```{r}
+df <- ds |> 
+  filter(timestamp > "2023-12-02 20:15:00",
+         timestamp < "2023-12-03 06:00:00") |> 
+  collect()
+```
+
+
+```{r}
+df_long <- df |> pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity")
+
+df_long |> 
+  ggplot(aes(timestamp, velocity)) +
+  geom_line() +
+  #xlim()
+  facet_grid(rows = "axis", scales = "free")
+```
+
+```{r}
+df |> 
+  select(timestamp, corr1, corr2, corr3) |> 
+  dygraph() |> 
+  dyRangeSelector(
+  )
+```
+
+```{r}
+df |> 
+  select(timestamp, u, v, w) |> 
+  dygraph() |> 
+  dyRangeSelector(
+  )
+```
+
+# Check filtered data
+
+```{r}
+ds_filt <- open_dataset(file.path(data_dir, "lecs_adv_filt.parquet"))
+```
+
+fall spike data
+
+```{r}
+df <- ds_filt |> 
+  filter(timestamp > "2023-12-02 20:15:00",
+         timestamp < "2023-12-03 06:00:00") |> 
+  collect()
+```
+
+
+```{r}
+df_long <- df |> pivot_longer(cols = c(u, v, w), names_to = "axis", values_to = "velocity")
+
+df_long |> 
+  ggplot(aes(timestamp, velocity)) +
+  geom_line() +
+  #xlim()
+  facet_grid(rows = "axis", scales = "free")
+```
+
+```{r}
+df |> 
+  select(timestamp, corr1, corr2, corr3) |> 
+  dygraph() |> 
+  dyRangeSelector(
+  )
+```
+
+```{r}
+df |> 
+  select(timestamp, u, v, w) |> 
+  dygraph() |> 
+  dyRangeSelector(
+  )
+```

@@ -23,7 +23,7 @@ data_dir <- "data/processed/surface"
 
 ```{r}
 ds <- open_dataset(file.path(data_dir, "lecs_adv_4hz_imp_grp_15_mv.parquet/"))
-flux <- read_parquet(file.path(data_dir, "lecs_flux_4hz_rot_fl5.parquet/part-0.parquet"))
+flux <- read_parquet(file.path(data_dir, "lecs_flux_4hz_rot_fl5_tightfilt.parquet/part-0.parquet"))
 ```
 
 
@@ -68,6 +68,10 @@ flux |>
   geom_density() +
   facet_grid(rows = "axis", scales = "free_y")
 ```
+
+Remove low mean correlation
+No flux for low velocity
+
 ```{r}
 flux_filt <- flux |> 
   filter(correlationmean > 50) |> 
@@ -153,7 +157,7 @@ pred_par <- function(crds, timestamp) {
 ```
 
 ```{r}
-flux_h <- flux |> 
+flux_h <- flux_filt |> 
   mutate(par = pred_par(crds, timestamp),
          hour = hour(timestamp)) |> 
   group_by(hour) |> 
@@ -176,30 +180,6 @@ par <- ggplot(flux_h, aes(hour, par_mean)) +
 
 par / o2
 ```
-```{r}
-flux_hf <- flux_filt |> 
-  mutate(par = pred_par(crds, timestamp),
-         hour = hour(timestamp)) |> 
-  group_by(hour) |> 
-  summarise(across(-Flux_cpsd_xy_low, 
-                   c(mean = \(x) mean(x, na.rm = TRUE), 
-                     sd = \(x) sd(x, na.rm = TRUE))))
-```
-
-
-```{r}
-o2 <- ggplot(flux_hf, aes(hour, Flux3cpsdLowStor_mean)) + 
-  geom_line() +
-  #geom_pointrange(aes(ymin = flux3o2_mean - flux3o2_sd,
-  #                    ymax = flux3o2_mean + flux3o2_sd)) +
-  geom_hline(yintercept = 0) +
-  ylab("O2 Flux [mmol/m2/h]")
-
-par <- ggplot(flux_hf, aes(hour, par_mean)) +
-  geom_line()
-
-par / o2
-```
 
 ```{r}
 ph <- ggplot(flux_h, aes(hour, Flux3cpsdphLowStor_mean)) + 
@@ -214,7 +194,7 @@ par / ph
 ```
 
 ```{r}
-flux_s <- flux |> 
+flux_s <- flux_filt |> 
   mutate(par = pred_par(crds, timestamp),
          hour = hour(timestamp),
          month = month(timestamp),
@@ -266,12 +246,12 @@ par / o2
 # fall vs spring/summer
 
 ```{r}
-flux_fall <- flux |> 
+flux_fall <- flux_filt |> 
   filter(timestamp > "2023-10-01",
          timestamp < "2024-02-01") |> 
   mutate(per = "fall")
 
-flux_spring <- flux |> 
+flux_spring <- flux_filt |> 
   filter(timestamp > "2024-03-01",
          timestamp < "2024-09-01") |> 
   mutate(per = "spring")
@@ -301,11 +281,9 @@ o2 <- ggplot(flux_comp_h, aes(hour, Flux3cpsdLowStor_mean)) +
   facet_grid(rows = "per",
              scales = "free_y")
 
-par <- ggplot(flux_h, aes(hour, par_mean, color = per)) +
+par <- ggplot(flux_comp_h, aes(hour, par_mean, color = per)) +
   geom_line()
 
 par / o2
 ```
   
-```
-

@@ -1,6 +1,6 @@
 ---
 title: "LECS Flux Comparison"
-format: pdf
+format:  html
 ---
 
 Compare data from three filtering schemes:
@@ -84,6 +84,13 @@ map(flux_filt,
 ```
 
 Mean Vertical velocity
+
+```{r}
+#| eval: false
+map(flux_filt, 
+    \(x) select(x, timestamp, vzmean) |> 
+      dygraph())
+```
 
 ```{r}
 map(flux_filt, 
