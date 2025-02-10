@@ -56,6 +56,21 @@ ds |>
   collect()
 ```
 
+Produces "Negative buffer resize" error in arrow 19.0.0
+
+```{r}
+#| eval: false 
+dsd <- ds |> 
+  group_by(timestamp) |>
+  summarize(n = n()) |>
+  collect() 
+  filter(n > 1) |>
+  show_exec_plan()
+  collect()
+```
+
+fix by dividing into smaller groups
+
 ```{r}
 dsf1 <- ds |> 
   filter(timestamp > "2023-01-01 00:00:00",
